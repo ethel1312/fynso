@@ -6,6 +6,39 @@ class DonutChartCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final categorias = [
+      {
+        'nombre': 'Comida',
+        'valor': 1150,
+        'color': Colors.red,
+        'porcentaje': '40%',
+      },
+      {
+        'nombre': 'Transporte',
+        'valor': 680,
+        'color': Colors.blue,
+        'porcentaje': '24%',
+      },
+      {
+        'nombre': 'Servicios',
+        'valor': 520,
+        'color': Colors.green,
+        'porcentaje': '18%',
+      },
+      {
+        'nombre': 'Compras',
+        'valor': 350,
+        'color': Colors.orange,
+        'porcentaje': '12%',
+      },
+      {
+        'nombre': 'Otros',
+        'valor': 147,
+        'color': Colors.grey,
+        'porcentaje': '6%',
+      },
+    ];
+
     return Card(
       color: Colors.white,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -15,46 +48,84 @@ class DonutChartCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              "Gasto por Categoría",
-              style: TextStyle(fontWeight: FontWeight.bold),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: const [
+                Text(
+                  "Gastos por Categoría",
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                Text(
+                  "Enero 2025",
+                  style: TextStyle(fontSize: 12, color: Colors.grey),
+                ),
+              ],
             ),
             const SizedBox(height: 16),
-            SizedBox(
-              height: 200,
-              child: PieChart(
-                PieChartData(
-                  sections: [
-                    PieChartSectionData(
-                      value: 1150,
-                      color: Colors.blue,
-                      title: "Comida\n40%",
+            Row(
+              children: [
+                SizedBox(
+                  height: 150,
+                  width: 150,
+                  child: PieChart(
+                    PieChartData(
+                      sections: categorias
+                          .map(
+                            (cat) => PieChartSectionData(
+                              value: (cat['valor'] as int).toDouble(),
+                              color: cat['color'] as Color,
+                              showTitle: false,
+                            ),
+                          )
+                          .toList(),
+                      centerSpaceRadius: 40,
+                      sectionsSpace: 2,
                     ),
-                    PieChartSectionData(
-                      value: 680,
-                      color: Colors.green,
-                      title: "Transporte\n24%",
-                    ),
-                    PieChartSectionData(
-                      value: 520,
-                      color: Colors.orange,
-                      title: "Servicios\n18%",
-                    ),
-                    PieChartSectionData(
-                      value: 350,
-                      color: Colors.purple,
-                      title: "Compras\n12%",
-                    ),
-                    PieChartSectionData(
-                      value: 147,
-                      color: Colors.red,
-                      title: "Otros\n6%",
-                    ),
-                  ],
-                  sectionsSpace: 2,
-                  centerSpaceRadius: 40,
+                  ),
                 ),
-              ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: categorias
+                        .map(
+                          (cat) => Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 4),
+                            child: Row(
+                              children: [
+                                Container(
+                                  width: 12,
+                                  height: 12,
+                                  color: cat['color'] as Color,
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(child: Text(cat['nombre'] as String)),
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.end,
+                                  children: [
+                                    Text(
+                                      'S/. ${cat['valor']}',
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    Text(
+                                      cat['porcentaje'] as String,
+                                      style: const TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.grey,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        )
+                        .toList(),
+                  ),
+                ),
+              ],
             ),
           ],
         ),
