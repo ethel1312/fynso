@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-
 import '../themes/app_color.dart';
 
 class CustomTextField extends StatefulWidget {
@@ -7,6 +6,8 @@ class CustomTextField extends StatefulWidget {
   final bool isPassword;
   final TextInputType keyboardType;
   final TextEditingController? controller;
+  final int maxLines;
+  final int? maxLength;
 
   const CustomTextField({
     super.key,
@@ -14,6 +15,8 @@ class CustomTextField extends StatefulWidget {
     this.isPassword = false,
     this.keyboardType = TextInputType.text,
     this.controller,
+    this.maxLines = 1, // por defecto 1 línea
+    this.maxLength, // opcional
   });
 
   @override
@@ -35,19 +38,18 @@ class _CustomTextFieldState extends State<CustomTextField> {
       controller: widget.controller,
       obscureText: _obscureText,
       keyboardType: widget.keyboardType,
+      maxLines: widget.maxLines,
+      maxLength: widget.maxLength,
       decoration: InputDecoration(
         labelText: widget.label,
         labelStyle: const TextStyle(fontFamily: 'Roboto'),
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(
-            color: AppColor.azulFynso, // azul de los botones
-            width: 2,
-          ),
+          borderSide: const BorderSide(color: AppColor.azulFynso, width: 2),
         ),
         floatingLabelStyle: const TextStyle(
-          color: AppColor.azulFynso, // color del label al enfocar
+          color: AppColor.azulFynso,
           fontFamily: 'Roboto',
         ),
         suffixIcon: widget.isPassword

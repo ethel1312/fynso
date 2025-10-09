@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:fynso/features/agregar/view/widgets/boton_mic.dart';
 import 'package:fynso/features/agregar/view/widgets/gasto_card.dart';
 
+import '../../../common/themes/app_color.dart';
 import 'detalle_gasto_screen.dart';
 
 class HistorialGastosScreen extends StatelessWidget {
@@ -26,8 +27,8 @@ class HistorialGastosScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Gastos'),
-        backgroundColor: Colors.blue[800],
+        title: const Text('Historial de gastos'),
+        backgroundColor: Colors.white,
       ),
       body: ListView.builder(
         padding: const EdgeInsets.all(16),
@@ -53,11 +54,9 @@ class HistorialGastosScreen extends StatelessWidget {
       ),
       floatingActionButton: MicButton(
         onPressed: () {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(const SnackBar(content: Text('Micrófono presionado')));
+          Navigator.pushNamed(context, '/grabarGasto');
         },
-        backgroundColor: Colors.blue[800]!,
+        backgroundColor: AppColor.azulFynso,
       ),
     );
   }
