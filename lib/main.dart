@@ -28,9 +28,6 @@ class MyApp extends StatelessWidget {
       ),
       home: const SplashScreen(),
 
-      // 👇 Ruta inicial (pantalla principal)
-      initialRoute: '/home',
-
       // 👇 Rutas disponibles en toda la app
       routes: {
         '/home': (context) => const HomeScreen(),

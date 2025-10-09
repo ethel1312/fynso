@@ -12,7 +12,7 @@ class AudioService {
       Uri.parse('$baseUrl/api/transcribe_and_extract'),
     );
 
-    request.headers['Authorization'] = 'Bearer $jwt';
+    request.headers['Authorization'] = 'JWT $jwt';
     request.files.add(
       await http.MultipartFile.fromPath('audio', audioFile.path),
     );

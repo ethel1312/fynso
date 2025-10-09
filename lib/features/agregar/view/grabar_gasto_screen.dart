@@ -91,6 +91,8 @@ class _GrabarGastoScreenState extends State<GrabarGastoScreen>
       final prefs = await SharedPreferences.getInstance();
       final jwt = prefs.getString('jwt_token');
 
+      print("🟢 JWT leído antes de enviar audio: $jwt"); // <-- agrega esto
+
       if (jwt == null || jwt.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('No se encontró token de usuario')),
@@ -144,7 +146,7 @@ class _GrabarGastoScreenState extends State<GrabarGastoScreen>
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text('Grabar gastooooo'),
+        title: const Text('Grabar gasto'),
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
         elevation: 0,

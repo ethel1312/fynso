@@ -26,6 +26,9 @@ class AuthViewModel extends ChangeNotifier {
       if (_authResponse != null && _authResponse!.accessToken.isNotEmpty) {
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('jwt_token', _authResponse!.accessToken);
+        print(
+          "✅ JWT guardado: ${_authResponse!.accessToken}",
+        ); // <-- agrega esto
       }
     } finally {
       _isLoading = false;
