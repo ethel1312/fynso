@@ -15,7 +15,7 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'Fynso',
       theme: ThemeData(
-        scaffoldBackgroundColor: Colors.white, // ✅ Fondo global
+        scaffoldBackgroundColor: Colors.white, //
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         fontFamily: 'Roboto', // para toda la app
       ),

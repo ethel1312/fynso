@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:fynso/common/widgets/custom_text_blue.dart';
 import 'package:fynso/common/widgets/custom_text_title.dart';
+import '../../../common/themes/app_color.dart';
 import '../../../common/widgets/custom_button.dart';
 import '../../../common/widgets/custom_textfield.dart';
+import 'login_screen.dart';
 
 class RegisterScreen extends StatelessWidget {
   const RegisterScreen({super.key});
@@ -35,8 +38,28 @@ class RegisterScreen extends StatelessWidget {
 
               CustomButton(
                 text: "Regístrate",
-                backgroundColor: const Color(0xFF1565C0),
-                onPressed: () {},
+                backgroundColor: AppColor.azulFynso,
+                onPressed: () async {},
+              ),
+
+              const SizedBox(height: 40),
+
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text("¿Ya tienes una cuenta? "),
+                  CustomTextBlue(
+                    text: "Iniciar sesión",
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const LoginScreen(),
+                        ),
+                      );
+                    },
+                  ),
+                ],
               ),
             ],
           ),

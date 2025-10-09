@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:fynso/common/themes/app_color.dart';
 
 class CustomTextBlue extends StatelessWidget {
   final String text;
@@ -16,7 +17,7 @@ class CustomTextBlue extends StatelessWidget {
   Widget build(BuildContext context) {
     return TextButton(
       onPressed: onPressed,
-      style: TextButton.styleFrom(foregroundColor: const Color(0xFF1565C0)),
+      style: TextButton.styleFrom(foregroundColor: AppColor.azulFynso),
       child: Text(
         text,
         style: TextStyle(

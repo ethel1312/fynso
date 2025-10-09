@@ -4,6 +4,7 @@ import 'package:fynso/common/widgets/custom_text_blue.dart';
 import 'package:fynso/features/auth/view/login_email_screen.dart';
 import 'package:fynso/features/auth/view/register_screen.dart';
 
+import '../../../common/themes/app_color.dart';
 import '../../../common/widgets/custom_button.dart';
 import '../../../common/widgets/custom_text_title.dart';
 
@@ -21,9 +22,9 @@ class LoginScreen extends StatelessWidget {
             const SizedBox(height: 40),
             CustomButton(
               text: "Correo electrónico",
-              backgroundColor: const Color(0xFF1565C0),
+              backgroundColor: AppColor.azulFynso,
               icon: const Icon(Icons.email, color: Colors.white, size: 24),
-              onPressed: () {
+              onPressed: () async {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
@@ -46,7 +47,7 @@ class LoginScreen extends StatelessWidget {
                 ),
               ),
 
-              onPressed: () {},
+              onPressed: () async {},
             ),
             const SizedBox(height: 40),
 

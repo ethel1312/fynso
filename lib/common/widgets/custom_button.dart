@@ -4,14 +4,14 @@ class CustomButton extends StatelessWidget {
   final String text;
   final Color backgroundColor;
   final Widget? icon;
-  final VoidCallback onPressed;
+  final Future<void> Function()? onPressed; // 👈 permite async
 
   const CustomButton({
     super.key,
     required this.text,
     required this.backgroundColor,
     this.icon,
-    required this.onPressed,
+    this.onPressed,
   });
 
   @override
@@ -20,7 +20,11 @@ class CustomButton extends StatelessWidget {
       width: 335,
       height: 48,
       child: ElevatedButton.icon(
-        onPressed: onPressed,
+        onPressed: onPressed == null
+            ? null
+            : () async {
+                await onPressed!(); // 👈 ejecuta async correctamente
+              },
         icon: icon,
         label: Text(
           text,
