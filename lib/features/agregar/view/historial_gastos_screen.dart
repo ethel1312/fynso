@@ -11,6 +11,9 @@ import '../view_model/historial_gastos_view_model.dart';
 import 'detalle_gasto_screen.dart';
 import 'package:intl/intl.dart';
 
+// 👇 Importa el observer global
+import '../../../common/navigation/route_observer.dart';
+
 class HistorialGastosScreen extends StatefulWidget {
   const HistorialGastosScreen({super.key});
 
@@ -18,26 +21,48 @@ class HistorialGastosScreen extends StatefulWidget {
   State<HistorialGastosScreen> createState() => _HistorialGastosScreenState();
 }
 
-class _HistorialGastosScreenState extends State<HistorialGastosScreen> {
+class _HistorialGastosScreenState extends State<HistorialGastosScreen>
+    with RouteAware {
   late HistorialGastosViewModel viewModel;
-  String jwt = ''; // <-- guardamos el JWT aquí
+  String jwt = '';
 
   @override
   void initState() {
     super.initState();
     viewModel = HistorialGastosViewModel();
-    _loadTransactions();
+    _loadTransactions(); // carga inicial
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final route = ModalRoute.of(context);
+    if (route is PageRoute) {
+      routeObserver.subscribe(this, route);
+    }
+  }
+
+  @override
+  void dispose() {
+    routeObserver.unsubscribe(this);
+    super.dispose();
+  }
+
+  /// Se llama cuando volvemos a esta ruta (por ejemplo, cerraste Detalle/Editar)
+  @override
+  void didPopNext() {
+    _loadTransactions(); // recarga al volver
   }
 
   Future<void> _loadTransactions() async {
     final prefs = await SharedPreferences.getInstance();
-    jwt = prefs.getString('jwt_token') ?? ''; // <-- guardamos en estado
+    jwt = prefs.getString('jwt_token') ?? '';
 
     final now = DateTime.now();
     await viewModel.loadTransactions(jwt: jwt, anio: now.year, mes: now.month);
-    setState(
-      () {},
-    ); // opcional, para asegurarnos de que se refresque el builder
+
+    // Opcional: el notifyListeners del VM ya refresca con el Consumer.
+    if (mounted) setState(() {});
   }
 
   @override
@@ -58,28 +83,28 @@ class _HistorialGastosScreenState extends State<HistorialGastosScreen> {
                 : vm.transactions.isEmpty
                 ? const Center(child: Text('No hay transacciones'))
                 : ListView.builder(
-                    padding: const EdgeInsets.all(16),
-                    itemCount: vm.transactions.length,
-                    itemBuilder: (context, index) {
-                      final t = vm.transactions[index];
-                      return GastoCard(
-                        categoria: t.category,
-                        subcategoria: t.subcategory,
-                        monto: t.monto,
-                        fecha: formatFecha(t.fecha),
-                        onTap: () {
-                          Navigator.pushNamed(
-                            context,
-                            '/detalleGasto',
-                            arguments: TransactionDetailRequest(
-                              idTransaction: t.idTransaction,
-                              jwt: jwt, // ahora sí está disponible
-                            ),
-                          );
-                        },
-                      );
-                    },
-                  ),
+              padding: const EdgeInsets.all(16),
+              itemCount: vm.transactions.length,
+              itemBuilder: (context, index) {
+                final t = vm.transactions[index];
+                return GastoCard(
+                  categoria: t.category,
+                  subcategoria: t.subcategory,
+                  monto: t.monto,
+                  fecha: formatFecha(t.fecha),
+                  onTap: () {
+                    Navigator.pushNamed(
+                      context,
+                      '/detalleGasto',
+                      arguments: TransactionDetailRequest(
+                        idTransaction: t.idTransaction,
+                        jwt: jwt,
+                      ),
+                    );
+                  },
+                );
+              },
+            ),
             floatingActionButton: MicButton(
               onPressed: () {
                 Navigator.pushNamed(context, '/grabarGasto');
