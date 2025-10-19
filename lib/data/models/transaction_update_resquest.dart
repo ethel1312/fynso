@@ -1,31 +1,32 @@
 class TransactionUpdateRequest {
-  final double? amount;
   final String? category;
   final String? subcategory;
-  final String? date; // "YYYY-MM-DD"
-  final String? time; // "HH:mm"
-  final String? place;
-  final String? notes;
+  final double amount;
+  final String date;
+  final String time;
+  final String place;
+  final String notes;
+  final int? idSubcategory; // 👈 nuevo
 
   TransactionUpdateRequest({
-    this.amount,
     this.category,
     this.subcategory,
-    this.date,
-    this.time,
-    this.place,
-    this.notes,
+    required this.amount,
+    required this.date,
+    required this.time,
+    required this.place,
+    required this.notes,
+    this.idSubcategory,
   });
 
-  Map<String, dynamic> toJson() {
-    final Map<String, dynamic> json = {};
-    if (amount != null) json['amount'] = amount;
-    if (category != null) json['category'] = category;
-    if (subcategory != null) json['subcategory'] = subcategory;
-    if (date != null) json['date'] = date;
-    if (time != null) json['time'] = time;
-    if (place != null) json['place'] = place;
-    if (notes != null) json['notes'] = notes;
-    return json;
-  }
+  Map<String, dynamic> toJson() => {
+    if (category != null) 'category': category,
+    if (subcategory != null) 'subcategory': subcategory,
+    'amount': amount,
+    'date': date,
+    'time': time,
+    'place': place,
+    'notes': notes,
+    if (idSubcategory != null) 'id_subcategory': idSubcategory, // 👈 clave esperada por el backend
+  };
 }

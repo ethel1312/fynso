@@ -16,7 +16,9 @@ class DetalleGastoScreen extends StatefulWidget {
 
 class _DetalleGastoScreenState extends State<DetalleGastoScreen> {
   late TransactionDetailViewModel viewModel;
-  late int idTransaction;
+
+  // 👇 Guarda los args para poder recargar luego
+  TransactionDetailRequest? _args;
 
   @override
   void initState() {
@@ -25,10 +27,9 @@ class _DetalleGastoScreenState extends State<DetalleGastoScreen> {
 
     // Cargamos la transacción usando el objeto TransactionDetailRequest
     Future.microtask(() async {
-      final args =
-          ModalRoute.of(context)?.settings.arguments
-              as TransactionDetailRequest?;
+      final args = ModalRoute.of(context)?.settings.arguments as TransactionDetailRequest?;
       if (args != null) {
+        _args = args; // <- los guardamos para recargar más tarde
         await viewModel.loadTransactionDetail(
           jwt: args.jwt,
           idTransaction: args.idTransaction,
@@ -59,47 +60,54 @@ class _DetalleGastoScreenState extends State<DetalleGastoScreen> {
                 : t == null
                 ? const Center(child: Text('No hay datos'))
                 : SingleChildScrollView(
-                    padding: const EdgeInsets.all(16),
-                    child: Center(
-                      child: SizedBox(
-                        width: 335,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            _buildInfoRow('Categoría', t.category.nombre),
-                            _buildInfoRow('Subcategoría', t.subcategory.nombre),
-                            _buildInfoRow('Tipo', t.transactionType.nombre),
-                            _buildInfoRow('Monto', 'S/${formatMonto(t.monto)}'),
-                            _buildInfoRow('Fecha', formatFecha(t.fecha)),
-                            if (t.lugar != null && t.lugar!.isNotEmpty)
-                              _buildInfoRow('Lugar', t.lugar!),
-                            if (t.descripcion.isNotEmpty)
-                              _buildInfoRow('Descripción', t.descripcion),
-                            if (t.transcripcion != null &&
-                                t.transcripcion!.isNotEmpty)
-                              _buildInfoRow('Transcripción', t.transcripcion!),
-                            const SizedBox(height: 24),
-                            Center(
-                              child: CustomButton(
-                                text: 'Editar Gasto',
-                                backgroundColor: AppColor.azulFynso,
-                                onPressed: () async {
-                                  if (t == null) return;
+              padding: const EdgeInsets.all(16),
+              child: Center(
+                child: SizedBox(
+                  width: 335,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildInfoRow('Categoría', t.category.nombre),
+                      _buildInfoRow('Subcategoría', t.subcategory.nombre),
+                      _buildInfoRow('Tipo', t.transactionType.nombre),
+                      _buildInfoRow('Monto', 'S/${formatMonto(t.monto)}'),
+                      _buildInfoRow('Fecha', formatFecha(t.fecha)),
+                      if (t.lugar != null && t.lugar!.isNotEmpty)
+                        _buildInfoRow('Lugar', t.lugar!),
+                      if (t.descripcion.isNotEmpty)
+                        _buildInfoRow('Descripción', t.descripcion),
+                      if (t.transcripcion != null && t.transcripcion!.isNotEmpty)
+                        _buildInfoRow('Transcripción', t.transcripcion!),
+                      const SizedBox(height: 24),
+                      Center(
+                        child: CustomButton(
+                          text: 'Editar Gasto',
+                          backgroundColor: AppColor.azulFynso,
+                          onPressed: () async {
+                            if (t == null) return;
 
-                                  Navigator.pushNamed(
-                                    context,
-                                    '/editarGasto',
-                                    arguments: t
-                                        .toTransactionResponse(), // t ya es TransactionResponse
-                                  );
-                                },
-                              ),
-                            ),
-                          ],
+                            // 👇 Espera el resultado del editor
+                            final result = await Navigator.pushNamed(
+                              context,
+                              '/editarGasto',
+                              arguments: t.toTransactionResponse(),
+                            );
+
+                            // Si volvió con éxito (no null), recarga el detalle
+                            if (result != null && _args != null) {
+                              await vm.loadTransactionDetail(
+                                jwt: _args!.jwt,
+                                idTransaction: _args!.idTransaction,
+                              );
+                            }
+                          },
                         ),
                       ),
-                    ),
+                    ],
                   ),
+                ),
+              ),
+            ),
           );
         },
       ),
