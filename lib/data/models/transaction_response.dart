@@ -41,6 +41,16 @@ class TransactionResponse {
       return 0;
     }
 
+    String parseString(dynamic value, {String fallback = ''}) {
+      if (value == null) return fallback;
+      if (value is String) return value;
+      if (value is Map<String, dynamic>) {
+        // Intentamos tomar la propiedad "nombre" si existe
+        return value['nombre']?.toString() ?? fallback;
+      }
+      return value.toString();
+    }
+
     return TransactionResponse(
       idTransaction: parseInt(json['id_transaction']),
       idSubcategory: parseInt(json['id_subcategory']),
@@ -50,8 +60,8 @@ class TransactionResponse {
       fecha: json['fecha'] ?? '',
       lugar: json['lugar'],
       transcripcion: json['transcripcion'],
-      category: json['category'] ?? 'Otros',
-      subcategory: json['subcategory'] ?? 'General',
+      category: parseString(json['category'], fallback: 'Otros'),
+      subcategory: parseString(json['subcategory'], fallback: 'General'),
     );
   }
 }
