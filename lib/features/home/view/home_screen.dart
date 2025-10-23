@@ -55,7 +55,7 @@ class HomeScreen extends StatelessWidget {
             const SizedBox(height: 20),
 
             // CARD: Gráfica de anillo
-            const DonutChartCard(),
+            DonutChartCard(),
 
             const SizedBox(height: 20),
 
