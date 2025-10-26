@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:fynso/common/widgets/custom_text_title.dart';
 import 'package:fynso/features/home/view/widgets/add_button.dart';
 import 'package:fynso/features/home/view/widgets/comparison_cards.dart';
 import 'package:fynso/features/home/view/widgets/donut_chart_card.dart';
@@ -29,10 +30,7 @@ class HomeScreen extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          "Hola, Isamar!",
-                          style: Theme.of(context).textTheme.headlineSmall,
-                        ),
+                        CustomTextTitle("Hola, Isamar!"),
                         const SizedBox(height: 4),
                         Text(
                           "Controla tus gastos sabiamente",

@@ -8,6 +8,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:path_provider/path_provider.dart';
 
 import '../../../common/widgets/custom_button.dart';
+import '../../../common/widgets/custom_text_title.dart';
 import '../../../data/repositories/audio_repository.dart';
 import '../../../data/services/audio_service.dart';
 import '../view_model/grabar_gasto_viewmodel.dart';
@@ -128,7 +129,7 @@ class _GrabarGastoScreenState extends State<GrabarGastoScreen>
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
-          isRecording ? '🎙️ Grabación iniciada' : '⏹️ Grabación detenida',
+          isRecording ? 'Grabación iniciada' : 'Grabación detenida',
         ),
         duration: const Duration(seconds: 1),
       ),
@@ -146,7 +147,7 @@ class _GrabarGastoScreenState extends State<GrabarGastoScreen>
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text('Grabar gasto'),
+        title: const CustomTextTitle('Grabar gasto'),
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
         elevation: 0,

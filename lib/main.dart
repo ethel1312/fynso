@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:fynso/features/agregar/view/editar_gasto_screen.dart';
 import 'package:fynso/features/home/view/home_screen.dart';
+import 'package:fynso/features/pago/view/aprobado_screen.dart';
+import 'package:fynso/features/pago/view/pago_screen.dart';
+import 'package:fynso/features/pago/view/rechazado_screen.dart';
 import 'package:fynso/features/splash/view/splash_screen.dart';
 
 import 'common/navigation/main_navigation.dart';
@@ -36,6 +39,9 @@ class MyApp extends StatelessWidget {
         '/detalleGasto': (context) => const DetalleGastoScreen(),
         '/grabarGasto': (context) => const GrabarGastoScreen(),
         '/editarGasto': (context) => const EditarGastoScreen(),
+        '/pago': (context) => const PagoScreen(),
+        '/aprobado': (context) => const AprobadoScreen(),
+        '/rechazado': (context) => const RechazadoScreen(),
       },
 
       // Importante para que RouteAware funcione

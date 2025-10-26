@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:fynso/common/widgets/custom_text_title.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:fynso/features/agregar/view/widgets/boton_mic.dart';
@@ -73,7 +74,7 @@ class _HistorialGastosScreenState extends State<HistorialGastosScreen>
         builder: (context, vm, _) {
           return Scaffold(
             appBar: AppBar(
-              title: const Text('Historial de gastos'),
+              title: const CustomTextTitle('Historial de gastos'),
               backgroundColor: Colors.white,
               foregroundColor: Colors.black,
               elevation: 1,
@@ -83,28 +84,28 @@ class _HistorialGastosScreenState extends State<HistorialGastosScreen>
                 : vm.transactions.isEmpty
                 ? const Center(child: Text('No hay transacciones'))
                 : ListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: vm.transactions.length,
-              itemBuilder: (context, index) {
-                final t = vm.transactions[index];
-                return GastoCard(
-                  categoria: t.category,
-                  subcategoria: t.subcategory,
-                  monto: t.monto,
-                  fecha: formatFecha(t.fecha),
-                  onTap: () {
-                    Navigator.pushNamed(
-                      context,
-                      '/detalleGasto',
-                      arguments: TransactionDetailRequest(
-                        idTransaction: t.idTransaction,
-                        jwt: jwt,
-                      ),
-                    );
-                  },
-                );
-              },
-            ),
+                    padding: const EdgeInsets.all(16),
+                    itemCount: vm.transactions.length,
+                    itemBuilder: (context, index) {
+                      final t = vm.transactions[index];
+                      return GastoCard(
+                        categoria: t.category,
+                        subcategoria: t.subcategory,
+                        monto: t.monto,
+                        fecha: formatFecha(t.fecha),
+                        onTap: () {
+                          Navigator.pushNamed(
+                            context,
+                            '/detalleGasto',
+                            arguments: TransactionDetailRequest(
+                              idTransaction: t.idTransaction,
+                              jwt: jwt,
+                            ),
+                          );
+                        },
+                      );
+                    },
+                  ),
             floatingActionButton: MicButton(
               onPressed: () {
                 Navigator.pushNamed(context, '/grabarGasto');

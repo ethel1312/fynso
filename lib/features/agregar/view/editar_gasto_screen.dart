@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../common/themes/app_color.dart';
 import '../../../common/widgets/custom_button.dart';
+import '../../../common/widgets/custom_text_title.dart';
 import '../../../common/widgets/custom_textfield.dart';
 import '../../../data/models/transaction_response.dart';
 import '../../../data/models/transaction_update_resquest.dart';
@@ -32,19 +33,19 @@ class _EditarGastoScreenState extends State<EditarGastoScreen> {
 
   // Flags para inicializar solo una vez
   bool _controllersInitialized = false; // no volver a pisar textos del usuario
-  bool _vmInitialized = false;          // init de CategoryViewModel
+  bool _vmInitialized = false; // init de CategoryViewModel
 
   @override
   void initState() {
     super.initState();
     // Crea controllers una sola vez (vacíos)
-    _categoriaController     = TextEditingController();
-    _subcategoriaController  = TextEditingController();
-    _montoController         = TextEditingController();
-    _fechaController         = TextEditingController();
-    _horaController          = TextEditingController();
-    _lugarController         = TextEditingController();
-    _notasController         = TextEditingController();
+    _categoriaController = TextEditingController();
+    _subcategoriaController = TextEditingController();
+    _montoController = TextEditingController();
+    _fechaController = TextEditingController();
+    _horaController = TextEditingController();
+    _lugarController = TextEditingController();
+    _notasController = TextEditingController();
     _transcripcionController = TextEditingController();
   }
 
@@ -53,19 +54,20 @@ class _EditarGastoScreenState extends State<EditarGastoScreen> {
     super.didChangeDependencies();
 
     // Recibe la transacción de la ruta
-    transaction = ModalRoute.of(context)?.settings.arguments as TransactionResponse;
+    transaction =
+        ModalRoute.of(context)?.settings.arguments as TransactionResponse;
 
     // Setea textos con valores de DB SOLO la primera vez
     if (!_controllersInitialized) {
-      _categoriaController.text     = transaction.category;
-      _subcategoriaController.text  = transaction.subcategory;
-      _montoController.text         = transaction.monto.toString();
-      _fechaController.text         = transaction.fecha.substring(0, 10);
-      _horaController.text          = transaction.fecha.length > 10
+      _categoriaController.text = transaction.category;
+      _subcategoriaController.text = transaction.subcategory;
+      _montoController.text = transaction.monto.toString();
+      _fechaController.text = transaction.fecha.substring(0, 10);
+      _horaController.text = transaction.fecha.length > 10
           ? transaction.fecha.substring(11, 16)
           : '';
-      _lugarController.text         = transaction.lugar ?? '';
-      _notasController.text         = transaction.descripcion;
+      _lugarController.text = transaction.lugar ?? '';
+      _notasController.text = transaction.descripcion;
       _transcripcionController.text = transaction.transcripcion ?? '';
       _controllersInitialized = true;
     }
@@ -106,10 +108,7 @@ class _EditarGastoScreenState extends State<EditarGastoScreen> {
             // Mantiene el estilo de tu CustomTextField
             AbsorbPointer(
               absorbing: true,
-              child: CustomTextField(
-                label: label,
-                controller: controller,
-              ),
+              child: CustomTextField(label: label, controller: controller),
             ),
             // Zona táctil encima
             Positioned.fill(
@@ -118,9 +117,9 @@ class _EditarGastoScreenState extends State<EditarGastoScreen> {
                 child: InkWell(
                   onTap: enabled
                       ? () {
-                    FocusScope.of(context).unfocus();
-                    onTap();
-                  }
+                          FocusScope.of(context).unfocus();
+                          onTap();
+                        }
                       : null,
                 ),
               ),
@@ -130,10 +129,10 @@ class _EditarGastoScreenState extends State<EditarGastoScreen> {
               padding: const EdgeInsets.only(right: 12),
               child: loading
                   ? const SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(strokeWidth: 2),
-              )
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
                   : const Icon(Icons.arrow_drop_down),
             ),
           ],
@@ -163,31 +162,31 @@ class _EditarGastoScreenState extends State<EditarGastoScreen> {
       builder: (_) => SafeArea(
         child: cvm.categories.isEmpty
             ? const Padding(
-          padding: EdgeInsets.all(16.0),
-          child: Text('No hay categorías.'),
-        )
+                padding: EdgeInsets.all(16.0),
+                child: Text('No hay categorías.'),
+              )
             : ListView.separated(
-          itemCount: cvm.categories.length,
-          separatorBuilder: (_, __) => const Divider(height: 1),
-          itemBuilder: (_, i) {
-            final c = cvm.categories[i];
-            return ListTile(
-              title: Text(c.nombre),
-              onTap: () async {
-                Navigator.pop(context);
-                await cvm.selectCategoryById(
-                  jwt: jwt,
-                  idCategory: c.idCategory,
-                );
-                // Refresca UI según selección
-                _categoriaController.text = c.nombre;
-                _subcategoriaController.text =
-                    cvm.selectedSubcategory?.nombre ?? '';
-                if (mounted) setState(() {});
-              },
-            );
-          },
-        ),
+                itemCount: cvm.categories.length,
+                separatorBuilder: (_, __) => const Divider(height: 1),
+                itemBuilder: (_, i) {
+                  final c = cvm.categories[i];
+                  return ListTile(
+                    title: Text(c.nombre),
+                    onTap: () async {
+                      Navigator.pop(context);
+                      await cvm.selectCategoryById(
+                        jwt: jwt,
+                        idCategory: c.idCategory,
+                      );
+                      // Refresca UI según selección
+                      _categoriaController.text = c.nombre;
+                      _subcategoriaController.text =
+                          cvm.selectedSubcategory?.nombre ?? '';
+                      if (mounted) setState(() {});
+                    },
+                  );
+                },
+              ),
       ),
     );
   }
@@ -223,25 +222,25 @@ class _EditarGastoScreenState extends State<EditarGastoScreen> {
       builder: (_) => SafeArea(
         child: cvm.subcategories.isEmpty
             ? const Padding(
-          padding: EdgeInsets.all(16.0),
-          child: Text('No hay subcategorías para esta categoría.'),
-        )
+                padding: EdgeInsets.all(16.0),
+                child: Text('No hay subcategorías para esta categoría.'),
+              )
             : ListView.separated(
-          itemCount: cvm.subcategories.length,
-          separatorBuilder: (_, __) => const Divider(height: 1),
-          itemBuilder: (_, i) {
-            final s = cvm.subcategories[i];
-            return ListTile(
-              title: Text(s.nombre),
-              onTap: () {
-                Navigator.pop(context);
-                cvm.selectSubcategoryById(s.idSubcategory);
-                _subcategoriaController.text = s.nombre;
-                if (mounted) setState(() {});
-              },
-            );
-          },
-        ),
+                itemCount: cvm.subcategories.length,
+                separatorBuilder: (_, __) => const Divider(height: 1),
+                itemBuilder: (_, i) {
+                  final s = cvm.subcategories[i];
+                  return ListTile(
+                    title: Text(s.nombre),
+                    onTap: () {
+                      Navigator.pop(context);
+                      cvm.selectSubcategoryById(s.idSubcategory);
+                      _subcategoriaController.text = s.nombre;
+                      if (mounted) setState(() {});
+                    },
+                  );
+                },
+              ),
       ),
     );
   }
@@ -252,11 +251,9 @@ class _EditarGastoScreenState extends State<EditarGastoScreen> {
       providers: [
         ChangeNotifierProvider(
           create: (_) =>
-          TransactionEditViewModel()..loadTransaction(transaction),
+              TransactionEditViewModel()..loadTransaction(transaction),
         ),
-        ChangeNotifierProvider(
-          create: (_) => CategoryViewModel(),
-        ),
+        ChangeNotifierProvider(create: (_) => CategoryViewModel()),
       ],
       child: Consumer2<TransactionEditViewModel, CategoryViewModel>(
         builder: (context, vm, cvm, _) {
@@ -272,8 +269,8 @@ class _EditarGastoScreenState extends State<EditarGastoScreen> {
                 // Selecciona categoría y subcategoría inicial por nombre
                 if (cvm.categories.isNotEmpty) {
                   final cat = cvm.categories.firstWhere(
-                        (c) =>
-                    c.nombre.toLowerCase() ==
+                    (c) =>
+                        c.nombre.toLowerCase() ==
                         transaction.category.toLowerCase(),
                     orElse: () => cvm.categories.first,
                   );
@@ -284,8 +281,8 @@ class _EditarGastoScreenState extends State<EditarGastoScreen> {
 
                   // Empareja subcategoría por nombre si existe
                   final sub = cvm.subcategories.where(
-                        (s) =>
-                    s.nombre.toLowerCase() ==
+                    (s) =>
+                        s.nombre.toLowerCase() ==
                         transaction.subcategory.toLowerCase(),
                   );
                   if (sub.isNotEmpty) {
@@ -297,7 +294,7 @@ class _EditarGastoScreenState extends State<EditarGastoScreen> {
                       cvm.selectedCategory?.nombre ?? transaction.category;
                   _subcategoriaController.text =
                       cvm.selectedSubcategory?.nombre ??
-                          transaction.subcategory;
+                      transaction.subcategory;
                   if (mounted) setState(() {});
                 }
               }
@@ -307,7 +304,7 @@ class _EditarGastoScreenState extends State<EditarGastoScreen> {
 
           return Scaffold(
             appBar: AppBar(
-              title: const Text('Editar gasto'),
+              title: const CustomTextTitle('Editar gasto'),
               backgroundColor: Colors.white,
               foregroundColor: Colors.black,
             ),
@@ -346,8 +343,11 @@ class _EditarGastoScreenState extends State<EditarGastoScreen> {
                   const SizedBox(height: 16),
                   _buildField("Notas", _notasController, maxLines: 3),
                   const SizedBox(height: 16),
-                  _buildField("Transcripción", _transcripcionController,
-                      maxLines: 3),
+                  _buildField(
+                    "Transcripción",
+                    _transcripcionController,
+                    maxLines: 3,
+                  ),
 
                   const SizedBox(height: 24),
                   if (vm.isLoading)
@@ -361,7 +361,8 @@ class _EditarGastoScreenState extends State<EditarGastoScreen> {
                         if (cvm.selectedSubcategory == null) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
-                                content: Text('Selecciona una subcategoría')),
+                              content: Text('Selecciona una subcategoría'),
+                            ),
                           );
                           return;
                         }
@@ -370,22 +371,20 @@ class _EditarGastoScreenState extends State<EditarGastoScreen> {
                         if (jwt == null || jwt.isEmpty) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
-                                content:
-                                Text('No se encontró token de usuario')),
+                              content: Text('No se encontró token de usuario'),
+                            ),
                           );
                           return;
                         }
 
                         // Enviar ID (id_subcategory) + demás campos
                         final body = TransactionUpdateRequest(
-                          amount:
-                          double.tryParse(_montoController.text) ?? 0.0,
+                          amount: double.tryParse(_montoController.text) ?? 0.0,
                           date: _fechaController.text,
                           time: _horaController.text,
                           place: _lugarController.text,
                           notes: _notasController.text,
-                          idSubcategory:
-                          cvm.selectedSubcategory!.idSubcategory,
+                          idSubcategory: cvm.selectedSubcategory!.idSubcategory,
                         );
 
                         final success = await vm.updateTransaction(
@@ -399,8 +398,8 @@ class _EditarGastoScreenState extends State<EditarGastoScreen> {
                         } else {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
-                                content: Text(vm.error ??
-                                    'Error al actualizar')),
+                              content: Text(vm.error ?? 'Error al actualizar'),
+                            ),
                           );
                         }
                       },
@@ -415,8 +414,11 @@ class _EditarGastoScreenState extends State<EditarGastoScreen> {
   }
 
   // Helper para otros textos
-  Widget _buildField(String label, TextEditingController controller,
-      {int maxLines = 1}) {
+  Widget _buildField(
+    String label,
+    TextEditingController controller, {
+    int maxLines = 1,
+  }) {
     return Center(
       child: SizedBox(
         width: 335,
