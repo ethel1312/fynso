@@ -85,17 +85,16 @@ class MonthlySummaryService {
     }
   }
 
+  // (opcional) si aún lo usas desde algún repo, sin nowIso:
   Future<void> reconcileMonthly({
     required String jwt,
     required String tzName,
-    required String nowIso,
     required bool applyDefaultLimit,
     required double defaultLimit,
   }) async {
     final uri = Uri.parse('$baseUrl/api/monthly_limit/reconcile');
     final body = jsonEncode({
       'tz_name': tzName,
-      'now_iso': nowIso,
       'apply_default_limit': applyDefaultLimit,
       'default_limit': defaultLimit,
     });

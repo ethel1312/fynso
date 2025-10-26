@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../data/models/monthly_summary.dart';
 import '../../../data/repositories/monthly_summary_repository.dart';
+import '../../../data/repositories/monthly_limit_repository.dart';
 
 class MonthlySummaryViewModel extends ChangeNotifier {
-  final MonthlySummaryRepository _repo = MonthlySummaryRepository();
+  final MonthlySummaryRepository _summaryRepo = MonthlySummaryRepository();
+  final MonthlyLimitRepository _limitRepo = MonthlyLimitRepository();
 
   bool isLoading = false;
   bool isSaving = false;
@@ -17,7 +19,7 @@ class MonthlySummaryViewModel extends ChangeNotifier {
     error = null;
     notifyListeners();
     try {
-      summary = await _repo.fetchMonthlySummary(jwt: jwt, anio: anio, mes: mes);
+      summary = await _summaryRepo.fetchMonthlySummary(jwt: jwt, anio: anio, mes: mes);
     } catch (e) {
       error = e.toString();
       summary = null;
@@ -37,8 +39,8 @@ class MonthlySummaryViewModel extends ChangeNotifier {
     isSaving = true;
     notifyListeners();
     try {
-      await _repo.setMonthlyLimit(jwt: jwt, anio: anio, mes: mes, limite: limite);
-      summary = await _repo.fetchMonthlySummary(jwt: jwt, anio: anio, mes: mes);
+      await _summaryRepo.setMonthlyLimit(jwt: jwt, anio: anio, mes: mes, limite: limite);
+      summary = await _summaryRepo.fetchMonthlySummary(jwt: jwt, anio: anio, mes: mes);
       return true;
     } catch (e) {
       error = e.toString();
@@ -79,41 +81,48 @@ class MonthlySummaryViewModel extends ChangeNotifier {
   bool get isClosed => (summary?.estado.toLowerCase() == 'cerrado');
   bool get hasBudget => limite > 0;
 
-  // ====== PREFERENCIAS LOCALES PARA "LÍMITE PREDETERMINADO" ======
-  static const _kPrefCarryOver = 'carry_over_default_limit';
-  static const _kPrefDefaultLimit = 'default_limit_amount';
+  // ====== “Predeterminado” en BACKEND ======
 
-  Future<void> setCarryOverPrefs({required bool enabled, double? defaultLimit}) async {
-    final sp = await SharedPreferences.getInstance();
-    await sp.setBool(_kPrefCarryOver, enabled);
-    if (enabled && defaultLimit != null && defaultLimit > 0) {
-      await sp.setDouble(_kPrefDefaultLimit, defaultLimit);
+  Future<(bool enabled, double amount)> getCarryOverPrefs({required String jwt}) async {
+    try {
+      final res = await _limitRepo.getDefaultMonthlyLimit(jwt: jwt);
+      return (res.enabled, res.defaultLimit);
+    } catch (_) {
+      return (false, 0.0);
     }
   }
 
-  Future<(bool enabled, double amount)> getCarryOverPrefs() async {
-    final sp = await SharedPreferences.getInstance();
-    final enabled = sp.getBool(_kPrefCarryOver) ?? false;
-    final amount = sp.getDouble(_kPrefDefaultLimit) ?? 0.0;
-    return (enabled, amount);
+  Future<void> setCarryOverPrefs({
+    required String jwt,
+    required bool enabled,
+    required double defaultLimit,
+  }) async {
+    await _limitRepo.setDefaultMonthlyLimit(
+      jwt: jwt,
+      enabled: enabled,
+      defaultLimit: defaultLimit,
+    );
   }
 
   // ====== RECONCILIAR AL ABRIR/REANUDAR LA APP ======
-  Future<void> reconcileOnAppOpen({required String jwt, String tzName = 'America/Lima'}) async {
+  Future<void> reconcileOnAppOpen({
+    required String jwt,
+    String tzName = 'America/Lima',
+  }) async {
     final now = DateTime.now();
-    final (enabled, amount) = await getCarryOverPrefs();
+    // lee “predeterminado” del backend
+    final (enabled, amount) = await getCarryOverPrefs(jwt: jwt);
+
     try {
-      await _repo.reconcileMonthly(
+      await _limitRepo.reconcile(
         jwt: jwt,
         tzName: tzName,
-        nowIso: now.toIso8601String(),
         applyDefaultLimit: enabled,
-        defaultLimit: amount,
+        defaultLimit: amount.toStringAsFixed(2),
       );
-      // Después de reconciliar, recargar resumen del mes actual
+      // recargar resumen del mes actual
       await load(jwt: jwt, anio: now.year, mes: now.month);
     } catch (e) {
-      // No bloqueamos la app si falla; guardamos error y dejamos que la UI lo muestre si hace falta
       error = e.toString();
       notifyListeners();
     }

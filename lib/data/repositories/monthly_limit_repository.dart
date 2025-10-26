@@ -16,4 +16,22 @@ class MonthlyLimitRepository {
       defaultLimit: defaultLimit,
     );
   }
+
+  Future<({bool enabled, double defaultLimit})> getDefaultMonthlyLimit({
+    required String jwt,
+  }) {
+    return _service.getDefaultMonthlyLimit(jwt: jwt);
+  }
+
+  Future<bool> setDefaultMonthlyLimit({
+    required String jwt,
+    required bool enabled,
+    required double defaultLimit,
+  }) {
+    return _service.setDefaultMonthlyLimit(
+      jwt: jwt,
+      enabled: enabled,
+      defaultLimit: defaultLimit,
+    );
+  }
 }

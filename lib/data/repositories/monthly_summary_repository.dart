@@ -29,17 +29,16 @@ class MonthlySummaryRepository {
     return _service.closeMonth(jwt: jwt, anio: anio, mes: mes);
   }
 
+  // Opcional: mantener reconcile aquí, pero SIN nowIso
   Future<void> reconcileMonthly({
     required String jwt,
     required String tzName,
-    required String nowIso,
     required bool applyDefaultLimit,
     required double defaultLimit,
   }) {
     return _service.reconcileMonthly(
       jwt: jwt,
       tzName: tzName,
-      nowIso: nowIso,
       applyDefaultLimit: applyDefaultLimit,
       defaultLimit: defaultLimit,
     );

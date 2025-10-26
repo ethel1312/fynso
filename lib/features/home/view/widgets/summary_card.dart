@@ -6,7 +6,7 @@ import '../../../../common/themes/app_color.dart';
 import '../../view_model/monthly_summary_view_model.dart';
 import '../../../../common/widgets/custom_textfield.dart';
 import '../../../../common/widgets/custom_button.dart';
-import '../../../../common/utils/timezone.dart'; // 👈 NUEVO
+import '../../../../common/utils/timezone.dart';
 
 class SummaryCard extends StatefulWidget {
   const SummaryCard({super.key});
@@ -20,7 +20,6 @@ class _SummaryCardState extends State<SummaryCard> with WidgetsBindingObserver {
   bool _bootstrapped = false;
   bool _reconciling = false;
 
-  // Cacheamos TZ en SharedPreferences para evitar pedirla a cada rato
   static const _kTzName = 'tz_name_cache';
 
   Future<String?> _getJwt() async {
@@ -43,13 +42,12 @@ class _SummaryCardState extends State<SummaryCard> with WidgetsBindingObserver {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
 
-    // Al crear: reconciliar y cargar usando TZ real del dispositivo
     Future.microtask(() async {
       if (_bootstrapped) return;
       _bootstrapped = true;
       final jwt = await _getJwt();
       if (jwt != null && jwt.isNotEmpty) {
-        final tzName = await _getDeviceTz(); // 👈 TZ real
+        final tzName = await _getDeviceTz();
         await _vm.reconcileOnAppOpen(jwt: jwt, tzName: tzName);
       }
     });
@@ -61,7 +59,6 @@ class _SummaryCardState extends State<SummaryCard> with WidgetsBindingObserver {
     super.dispose();
   }
 
-  // Reconciliar cuando la app vuelve a primer plano (por si pasó la medianoche, días, meses, etc.)
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) async {
     if (state == AppLifecycleState.resumed) {
@@ -69,7 +66,7 @@ class _SummaryCardState extends State<SummaryCard> with WidgetsBindingObserver {
       _reconciling = true;
       final jwt = await _getJwt();
       if (jwt != null && jwt.isNotEmpty) {
-        final tzName = await _getDeviceTz(); // 👈 TZ real
+        final tzName = await _getDeviceTz();
         await _vm.reconcileOnAppOpen(jwt: jwt, tzName: tzName);
       }
       _reconciling = false;
@@ -88,8 +85,11 @@ class _SummaryCardState extends State<SummaryCard> with WidgetsBindingObserver {
       text: vm.hasBudget ? vm.limite.toStringAsFixed(2) : '',
     );
 
-    // Cargar estado del switch "predeterminado"
-    final prefs = await vm.getCarryOverPrefs();
+    // Cargar estado del switch "predeterminado" desde BACKEND
+    final jwt = await _getJwt();
+    if (jwt == null || jwt.isEmpty) return;
+
+    final prefs = await vm.getCarryOverPrefs(jwt: jwt);
     bool carryOverEnabled = prefs.$1;
     if (!vm.hasBudget && (controller.text.isEmpty) && prefs.$2 > 0) {
       controller.text = prefs.$2.toStringAsFixed(2);
@@ -145,19 +145,23 @@ class _SummaryCardState extends State<SummaryCard> with WidgetsBindingObserver {
                                     );
                                     return;
                                   }
-                                  final jwt = await _getJwt();
-                                  if (jwt == null || jwt.isEmpty || vm2.summary == null) return;
+                                  final jwt2 = await _getJwt();
+                                  if (jwt2 == null || jwt2.isEmpty || vm2.summary == null) return;
 
                                   // 1) Guarda límite del mes actual
                                   final ok = await vm2.setLimit(
-                                    jwt: jwt,
+                                    jwt: jwt2,
                                     anio: vm2.summary!.anio,
                                     mes: vm2.summary!.mes,
                                     limite: value,
                                   );
 
-                                  // 2) Guarda preferencia local del predeterminado
-                                  await vm2.setCarryOverPrefs(enabled: carryOverEnabled, defaultLimit: value);
+                                  // 2) Guarda predeterminado en BACKEND
+                                  await vm2.setCarryOverPrefs(
+                                    jwt: jwt2,
+                                    enabled: carryOverEnabled,
+                                    defaultLimit: value,
+                                  );
 
                                   if (ok && mounted) {
                                     Navigator.pop(context);

@@ -18,10 +18,8 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    // Dispara reconciliación en paralelo (no bloquea el splash)
     _fireAndForgetReconcile();
 
-    // Mantén tu comportamiento actual: 3s y pasa al Login
     Timer(const Duration(seconds: 3), () {
       if (!mounted) return;
       Navigator.pushReplacement(
@@ -39,15 +37,14 @@ class _SplashScreenState extends State<SplashScreen> {
 
       final tzName = await TimezoneUtil.deviceTimeZone();
 
-      // No necesitas esperar esto antes de navegar; lo corremos "en segundo plano".
       await MonthlyLimitRepository().reconcile(
         jwt: jwt,
         tzName: tzName,
-        applyDefaultLimit: false,   // cámbialo a true si quieres auto-inicializar límite al crear mes
+        applyDefaultLimit: false,
         defaultLimit: '0.00',
       );
     } catch (_) {
-      // Silenciar errores de arranque; no bloquear splash
+      // silencioso
     }
   }
 
