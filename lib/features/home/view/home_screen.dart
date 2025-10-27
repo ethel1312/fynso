@@ -48,7 +48,7 @@ class HomeScreen extends StatelessWidget {
             const SizedBox(height: 20),
 
             // CARD: Total Spent
-            const SummaryCard(),
+            SummaryCard(),
 
             const SizedBox(height: 20),
 
@@ -60,10 +60,10 @@ class HomeScreen extends StatelessWidget {
             // CARD: Transacciones recientes
             const TransactionsCard(),
 
-            const SizedBox(height: 20),
+            // const SizedBox(height: 20),
 
             // DOS CARDS PEQUEÑAS LADO A LADO
-            const ComparisonCards(),
+            // const ComparisonCards(),
           ],
         ),
       ),
