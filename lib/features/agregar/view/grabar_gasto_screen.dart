@@ -1,18 +1,22 @@
-import 'package:flutter/material.dart';
-import 'package:fynso/common/themes/app_color.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:async';
 import 'dart:io';
-import 'package:flutter_sound/flutter_sound.dart';
-import 'package:permission_handler/permission_handler.dart';
-import 'package:path_provider/path_provider.dart';
 
+import 'package:flutter/material.dart';
+import 'package:flutter_sound/flutter_sound.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+import 'package:fynso/common/themes/app_color.dart';
 import '../../../common/widgets/custom_button.dart';
 import '../../../common/widgets/custom_text_title.dart';
-import '../../../data/repositories/audio_repository.dart';
+
 import '../../../data/services/audio_service.dart';
+import '../../../data/repositories/audio_repository.dart';
 import '../view_model/grabar_gasto_viewmodel.dart';
-import '../../../data/models/transcribe_response.dart';
+
+// 👉 IMPORTA EL REQUEST QUE USA DetalleGastoScreen
+import '../../../data/models/transaction_detail_request.dart';
 
 class GrabarGastoScreen extends StatefulWidget {
   const GrabarGastoScreen({super.key});
@@ -23,127 +27,268 @@ class GrabarGastoScreen extends StatefulWidget {
 
 class _GrabarGastoScreenState extends State<GrabarGastoScreen>
     with SingleTickerProviderStateMixin {
+  // UI state
   bool isRecording = false;
+  bool isUploading = false;
+  bool isStopping = false; // evita taps múltiples al detener
+
+  // Animación del botón
   late AnimationController _controller;
   late Animation<double> _animation;
 
-  final recorder = FlutterSoundRecorder();
-  String? audioPath;
-  late GrabarGastoViewModel viewModel;
+  // Audio
+  final FlutterSoundRecorder _recorder = FlutterSoundRecorder();
+  String? _audioPath;
+
+  // VM
+  late final GrabarGastoViewModel _viewModel;
 
   @override
   void initState() {
     super.initState();
 
+    _viewModel = GrabarGastoViewModel(AudioRepository(AudioService()));
+
     _controller = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 1),
-    )..repeat(reverse: true);
+    )..stop(); // solo animar cuando esté grabando
 
-    _animation = Tween<double>(
-      begin: 1.0,
-      end: 1.3,
-    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
-
-    // Inicializa ViewModel
-    viewModel = GrabarGastoViewModel(AudioRepository(AudioService()));
-
-    // Inicializa recorder de manera segura
-    _initRecorder();
-  }
-
-  Future<void> _initRecorder() async {
-    // Solicitar permisos
-    if (!await Permission.microphone.isGranted) {
-      await Permission.microphone.request();
-    }
-
-    await recorder.openRecorder();
+    _animation = Tween<double>(begin: 1.0, end: 1.3)
+        .animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
   }
 
   @override
   void dispose() {
+    _safeStopAndClose();
     _controller.dispose();
-    recorder.closeRecorder();
     super.dispose();
   }
 
-  Future<void> startRecording() async {
+  // ----------------- Permisos -----------------
+
+  Future<void> _showGoToSettingsDialog() async {
+    if (!mounted) return;
+    await showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Permiso de micrófono requerido'),
+        content: const Text(
+          'Para grabar tus gastos, habilita el acceso al micrófono en los Ajustes del sistema.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancelar'),
+          ),
+          TextButton(
+            onPressed: () async {
+              Navigator.pop(ctx);
+              await openAppSettings();
+            },
+            child: const Text('Abrir ajustes'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<bool> _ensureMicPermission() async {
+    var status = await Permission.microphone.status;
+    if (status.isGranted) return true;
+
+    status = await Permission.microphone.request();
+    if (status.isGranted) return true;
+
+    if (status.isPermanentlyDenied || status.isRestricted) {
+      await _showGoToSettingsDialog();
+    } else {
+      if (!mounted) return false;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Se requiere el micrófono para grabar')),
+      );
+    }
+    return false;
+  }
+
+  // ----------------- Grabación -----------------
+
+  Future<void> _openRecorderIfNeeded() async {
+    await _recorder.openRecorder(); // idempotente
+  }
+
+  Future<void> _startRecording() async {
+    final ok = await _ensureMicPermission();
+    if (!ok) return;
+
     try {
-      await recorder.openRecorder();
+      await _openRecorderIfNeeded();
 
-      Directory dir = await getApplicationDocumentsDirectory();
-      audioPath = '${dir.path}/gasto.m4a';
+      final dir = await getApplicationDocumentsDirectory();
+      _audioPath = '${dir.path}/gasto.m4a';
 
-      await recorder.startRecorder(toFile: audioPath, codec: Codec.aacMP4);
+      await _recorder.startRecorder(
+        toFile: _audioPath,
+        codec: Codec.aacMP4,
+      );
+
+      setState(() {
+        isRecording = true;
+        _controller.repeat(reverse: true);
+      });
+
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Grabación iniciada')),
+      );
     } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Error al iniciar grabación: $e')));
+      setState(() {
+        isRecording = false;
+        _controller.stop();
+      });
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error al iniciar grabación: $e')),
+      );
     }
   }
 
-  Future<void> stopRecording() async {
+  Future<void> _cancelRecording() async {
+    // Cancelar = detener y DESCARTAR archivo, sin subir
+    if (!isRecording || isUploading) return;
     try {
-      await recorder.stopRecorder();
+      try {
+        await _recorder.stopRecorder();
+      } catch (_) {}
+      // borrar archivo si existe
+      if (_audioPath != null) {
+        final f = File(_audioPath!);
+        if (await f.exists()) {
+          await f.delete();
+        }
+      }
+      setState(() {
+        isRecording = false;
+        _controller.stop();
+        _audioPath = null;
+      });
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Grabación cancelada')),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('No se pudo cancelar: $e')),
+      );
+    } finally {
+      await _recorder.closeRecorder();
+    }
+  }
 
-      if (audioPath == null) return;
+  Future<void> _stopRecordingAndUpload() async {
+    if (isStopping) return;
+    isStopping = true;
+
+    try {
+      // 1) Detener
+      try {
+        await _recorder.stopRecorder();
+      } catch (_) {
+        // si ya estaba detenida, ignorar
+      }
+
+      setState(() {
+        isRecording = false;
+        _controller.stop();
+      });
+
+      // 2) Revisar archivo
+      if (_audioPath == null || !File(_audioPath!).existsSync()) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('No se generó archivo de audio')),
+        );
+        return;
+      }
+
+      // 3) Subir
+      setState(() => isUploading = true);
 
       final prefs = await SharedPreferences.getInstance();
       final jwt = prefs.getString('jwt_token');
-
-      print("🟢 JWT leído antes de enviar audio: $jwt"); // <-- agrega esto
-
       if (jwt == null || jwt.isEmpty) {
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('No se encontró token de usuario')),
         );
         return;
       }
 
-      await viewModel.enviarAudio(File(audioPath!), jwt);
+      await _viewModel.enviarAudio(File(_audioPath!), jwt);
 
-      if (viewModel.transcribeResult != null &&
-          viewModel.transcribeResult!.extracted.isNotEmpty) {
-        final gasto = viewModel.transcribeResult!.extracted;
-        Navigator.pushNamed(context, '/detalleGasto', arguments: gasto);
+      if (!mounted) return;
+
+      // 4) Navegar al detalle con datos REALES: SIEMPRE TransactionDetailRequest
+      final r = _viewModel.transcribeResult;
+      if (r != null) {
+        // Preferimos el id creado por el backend; si no, usamos el id de la transacción retornada
+        final txId = r.createdTransactionId ?? r.transaction?.idTransaction;
+        if (txId != null) {
+          final req = TransactionDetailRequest(jwt: jwt, idTransaction: txId);
+          await Navigator.pushNamed(context, '/detalleGasto', arguments: req);
+        } else {
+          // Fallback: no hay id -> no podemos cargar detalle por API
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('No se obtuvo el ID de la transacción')),
+          );
+        }
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('No se pudo extraer información del audio'),
-          ),
+          const SnackBar(content: Text('No se pudo extraer información del audio')),
         );
       }
     } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Error al detener grabación: $e')));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error al procesar audio: $e')),
+        );
+      }
+    } finally {
+      setState(() => isUploading = false);
+      isStopping = false;
+      await _safeStopAndClose();
     }
   }
 
-  void _toggleRecording() async {
-    setState(() {
-      isRecording = !isRecording;
-    });
+  Future<void> _safeStopAndClose() async {
+    try {
+      if (_recorder.isRecording) {
+        await _recorder.stopRecorder();
+      }
+    } catch (_) {}
+    try {
+      await _recorder.closeRecorder();
+    } catch (_) {}
+  }
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          isRecording ? 'Grabación iniciada' : 'Grabación detenida',
-        ),
-        duration: const Duration(seconds: 1),
-      ),
-    );
+  // ----------------- UI Actions -----------------
 
-    if (isRecording) {
-      await startRecording();
+  Future<void> _onMicButtonPressed() async {
+    if (isUploading) return; // mientras sube, no permitir
+    if (!isRecording) {
+      await _startRecording();
     } else {
-      await stopRecording();
+      await _stopRecordingAndUpload();
     }
   }
+
+  // ----------------- Build -----------------
 
   @override
   Widget build(BuildContext context) {
+    final isBusy = isRecording || isUploading;
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -153,7 +298,9 @@ class _GrabarGastoScreenState extends State<GrabarGastoScreen>
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () {
+          onPressed: isBusy
+              ? null
+              : () {
             Navigator.pushReplacementNamed(context, '/home');
           },
         ),
@@ -171,56 +318,87 @@ class _GrabarGastoScreenState extends State<GrabarGastoScreen>
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 40),
+
+              // Botón mic con animación solo cuando graba
               ScaleTransition(
-                scale: isRecording
-                    ? _animation
-                    : const AlwaysStoppedAnimation(1),
+                scale: isRecording ? _animation : const AlwaysStoppedAnimation(1),
                 child: GestureDetector(
-                  onTap: _toggleRecording,
+                  onTap: _onMicButtonPressed,
                   child: Container(
                     width: 100,
                     height: 100,
                     decoration: BoxDecoration(
-                      color: isRecording
-                          ? Colors.redAccent
-                          : AppColor.azulFynso,
+                      color: isRecording ? Colors.redAccent : AppColor.azulFynso,
                       shape: BoxShape.circle,
                       boxShadow: [
                         BoxShadow(
-                          color:
-                              (isRecording
-                                      ? Colors.redAccent
-                                      : AppColor.azulFynso)
-                                  .withOpacity(0.4),
+                          color: (isRecording ? Colors.redAccent : AppColor.azulFynso)
+                              .withOpacity(0.4),
                           blurRadius: 20,
                           spreadRadius: 3,
                         ),
                       ],
                     ),
-                    child: Icon(
-                      isRecording ? Icons.stop : Icons.mic,
-                      color: Colors.white,
-                      size: 45,
+                    child: Center(
+                      child: isUploading
+                          ? const SizedBox(
+                        width: 26,
+                        height: 26,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 3,
+                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                        ),
+                      )
+                          : Icon(
+                        isRecording ? Icons.stop : Icons.mic,
+                        color: Colors.white,
+                        size: 45,
+                      ),
                     ),
                   ),
                 ),
               ),
+
               const SizedBox(height: 40),
+
               Text(
-                isRecording ? "Grabando..." : "Listo para grabar",
+                isUploading
+                    ? "Procesando..."
+                    : (isRecording ? "Grabando..." : "Listo para grabar"),
                 style: TextStyle(
-                  color: isRecording ? Colors.redAccent : Colors.grey[700],
+                  color: isUploading
+                      ? Colors.blueGrey
+                      : (isRecording ? Colors.redAccent : Colors.grey[700]),
                   fontSize: 16,
                   fontWeight: FontWeight.w500,
                 ),
               ),
-              const SizedBox(height: 60),
+
+              // Botón Cancelar (solo si está grabando)
+              if (isRecording) ...[
+                const SizedBox(height: 16),
+                SizedBox(
+                  width: 335,
+                  height: 44,
+                  child: OutlinedButton.icon(
+                    onPressed: isUploading ? null : _cancelRecording,
+                    icon: const Icon(Icons.close),
+                    label: const Text('Cancelar'),
+                  ),
+                ),
+              ],
+
+              const SizedBox(height: 40),
+
+              // Ir a historial (bloqueado si está grabando/subiendo)
               CustomButton(
                 text: 'Ver historial de gastos',
                 backgroundColor: AppColor.azulFynso,
                 icon: const Icon(Icons.history, color: Colors.white),
-                onPressed: () async {
-                  Navigator.pushNamed(context, '/historialGastos');
+                onPressed: isBusy
+                    ? null
+                    : () async {
+                  await Navigator.pushNamed(context, '/historialGastos');
                 },
               ),
             ],

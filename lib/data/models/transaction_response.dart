@@ -8,7 +8,7 @@ class TransactionResponse {
   final String? lugar;
   final String? transcripcion;
 
-  // Opcional: campos derivados para UI
+  // Para UI
   final String category;
   final String subcategory;
 
@@ -45,16 +45,27 @@ class TransactionResponse {
       if (value == null) return fallback;
       if (value is String) return value;
       if (value is Map<String, dynamic>) {
-        // Intentamos tomar la propiedad "nombre" si existe
         return value['nombre']?.toString() ?? fallback;
       }
       return value.toString();
     }
 
+    // Manejar tanto formato "plano" como "anidado" (como devuelve tu backend)
+    final nestedSub = (json['subcategory'] is Map<String, dynamic>) ? json['subcategory'] as Map<String, dynamic> : null;
+    final nestedType = (json['transaction_type'] is Map<String, dynamic>) ? json['transaction_type'] as Map<String, dynamic> : null;
+
+    final idSub = json.containsKey('id_subcategory')
+        ? parseInt(json['id_subcategory'])
+        : parseInt(nestedSub?['id_subcategory']);
+
+    final idTType = json.containsKey('id_transaction_type')
+        ? parseInt(json['id_transaction_type'])
+        : parseInt(nestedType?['id_transaction_type']);
+
     return TransactionResponse(
       idTransaction: parseInt(json['id_transaction']),
-      idSubcategory: parseInt(json['id_subcategory']),
-      idTransactionType: parseInt(json['id_transaction_type']),
+      idSubcategory: idSub,
+      idTransactionType: idTType,
       monto: parseDouble(json['monto']),
       descripcion: json['descripcion'] ?? '',
       fecha: json['fecha'] ?? '',
@@ -63,5 +74,20 @@ class TransactionResponse {
       category: parseString(json['category'], fallback: 'Otros'),
       subcategory: parseString(json['subcategory'], fallback: 'General'),
     );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id_transaction': idTransaction,
+      'id_subcategory': idSubcategory,
+      'id_transaction_type': idTransactionType,
+      'monto': monto,
+      'descripcion': descripcion,
+      'fecha': fecha,
+      'lugar': lugar,
+      'transcripcion': transcripcion,
+      'category': category,
+      'subcategory': subcategory,
+    };
   }
 }
