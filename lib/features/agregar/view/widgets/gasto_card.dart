@@ -23,8 +23,8 @@ class GastoCard extends StatelessWidget {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       margin: const EdgeInsets.only(bottom: 12),
       child: ListTile(
-        title: Text('$categoria - $subcategoria'),
-        subtitle: Text(fecha),
+        title: Text('$categoria'),
+        subtitle: Text(subcategoria),
         trailing: Text('S/ $monto'),
         onTap: onTap,
       ),
