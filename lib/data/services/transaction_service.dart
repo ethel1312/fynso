@@ -69,4 +69,28 @@ class TransactionService {
       throw Exception(message);
     }
   }
+
+  Future<bool> deleteTransaction({
+    required String jwt,
+    required int idTransaction,
+  }) async {
+    final uri = Uri.parse('$baseUrl/api/transactions/$idTransaction');
+    final resp = await http.delete(
+      uri,
+      headers: {
+        'Authorization': 'JWT $jwt',
+        'Accept': 'application/json',
+      },
+    );
+
+    if (resp.statusCode == 200) {
+      final jsonBody = jsonDecode(resp.body) as Map<String, dynamic>;
+      final code = jsonBody['code'] ?? 0;
+      if (code == 1) return true;
+      final msg = (jsonBody['message'] ?? 'No se pudo eliminar') as String;
+      throw Exception(msg);
+    } else {
+      throw Exception('Error al eliminar: ${resp.statusCode}');
+    }
+  }
 }

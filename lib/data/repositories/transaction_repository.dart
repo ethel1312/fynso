@@ -35,4 +35,11 @@ class TransactionRepository {
       body: body.toJson(),
     );
   }
+
+  Future<bool> deleteTransaction({
+    required String jwt,
+    required int idTransaction,
+  }) {
+    return _service.deleteTransaction(jwt: jwt, idTransaction: idTransaction);
+  }
 }

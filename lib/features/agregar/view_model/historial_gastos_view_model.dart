@@ -122,4 +122,16 @@ class HistorialGastosViewModel extends ChangeNotifier {
     page = 1;
     await loadTransactions();
   }
+
+  Future<bool> deleteTransaction({
+    required String jwt,
+    required int idTransaction,
+  }) async {
+    final ok = await _txRepo.deleteTransaction(jwt: jwt, idTransaction: idTransaction);
+    if (ok) {
+      transactions.removeWhere((t) => t.idTransaction == idTransaction);
+      notifyListeners();
+    }
+    return ok;
+  }
 }

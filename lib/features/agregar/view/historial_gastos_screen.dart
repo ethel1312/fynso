@@ -1,3 +1,4 @@
+// historial_gastos_screen.dart
 import 'dart:convert';
 import 'dart:io' show HttpDate;
 
@@ -40,21 +41,20 @@ class _HistorialGastosScreenState extends State<HistorialGastosScreen>
 
   // ===== Rango disponible desde backend =====
   static const String _baseUrl = 'https://fynso.pythonanywhere.com';
-  int? _minYear;    // primer año con transacciones
-  int? _minMonth;   // primer mes con transacciones
-  int? _maxYearTx;  // último año con transacciones
-  int? _maxMonthTx; // último mes con transacciones
+  int? _minYear;
+  int? _minMonth;
+  int? _maxYearTx;
+  int? _maxMonthTx;
 
-  // para limitar el date range del filtro
-  DateTime? _minDateAvailable; // 1er día del primer mes con tx
-  DateTime? _maxDateAvailable; // último día del último mes con tx
+  DateTime? _minDateAvailable;
+  DateTime? _maxDateAvailable;
 
-  // tope superior del selector: mes siguiente al último con tx
   int _capNextYear = 0;
   int _capNextMonth = 0;
 
-  // Spinner inicial sin parpadeos
   bool _booting = true;
+
+  bool _suppressReloadOnce = false;
 
   @override
   void initState() {
@@ -64,13 +64,11 @@ class _HistorialGastosScreenState extends State<HistorialGastosScreen>
   }
 
   Future<void> _bootstrap() async {
-    // spinner pleno desde el arranque
     setState(() => _booting = true);
 
     await _loadJwt();
-    await _fetchAvailableRange(); // fija límites de meses y de date-range
+    await _fetchAvailableRange();
 
-    // Clamp del mes visible a [min .. capNext]
     final now = DateTime.now();
     final clamped = _clampMonth(_YearMonth(now.year, now.month));
     if (clamped.year != viewModel.anio || clamped.month != viewModel.mes) {
@@ -103,10 +101,14 @@ class _HistorialGastosScreenState extends State<HistorialGastosScreen>
     super.dispose();
   }
 
-  /// Se llama cuando volvemos a esta ruta (p.ej., saliste de Detalle/Editar)
   @override
   void didPopNext() {
-    _reloadSameMonth(); // recarga al volver
+    // Si venimos de cerrar el menú contextual, no recargar
+    if (_suppressReloadOnce) {
+      _suppressReloadOnce = false; // consume el fusible
+      return;
+    }
+    _reloadSameMonth();
   }
 
   Future<void> _reloadSameMonth() async {
@@ -141,44 +143,33 @@ class _HistorialGastosScreenState extends State<HistorialGastosScreen>
       }
       if (_maxYearTx != null && _maxMonthTx != null) {
         _maxDateAvailable = DateTime(
-          _maxYearTx!,
-          _maxMonthTx!,
-          _lastDayOfMonth(_maxYearTx!, _maxMonthTx!),
+          _maxYearTx!, _maxMonthTx!, _lastDayOfMonth(_maxYearTx!, _maxMonthTx!),
         );
       }
 
-      // Si no hay transacciones: usa mes actual como rango trivial
       final today = DateTime.now();
       _minDateAvailable ??= DateTime(today.year, today.month, 1);
       _maxDateAvailable ??= DateTime(today.year, today.month, _lastDayOfMonth(today.year, today.month));
 
-      // rellena mínimos/máximos si no vinieron
       _minYear   ??= _minDateAvailable!.year;
       _minMonth  ??= _minDateAvailable!.month;
       _maxYearTx ??= _maxDateAvailable!.year;
       _maxMonthTx??= _maxDateAvailable!.month;
 
-      // Tope superior = mes siguiente al último mes con tx
       final capNext = DateTime(_maxYearTx!, _maxMonthTx! + 1, 1);
       _capNextYear  = capNext.year;
       _capNextMonth = capNext.month;
-    } catch (_) { /* silencio */ }
+    } catch (_) {}
     if (mounted) setState(() {});
   }
 
   // ========= Agrupación en secciones =========
-
   DateTime? _parseFlexible(String raw) {
-    // ISO-8601
     final iso = DateTime.tryParse(raw);
     if (iso != null) return iso;
-
-    // HTTP-date "Tue, 28 Oct 2025 00:00:00 GMT"
     try {
       return HttpDate.parse(raw);
     } catch (_) {}
-
-    // yyyy-MM-dd
     final re = RegExp(r'^(\d{4})-(\d{2})-(\d{2})$');
     final m = re.firstMatch(raw);
     if (m != null) {
@@ -187,8 +178,6 @@ class _HistorialGastosScreenState extends State<HistorialGastosScreen>
       final d = int.parse(m.group(3)!);
       return DateTime(y, mm, d);
     }
-
-    // dd/MM/yyyy
     final re2 = RegExp(r'^(\d{1,2})/(\d{1,2})/(\d{4})$');
     final m2 = re2.firstMatch(raw);
     if (m2 != null) {
@@ -200,8 +189,7 @@ class _HistorialGastosScreenState extends State<HistorialGastosScreen>
     return null;
   }
 
-  Map<String, List<TransactionResponse>> _groupTransactions(
-      List<TransactionResponse> list) {
+  Map<String, List<TransactionResponse>> _groupTransactions(List<TransactionResponse> list) {
     final today = DateTime.now();
     DateTime onlyDate(DateTime d) => DateTime(d.year, d.month, d.day);
     final t0 = onlyDate(today);
@@ -209,10 +197,7 @@ class _HistorialGastosScreenState extends State<HistorialGastosScreen>
     final weekAgo = t0.subtract(const Duration(days: 7));
 
     final map = <String, List<TransactionResponse>>{
-      'Hoy': [],
-      'Ayer': [],
-      'Semana pasada': [],
-      'Anteriores': [],
+      'Hoy': [], 'Ayer': [], 'Semana pasada': [], 'Anteriores': [],
     };
 
     for (final t in list) {
@@ -221,8 +206,7 @@ class _HistorialGastosScreenState extends State<HistorialGastosScreen>
         map['Anteriores']!.add(t);
         continue;
       }
-      final dd = DateTime(d.year, d.month, d.day); // sin toLocal()
-
+      final dd = DateTime(d.year, d.month, d.day);
       if (dd == t0) {
         map['Hoy']!.add(t);
       } else if (dd == y1) {
@@ -245,12 +229,9 @@ class _HistorialGastosScreenState extends State<HistorialGastosScreen>
   }
 
   bool _isMonthInRange({
-    required int year,
-    required int month,
-    required int minY,
-    required int minM,
-    required int maxY,
-    required int maxM,
+    required int year, required int month,
+    required int minY, required int minM,
+    required int maxY, required int maxM,
   }) {
     final lo = _ymCompare(year, month, minY, minM) >= 0;
     final hi = _ymCompare(year, month, maxY, maxM) <= 0;
@@ -272,7 +253,7 @@ class _HistorialGastosScreenState extends State<HistorialGastosScreen>
     return ym;
   }
 
-  // ========= Month Picker (bottom sheet, sin ícono de calendario) =========
+  // ========= Month Picker =========
   Future<void> _openMonthSheet() async {
     if (!mounted) return;
 
@@ -285,7 +266,6 @@ class _HistorialGastosScreenState extends State<HistorialGastosScreen>
 
     final picked = await showModalBottomSheet<_YearMonth>(
       context: context,
-      // 👇 importante: permite que el sheet use más alto y sea scrollable
       isScrollControlled: true,
       backgroundColor: Colors.white,
       shape: const RoundedRectangleBorder(
@@ -295,20 +275,14 @@ class _HistorialGastosScreenState extends State<HistorialGastosScreen>
         return SafeArea(
           top: false,
           child: SingleChildScrollView(
-            // esto evita overflows cuando el contenido es más alto que la pantalla
             child: Padding(
-              // deja espacio por si hay insets (gesture/nav bar)
-              padding: EdgeInsets.fromLTRB(
-                16, 12, 16, 16 + MediaQuery.of(ctx).viewInsets.bottom,
-              ),
+              padding: EdgeInsets.fromLTRB(16, 12, 16, 16 + MediaQuery.of(ctx).viewInsets.bottom),
               child: StatefulBuilder(
                 builder: (ctx, setStateSheet) {
                   final months = List<int>.generate(12, (i) => i + 1);
 
                   bool isEnabled(int y, int m) => _isMonthInRange(
-                    year: y, month: m,
-                    minY: minY, minM: minM,
-                    maxY: maxY, maxM: maxM,
+                    year: y, month: m, minY: minY, minM: minM, maxY: maxY, maxM: maxM,
                   );
 
                   String monthName(int m) =>
@@ -317,7 +291,6 @@ class _HistorialGastosScreenState extends State<HistorialGastosScreen>
                   return Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      // barra de año compacta
                       Row(
                         children: [
                           IconButton(
@@ -333,9 +306,7 @@ class _HistorialGastosScreenState extends State<HistorialGastosScreen>
                               child: Text(
                                 '$tempYear',
                                 style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 16,
-                                  color: Colors.black,
+                                  fontWeight: FontWeight.bold, fontSize: 16, color: Colors.black,
                                 ),
                               ),
                             ),
@@ -352,23 +323,19 @@ class _HistorialGastosScreenState extends State<HistorialGastosScreen>
                       ),
                       const SizedBox(height: 8),
 
-                      // rejilla compacta (no scroll propia; la scroll la hace el sheet)
                       GridView.count(
                         crossAxisCount: 3,
                         mainAxisSpacing: 6,
                         crossAxisSpacing: 6,
-                        // 👇 estas dos líneas son clave para evitar overflow dentro de la grid
                         shrinkWrap: true,
                         physics: const NeverScrollableScrollPhysics(),
-                        // 👇 hace los botones un poco más “bajos” (reduce altura total)
                         childAspectRatio: 2.4,
                         children: [
                           for (final m in months)
                             TextButton(
                               style: TextButton.styleFrom(
                                 foregroundColor: isEnabled(tempYear, m)
-                                    ? AppColor.azulFynso
-                                    : Colors.grey,
+                                    ? AppColor.azulFynso : Colors.grey,
                                 padding: const EdgeInsets.symmetric(vertical: 10),
                               ),
                               onPressed: isEnabled(tempYear, m)
@@ -392,17 +359,279 @@ class _HistorialGastosScreenState extends State<HistorialGastosScreen>
     if (picked != null) {
       final clamped = _clampMonth(picked);
       viewModel.changeMonth(clamped.year, clamped.month);
-      await viewModel.loadTransactions(
-        jwt: jwt,
-        anio: clamped.year,
-        mes: clamped.month,
-      );
+      await viewModel.loadTransactions(jwt: jwt, anio: clamped.year, mes: clamped.month);
       if (mounted) setState(() {});
     }
   }
 
-  // ========= UI del BottomSheet de filtros (limitado a rango real) =========
+  // ========= Fynso dialogs =========
+  Future<bool> _confirmDeleteDialog() async {
+    return await _showFynsoCardDialog<bool>(
+      title: 'Eliminar gasto',
+      message: '¿Seguro que deseas eliminar este gasto? Esta acción no se puede deshacer.',
+      icon: Icons.delete_outline,
+      actions: [
+        OutlinedButton(
+          style: OutlinedButton.styleFrom(
+            foregroundColor: Colors.black,
+            side: BorderSide(color: AppColor.azulFynso),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            minimumSize: const Size.fromHeight(44),
+          ),
+          onPressed: () => Navigator.pop(context, false),
+          child: const Text('Cancelar'),
+        ),
+        ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.redAccent,
+            foregroundColor: Colors.white,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            minimumSize: const Size.fromHeight(44),
+          ),
+          onPressed: () => Navigator.pop(context, true),
+          child: const Text('Eliminar'),
+        ),
+      ],
+    ) ??
+        false;
+  }
 
+  Future<T?> _showFynsoCardDialog<T>({
+    required String title,
+    required String message,
+    IconData icon = Icons.info_outline,
+    required List<Widget> actions,
+  }) {
+    return showDialog<T>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) {
+        return Dialog(
+          insetPadding: const EdgeInsets.symmetric(horizontal: 24),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: AppColor.azulFynso.withOpacity(0.15)),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColor.azulFynso.withOpacity(0.08),
+                  blurRadius: 16,
+                  offset: const Offset(0, 8),
+                ),
+              ],
+            ),
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      width: 36,
+                      height: 36,
+                      decoration: BoxDecoration(
+                        color: AppColor.azulFynso.withOpacity(0.1),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(icon, color: AppColor.azulFynso),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        title,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w700, fontSize: 16, color: Colors.black87,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    message,
+                    style: const TextStyle(fontSize: 14, color: Colors.black87, height: 1.3),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  children: actions
+                      .map((w) => Expanded(child: Padding(padding: const EdgeInsets.symmetric(horizontal: 6), child: w)))
+                      .toList(),
+                ),
+                const SizedBox(height: 8),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _showError(String msg) async {
+    await _showFynsoCardDialog<void>(
+      title: 'No se pudo completar la acción',
+      message: msg,
+      icon: Icons.error_outline,
+      actions: [
+        ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppColor.azulFynso,
+            foregroundColor: Colors.white,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            minimumSize: const Size.fromHeight(44),
+          ),
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Aceptar'),
+        ),
+      ],
+    );
+  }
+
+  // ========= Context menu anclado (long-press) =========
+  Future<void> _showCardMenu(TransactionResponse t, Offset globalPos) async {
+    final overlay = Overlay.of(context).context.findRenderObject() as RenderBox;
+    final pos = RelativeRect.fromLTRB(
+      globalPos.dx,
+      globalPos.dy,
+      overlay.size.width - globalPos.dx,
+      overlay.size.height - globalPos.dy,
+    );
+
+    // 👉 Suprime la recarga causada por cerrar el PopupMenu
+    _suppressReloadOnce = true;
+    final selected = await showMenu<String>(
+      context: context,
+      position: pos,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: AppColor.azulFynso.withOpacity(0.2)),
+      ),
+      color: Colors.white,
+      items: [
+        PopupMenuItem(
+          value: 'ver',
+          child: Row(children: [
+            Icon(Icons.visibility_outlined, color: AppColor.azulFynso), const SizedBox(width: 8),
+            const Text('Ver'),
+          ]),
+        ),
+        PopupMenuItem(
+          value: 'editar',
+          child: Row(children: [
+            Icon(Icons.edit_outlined, color: AppColor.azulFynso), const SizedBox(width: 8),
+            const Text('Editar'),
+          ]),
+        ),
+        PopupMenuItem(
+          value: 'eliminar',
+          child: Row(children: const [
+            Icon(Icons.delete_outline, color: Colors.redAccent), SizedBox(width: 8),
+            Text('Eliminar'),
+          ]),
+        ),
+      ],
+    );
+    // 👇 Restablece el fusible (solo suprime el pop del menú)
+    _suppressReloadOnce = false;
+
+    if (!mounted || selected == null) return;
+
+    if (selected == 'ver') {
+      Navigator.pushNamed(
+        context,
+        '/detalleGasto',
+        arguments: TransactionDetailRequest(idTransaction: t.idTransaction, jwt: jwt),
+      );
+    } else if (selected == 'editar') {
+      final res = await Navigator.pushNamed(context, '/editarGasto', arguments: t);
+      if (res != null) _reloadSameMonth();
+    } else if (selected == 'eliminar') {
+      final ok = await _confirmDeleteDialog();
+      if (ok) {
+        try {
+          final done = await viewModel.deleteTransaction(jwt: jwt, idTransaction: t.idTransaction);
+          if (!done) throw Exception('No se pudo eliminar');
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Gasto eliminado')),
+            );
+          }
+        } catch (e) {
+          await _showError(e.toString().replaceFirst('Exception: ', ''));
+        }
+      }
+    }
+  }
+
+  // ========= Swipe backgrounds =========
+  Widget _bgDelete() {
+    return Container(
+      color: Colors.redAccent.withOpacity(0.12),
+      alignment: Alignment.centerLeft,
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: const Icon(Icons.delete_outline, color: Colors.redAccent, size: 28),
+    );
+  }
+  Widget _bgEdit() {
+    return Container(
+      color: AppColor.azulFynso.withOpacity(0.12),
+      alignment: Alignment.centerRight,
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Icon(Icons.edit_outlined, color: AppColor.azulFynso, size: 28),
+    );
+  }
+
+  // ========= Build Dismissible + Gestos alrededor del GastoCard =========
+  Widget _buildSwipeableCard(TransactionResponse t) {
+    return Dismissible(
+      key: ValueKey('tx_${t.idTransaction}'),
+      background: _bgDelete(),             // 👉 deslizar a la derecha = eliminar
+      secondaryBackground: _bgEdit(),      // 👈 deslizar a la izquierda = editar
+      confirmDismiss: (direction) async {
+        if (direction == DismissDirection.startToEnd) {
+          // Eliminar con confirmación y borrado real
+          final ok = await _confirmDeleteDialog();
+          if (!ok) return false;
+          try {
+            final done = await viewModel.deleteTransaction(jwt: jwt, idTransaction: t.idTransaction);
+            if (!done) throw Exception('No se pudo eliminar');
+            // true => Dismissible animará y quitará la card
+            return true;
+          } catch (e) {
+            await _showError(e.toString().replaceFirst('Exception: ', ''));
+            return false;
+          }
+        } else {
+          // Editar: navegar y NO quitar la card
+          final res = await Navigator.pushNamed(context, '/editarGasto', arguments: t);
+          if (res != null) _reloadSameMonth();
+          return false;
+        }
+      },
+      child: GestureDetector(
+        onLongPressStart: (d) => _showCardMenu(t, d.globalPosition),
+        child: GastoCard(
+          categoria: t.category,
+          subcategoria: t.subcategory,
+          monto: t.monto,
+          fecha: t.fecha,
+          onTap: () {
+            Navigator.pushNamed(
+              context,
+              '/detalleGasto',
+              arguments: TransactionDetailRequest(idTransaction: t.idTransaction, jwt: jwt),
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  // ========= UI del BottomSheet de filtros (igual, con tus colores) =========
   Future<void> _openFilters() async {
     final vm = viewModel;
     final categories = vm.categories;
@@ -412,12 +641,9 @@ class _HistorialGastosScreenState extends State<HistorialGastosScreen>
     final subcatController = ValueNotifier<int?>(filter.subcategoryId);
     final dateFromController = ValueNotifier<DateTime?>(filter.dateFrom);
     final dateToController   = ValueNotifier<DateTime?>(filter.dateTo);
-    final amountMinCtrl = TextEditingController(
-        text: filter.amountMin != null ? filter.amountMin!.toString() : '');
-    final amountMaxCtrl = TextEditingController(
-        text: filter.amountMax != null ? filter.amountMax!.toString() : '');
+    final amountMinCtrl = TextEditingController(text: filter.amountMin != null ? filter.amountMin!.toString() : '');
+    final amountMaxCtrl = TextEditingController(text: filter.amountMax != null ? filter.amountMax!.toString() : '');
 
-    // si ya hay categoría, carga sus subcategorías
     if (filter.categoryId != null) {
       await vm.loadSubcategories(filter.categoryId!);
     }
@@ -432,30 +658,25 @@ class _HistorialGastosScreenState extends State<HistorialGastosScreen>
       builder: (ctx) {
         return Padding(
           padding: EdgeInsets.only(
-            left: 16, right: 16, top: 16,
-            bottom: 16 + MediaQuery.of(ctx).viewInsets.bottom,
+            left: 16, right: 16, top: 16, bottom: 16 + MediaQuery.of(ctx).viewInsets.bottom,
           ),
           child: StatefulBuilder(
             builder: (ctx, setStateSheet) {
               List<SubcategoryItem> subs = vm.subcategories;
 
               Future<void> pickDateRange() async {
-                // límites exactos a lo disponible en BD
                 final first = _minDateAvailable ?? DateTime(2000, 1, 1);
                 final last  = _maxDateAvailable ?? DateTime.now();
 
                 final initialDateRange =
                 (dateFromController.value != null && dateToController.value != null)
-                    ? DateTimeRange(
-                  start: dateFromController.value!,
-                  end: dateToController.value!,
-                )
+                    ? DateTimeRange(start: dateFromController.value!, end: dateToController.value!)
                     : DateTimeRange(start: first, end: last);
 
                 final picked = await showDateRangePicker(
                   context: context,
-                  firstDate: first,  // 1 del primer mes con tx
-                  lastDate: last,    // último día del último mes con tx
+                  firstDate: first,
+                  lastDate: last,
                   initialDateRange: initialDateRange,
                   helpText: 'Rango de fechas',
                   cancelText: 'Cancelar',
@@ -463,10 +684,8 @@ class _HistorialGastosScreenState extends State<HistorialGastosScreen>
                   locale: const Locale('es', ''),
                 );
                 if (picked != null) {
-                  dateFromController.value = DateTime(
-                      picked.start.year, picked.start.month, picked.start.day);
-                  dateToController.value = DateTime(
-                      picked.end.year, picked.end.month, picked.end.day);
+                  dateFromController.value = DateTime(picked.start.year, picked.start.month, picked.start.day);
+                  dateToController.value   = DateTime(picked.end.year, picked.end.month, picked.end.day);
                   setStateSheet(() {});
                 }
               }
@@ -480,19 +699,14 @@ class _HistorialGastosScreenState extends State<HistorialGastosScreen>
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Filtros',
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                    const Text('Filtros', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                     const SizedBox(height: 12),
 
-                    // Categoría
                     DropdownButtonFormField<int?>(
                       value: catController.value,
                       items: <DropdownMenuItem<int?>>[
                         const DropdownMenuItem(value: null, child: Text('Todas las categorías')),
-                        ...categories.map((c) => DropdownMenuItem<int?>(
-                          value: c.idCategory,
-                          child: Text(c.nombre),
-                        )),
+                        ...categories.map((c) => DropdownMenuItem<int?>(value: c.idCategory, child: Text(c.nombre))),
                       ],
                       onChanged: (v) async {
                         catController.value = v;
@@ -508,15 +722,11 @@ class _HistorialGastosScreenState extends State<HistorialGastosScreen>
                     ),
                     const SizedBox(height: 8),
 
-                    // Subcategoría
                     DropdownButtonFormField<int?>(
                       value: subcatController.value,
                       items: <DropdownMenuItem<int?>>[
                         const DropdownMenuItem(value: null, child: Text('Todas las subcategorías')),
-                        ...subs.map((s) => DropdownMenuItem<int?>(
-                          value: s.idSubcategory,
-                          child: Text(s.nombre),
-                        )),
+                        ...subs.map((s) => DropdownMenuItem<int?>(value: s.idSubcategory, child: Text(s.nombre))),
                       ],
                       onChanged: (v) {
                         subcatController.value = v;
@@ -526,7 +736,6 @@ class _HistorialGastosScreenState extends State<HistorialGastosScreen>
                     ),
                     const SizedBox(height: 8),
 
-                    // Fechas
                     Row(
                       children: [
                         Expanded(
@@ -555,7 +764,6 @@ class _HistorialGastosScreenState extends State<HistorialGastosScreen>
                     ),
                     const SizedBox(height: 8),
 
-                    // Monto min/max
                     Row(
                       children: [
                         Expanded(
@@ -582,7 +790,7 @@ class _HistorialGastosScreenState extends State<HistorialGastosScreen>
                         Expanded(
                           child: OutlinedButton(
                             onPressed: () async {
-                              await viewModel.clearFilters(); // limpia en VM y recarga
+                              await viewModel.clearFilters();
                               if (mounted) Navigator.pop(context);
                             },
                             child: const Text('Limpiar'),
@@ -592,8 +800,7 @@ class _HistorialGastosScreenState extends State<HistorialGastosScreen>
                         Expanded(
                           child: ElevatedButton(
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: AppColor.azulFynso,
-                              foregroundColor: Colors.white,
+                              backgroundColor: AppColor.azulFynso, foregroundColor: Colors.white,
                             ),
                             onPressed: () async {
                               final f = TransactionsFilter(
@@ -608,7 +815,7 @@ class _HistorialGastosScreenState extends State<HistorialGastosScreen>
                                     ? null
                                     : double.tryParse(amountMaxCtrl.text.trim()),
                               );
-                              await viewModel.applyFilter(f); // aplica y recarga
+                              await viewModel.applyFilter(f);
                               if (mounted) Navigator.pop(context);
                             },
                             child: const Text('Aplicar'),
@@ -628,7 +835,6 @@ class _HistorialGastosScreenState extends State<HistorialGastosScreen>
   }
 
   // ========= Build =========
-
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider.value(
@@ -637,14 +843,11 @@ class _HistorialGastosScreenState extends State<HistorialGastosScreen>
         builder: (context, vm, _) {
           final grouped = _groupTransactions(vm.transactions);
 
-          // Etiqueta del mes
           final monthLabel = () {
-            final s = DateFormat('MMMM yyyy', 'es')
-                .format(DateTime(vm.anio, vm.mes, 1));
+            final s = DateFormat('MMMM yyyy', 'es').format(DateTime(vm.anio, vm.mes, 1));
             return s[0].toUpperCase() + s.substring(1);
           }();
 
-          // Header siempre visible: selector de mes (sin ícono) + filtros
           Widget _headerRow() {
             return Row(
               children: [
@@ -657,10 +860,7 @@ class _HistorialGastosScreenState extends State<HistorialGastosScreen>
                       padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
                     ),
                     onPressed: _openMonthSheet,
-                    child: Text(
-                      monthLabel,
-                      overflow: TextOverflow.ellipsis,
-                    ),
+                    child: Text(monthLabel, overflow: TextOverflow.ellipsis),
                   ),
                 ),
                 const SizedBox(width: 8),
@@ -678,7 +878,6 @@ class _HistorialGastosScreenState extends State<HistorialGastosScreen>
             );
           }
 
-          // Spinner inicial y durante cargas
           if (_booting || vm.isLoading) {
             return Scaffold(
               appBar: AppBar(
@@ -727,28 +926,10 @@ class _HistorialGastosScreenState extends State<HistorialGastosScreen>
                         padding: const EdgeInsets.symmetric(vertical: 6.0),
                         child: Text(
                           section,
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 14,
-                          ),
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
                         ),
                       ),
-                      ...grouped[section]!.map((t) => GastoCard(
-                        categoria: t.category,
-                        subcategoria: t.subcategory,
-                        monto: t.monto,
-                        fecha: t.fecha,
-                        onTap: () {
-                          Navigator.pushNamed(
-                            context,
-                            '/detalleGasto',
-                            arguments: TransactionDetailRequest(
-                              idTransaction: t.idTransaction,
-                              jwt: jwt,
-                            ),
-                          );
-                        },
-                      )),
+                      ...grouped[section]!.map(_buildSwipeableCard),
                       const SizedBox(height: 8),
                     ],
                 ],
