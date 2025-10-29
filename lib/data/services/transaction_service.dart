@@ -1,26 +1,31 @@
 import 'dart:convert';
-import 'package:fynso/data/models/transaction_response.dart';
 import 'package:http/http.dart' as http;
+import '../models/transaction_response.dart';
+import '../models/transactions_filter.dart';
 
 class TransactionService {
   final String baseUrl = 'https://fynso.pythonanywhere.com';
 
-  // GET transacciones
   Future<List<TransactionResponse>> getTransactions({
     required String jwt,
     required int anio,
     required int mes,
     int page = 1,
     int size = 50,
+    TransactionsFilter? filter,
   }) async {
-    final uri = Uri.parse('$baseUrl/api/transactions').replace(
-      queryParameters: {
-        'anio': anio.toString(),
-        'mes': mes.toString(),
-        'page': page.toString(),
-        'size': size.toString(),
-      },
-    );
+    final qp = <String, String>{
+      'anio': '$anio',
+      'mes': '$mes',
+      'page': '$page',
+      'size': '$size',
+      'type': 'Gasto', // por defecto
+    };
+    if (filter != null) {
+      qp.addAll(filter.toQueryParams());
+    }
+
+    final uri = Uri.parse('$baseUrl/api/transactions').replace(queryParameters: qp);
 
     final response = await http.get(
       uri,
@@ -28,20 +33,19 @@ class TransactionService {
     );
 
     if (response.statusCode == 200) {
-      final jsonBody = jsonDecode(response.body);
-      final items = jsonBody['data']['items'] as List;
+      final jsonBody = jsonDecode(response.body) as Map<String, dynamic>;
+      final items = (jsonBody['data']?['items'] as List?) ?? [];
       return items.map((e) => TransactionResponse.fromJson(e)).toList();
     } else {
       throw Exception('Error al obtener transacciones: ${response.statusCode}');
     }
   }
 
-  // PATCH actualizar transacción
+  // PATCH actualizar transacción (sin cambios)
   Future<TransactionResponse> updateTransaction({
     required String jwt,
     required int idTransaction,
-    required Map<String, dynamic>
-    body, // {"amount":123,"date":"2025-10-09", ...}
+    required Map<String, dynamic> body,
   }) async {
     final uri = Uri.parse('$baseUrl/api/transactions/$idTransaction');
 
@@ -56,7 +60,7 @@ class TransactionService {
     );
 
     if (response.statusCode == 200) {
-      final jsonBody = jsonDecode(response.body);
+      final jsonBody = jsonDecode(response.body) as Map<String, dynamic>;
       final data = jsonBody['data'] as Map<String, dynamic>;
       return TransactionResponse.fromJson(data);
     } else {
