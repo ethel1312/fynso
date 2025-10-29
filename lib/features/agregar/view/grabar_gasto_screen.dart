@@ -14,8 +14,6 @@ import '../../../common/widgets/custom_text_title.dart';
 import '../../../data/services/audio_service.dart';
 import '../../../data/repositories/audio_repository.dart';
 import '../view_model/grabar_gasto_viewmodel.dart';
-
-// 👉 IMPORTA EL REQUEST QUE USA DetalleGastoScreen
 import '../../../data/models/transaction_detail_request.dart';
 
 class GrabarGastoScreen extends StatefulWidget {
@@ -43,6 +41,13 @@ class _GrabarGastoScreenState extends State<GrabarGastoScreen>
   // VM
   late final GrabarGastoViewModel _viewModel;
 
+  // ======= Guard rails de grabación =======
+  static const int _maxSeconds = 30; // límite de grabación
+  Duration _recordElapsed = Duration.zero;
+  StreamSubscription? _recSub; // progreso del recorder
+  double? _lastDb; // decibeles (si el plugin los emite)
+  bool _voiceDetected = false; // heurística de voz/ruido
+
   @override
   void initState() {
     super.initState();
@@ -52,7 +57,7 @@ class _GrabarGastoScreenState extends State<GrabarGastoScreen>
     _controller = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 1),
-    )..stop(); // solo animar cuando esté grabando
+    )..stop();
 
     _animation = Tween<double>(begin: 1.0, end: 1.3)
         .animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
@@ -60,9 +65,19 @@ class _GrabarGastoScreenState extends State<GrabarGastoScreen>
 
   @override
   void dispose() {
+    _recSub?.cancel();
+    _recSub = null;
     _safeStopAndClose();
     _controller.dispose();
     super.dispose();
+  }
+
+  // ----------------- Helpers -----------------
+
+  String _fmtElapsed() {
+    final mm = _recordElapsed.inMinutes.remainder(60).toString().padLeft(2, '0');
+    final ss = _recordElapsed.inSeconds.remainder(60).toString().padLeft(2, '0');
+    return '$mm:$ss';
   }
 
   // ----------------- Permisos -----------------
@@ -127,6 +142,31 @@ class _GrabarGastoScreenState extends State<GrabarGastoScreen>
       final dir = await getApplicationDocumentsDirectory();
       _audioPath = '${dir.path}/gasto.m4a';
 
+      // reset
+      _recordElapsed = Duration.zero;
+      _lastDb = null;
+      _voiceDetected = false;
+
+      // progreso/decibeles
+      await _recorder.setSubscriptionDuration(const Duration(milliseconds: 200));
+      _recSub?.cancel();
+      _recSub = _recorder.onProgress?.listen((event) {
+        try {
+          final dur = (event.duration as Duration?) ?? Duration.zero;
+          final db = (event.decibels as double?);
+
+          setState(() {
+            _recordElapsed = dur;
+            _lastDb = db;
+            if (db != null && db > -45) _voiceDetected = true; // ~habla normal cerca del micro
+          });
+
+          if (_recordElapsed.inSeconds >= _maxSeconds && !isStopping) {
+            _onMaxDurationReached();
+          }
+        } catch (_) {}
+      });
+
       await _recorder.startRecorder(
         toFile: _audioPath,
         codec: Codec.aacMP4,
@@ -147,30 +187,29 @@ class _GrabarGastoScreenState extends State<GrabarGastoScreen>
         _controller.stop();
       });
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error al iniciar grabación: $e')),
-      );
+      await _showFynsoError('Error al iniciar grabación: $e');
     }
   }
 
   Future<void> _cancelRecording() async {
-    // Cancelar = detener y DESCARTAR archivo, sin subir
     if (!isRecording || isUploading) return;
     try {
       try {
         await _recorder.stopRecorder();
       } catch (_) {}
-      // borrar archivo si existe
+      _recSub?.cancel();
+      _recSub = null;
       if (_audioPath != null) {
         final f = File(_audioPath!);
-        if (await f.exists()) {
-          await f.delete();
-        }
+        if (await f.exists()) await f.delete();
       }
       setState(() {
         isRecording = false;
         _controller.stop();
         _audioPath = null;
+        _recordElapsed = Duration.zero;
+        _lastDb = null;
+        _voiceDetected = false;
       });
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -178,9 +217,7 @@ class _GrabarGastoScreenState extends State<GrabarGastoScreen>
       );
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('No se pudo cancelar: $e')),
-      );
+      await _showFynsoError('No se pudo cancelar: $e');
     } finally {
       await _recorder.closeRecorder();
     }
@@ -194,9 +231,7 @@ class _GrabarGastoScreenState extends State<GrabarGastoScreen>
       // 1) Detener
       try {
         await _recorder.stopRecorder();
-      } catch (_) {
-        // si ya estaba detenida, ignorar
-      }
+      } catch (_) {}
 
       setState(() {
         isRecording = false;
@@ -206,10 +241,61 @@ class _GrabarGastoScreenState extends State<GrabarGastoScreen>
       // 2) Revisar archivo
       if (_audioPath == null || !File(_audioPath!).existsSync()) {
         if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('No se generó archivo de audio')),
-        );
+        await _showFynsoError('No se generó archivo de audio');
         return;
+      }
+
+      // 2b) Heurísticas de "audio vacío"
+      final f = File(_audioPath!);
+      final len = await f.length();
+      final tooSmall = len < 2500; // header o casi vacío
+      final tooShort = _recordElapsed.inMilliseconds < 700;
+      final likelySilent = !_voiceDetected;
+
+      if (tooSmall || tooShort || likelySilent) {
+        final choice = await _showFynsoCardDialog<String>(
+          title: 'No detectamos audio claro',
+          message:
+          'Parece que el micrófono no capturó voz o el volumen fue muy bajo. '
+              '¿Quieres regrabar o enviar de todos modos?',
+          icon: Icons.mic_off_outlined,
+          actions: [
+            OutlinedButton(
+              style: OutlinedButton.styleFrom(
+                foregroundColor: Colors.black,
+                side: BorderSide(color: AppColor.azulFynso),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                minimumSize: const Size.fromHeight(44),
+              ),
+              onPressed: () => Navigator.pop(context, 'regrabar'),
+              child: const Text('Regrabar'),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColor.azulFynso,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                minimumSize: const Size.fromHeight(44),
+              ),
+              onPressed: () => Navigator.pop(context, 'enviar'),
+              child: const Text('Enviar igual'),
+            ),
+          ],
+        );
+
+        if (choice != 'enviar') {
+          if (await f.exists()) await f.delete();
+          _audioPath = null;
+          _recordElapsed = Duration.zero;
+          _lastDb = null;
+          _voiceDetected = false;
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Listo para regrabar')),
+            );
+          }
+          return;
+        }
       }
 
       // 3) Subir
@@ -219,40 +305,33 @@ class _GrabarGastoScreenState extends State<GrabarGastoScreen>
       final jwt = prefs.getString('jwt_token');
       if (jwt == null || jwt.isEmpty) {
         if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('No se encontró token de usuario')),
-        );
+        await _showFynsoError('No se encontró token de usuario');
         return;
       }
 
       await _viewModel.enviarAudio(File(_audioPath!), jwt);
 
-      if (!mounted) return;
+      if (_viewModel.error != null) {
+        await _showFynsoError(_viewModel.error!);
+        return;
+      }
 
-      // 4) Navegar al detalle con datos REALES: SIEMPRE TransactionDetailRequest
+      // 4) Navegar al detalle con datos REALES
       final r = _viewModel.transcribeResult;
       if (r != null) {
-        // Preferimos el id creado por el backend; si no, usamos el id de la transacción retornada
         final txId = r.createdTransactionId ?? r.transaction?.idTransaction;
         if (txId != null) {
           final req = TransactionDetailRequest(jwt: jwt, idTransaction: txId);
           await Navigator.pushNamed(context, '/detalleGasto', arguments: req);
         } else {
-          // Fallback: no hay id -> no podemos cargar detalle por API
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('No se obtuvo el ID de la transacción')),
-          );
+          await _showFynsoError('No se obtuvo el ID de la transacción');
         }
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('No se pudo extraer información del audio')),
-        );
+        await _showFynsoError('No se pudo extraer información del audio');
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error al procesar audio: $e')),
-        );
+        await _showFynsoError(e.toString());
       }
     } finally {
       setState(() => isUploading = false);
@@ -267,6 +346,8 @@ class _GrabarGastoScreenState extends State<GrabarGastoScreen>
         await _recorder.stopRecorder();
       }
     } catch (_) {}
+    _recSub?.cancel();
+    _recSub = null;
     try {
       await _recorder.closeRecorder();
     } catch (_) {}
@@ -275,12 +356,184 @@ class _GrabarGastoScreenState extends State<GrabarGastoScreen>
   // ----------------- UI Actions -----------------
 
   Future<void> _onMicButtonPressed() async {
-    if (isUploading) return; // mientras sube, no permitir
+    if (isUploading) return;
     if (!isRecording) {
       await _startRecording();
     } else {
       await _stopRecordingAndUpload();
     }
+  }
+
+  Future<void> _onMaxDurationReached() async {
+    if (!isRecording || isStopping) return;
+    isStopping = true;
+    try {
+      try {
+        await _recorder.stopRecorder();
+      } catch (_) {}
+      setState(() {
+        isRecording = false;
+        _controller.stop();
+      });
+
+      final choice = await _showFynsoCardDialog<String>(
+        title: 'Límite de 30 segundos',
+        message:
+        'Llegaste al máximo permitido. ¿Deseas enviar este audio o prefieres regrabarlo?',
+        icon: Icons.timer_outlined,
+        actions: [
+          OutlinedButton(
+            style: OutlinedButton.styleFrom(
+              foregroundColor: Colors.black,
+              side: BorderSide(color: AppColor.azulFynso),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              minimumSize: const Size.fromHeight(44),
+            ),
+            onPressed: () => Navigator.pop(context, 'regrabar'),
+            child: const Text('Regrabar'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColor.azulFynso,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              minimumSize: const Size.fromHeight(44),
+            ),
+            onPressed: () => Navigator.pop(context, 'enviar'),
+            child: const Text('Enviar'),
+          ),
+        ],
+      );
+
+      if (choice == 'enviar') {
+        await _stopRecordingAndUpload();
+      } else {
+        // limpiar archivo y estado
+        if (_audioPath != null) {
+          final f = File(_audioPath!);
+          if (await f.exists()) {
+            await f.delete();
+          }
+        }
+        _audioPath = null;
+        _recordElapsed = Duration.zero;
+        _lastDb = null;
+        _voiceDetected = false;
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Listo para regrabar')),
+          );
+        }
+      }
+    } finally {
+      isStopping = false;
+    }
+  }
+
+  // =================== Fynso Dialogs (bonitos) ===================
+  Future<T?> _showFynsoCardDialog<T>({
+    required String title,
+    required String message,
+    IconData icon = Icons.info_outline,
+    required List<Widget> actions,
+  }) {
+    return showDialog<T>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) {
+        return Dialog(
+          insetPadding: const EdgeInsets.symmetric(horizontal: 24),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: AppColor.azulFynso.withOpacity(0.15)),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColor.azulFynso.withOpacity(0.08),
+                  blurRadius: 16,
+                  offset: const Offset(0, 8),
+                ),
+              ],
+            ),
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      width: 36,
+                      height: 36,
+                      decoration: BoxDecoration(
+                        color: AppColor.azulFynso.withOpacity(0.1),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(icon, color: AppColor.azulFynso),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        title,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w700,
+                          fontSize: 16,
+                          color: Colors.black87,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    message,
+                    style: const TextStyle(fontSize: 14, color: Colors.black87, height: 1.3),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  children: actions
+                      .map((w) => Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 6),
+                      child: w,
+                    ),
+                  ))
+                      .toList(),
+                ),
+                const SizedBox(height: 8),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _showFynsoError(String raw) async {
+    final msg = raw.startsWith('Exception: ')
+        ? raw.substring('Exception: '.length).trim()
+        : raw.trim();
+    await _showFynsoCardDialog<void>(
+      title: 'No se pudo registrar el gasto',
+      message: msg.isEmpty ? 'Ocurrió un error inesperado.' : msg,
+      icon: Icons.error_outline,
+      actions: [
+        ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppColor.azulFynso,
+            foregroundColor: Colors.white,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            minimumSize: const Size.fromHeight(44),
+          ),
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Aceptar'),
+        ),
+      ],
+    );
   }
 
   // ----------------- Build -----------------
@@ -359,12 +612,27 @@ class _GrabarGastoScreenState extends State<GrabarGastoScreen>
                 ),
               ),
 
-              const SizedBox(height: 40),
+              // Timer con padding animado: más separación cuando está grabando
+              if (isRecording)
+                AnimatedPadding(
+                  padding: const EdgeInsets.only(top: 36), // ajusta 36→40/48 si quieres más aire
+                  duration: const Duration(milliseconds: 160),
+                  curve: Curves.easeOut,
+                  child: Text(
+                    '${_fmtElapsed()} / 00:30',
+                    style: const TextStyle(fontWeight: FontWeight.w600),
+                    textAlign: TextAlign.center,
+                  ),
+                )
+              else
+                const SizedBox(height: 24),
 
+              // Estado
+              const SizedBox(height: 8),
               Text(
                 isUploading
-                    ? "Procesando..."
-                    : (isRecording ? "Grabando..." : "Listo para grabar"),
+                    ? 'Procesando...'
+                    : (isRecording ? 'Grabando...' : 'Listo para grabar'),
                 style: TextStyle(
                   color: isUploading
                       ? Colors.blueGrey
@@ -395,7 +663,7 @@ class _GrabarGastoScreenState extends State<GrabarGastoScreen>
                 text: 'Ver historial de gastos',
                 backgroundColor: AppColor.azulFynso,
                 icon: const Icon(Icons.history, color: Colors.white),
-                onPressed: isBusy
+                onPressed: isRecording || isUploading
                     ? null
                     : () async {
                   await Navigator.pushNamed(context, '/historialGastos');
