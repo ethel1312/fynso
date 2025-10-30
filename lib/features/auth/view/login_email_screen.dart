@@ -8,7 +8,6 @@ import '../../../common/widgets/custom_button.dart';
 import '../../../common/widgets/custom_text_blue.dart';
 import '../../../common/widgets/custom_textfield.dart';
 import '../../../common/widgets/custom_text_title.dart';
-import '../../home/view/home_screen.dart';
 import '../view_model/auth_view_model.dart';
 
 class LoginEmailScreen extends StatefulWidget {
@@ -43,13 +42,12 @@ class _LoginEmailScreenState extends State<LoginEmailScreen> {
       await _authViewModel.login(username, password);
 
       if (_authViewModel.authResponse != null) {
-        // Login exitoso → navegar al HomeScreen
-        Navigator.pushReplacement(
-          context,
+        // Login exitoso → limpiar stack y navegar a MainNavigation
+        Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute(
-            builder: (context) =>
-                const MainNavigation(), // Importa tu HomeScreen
+            builder: (context) => const MainNavigation(),
           ),
+          (route) => false,
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
