@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../auth/view/login_screen.dart';
 import '../../../common/utils/timezone.dart';
 import '../../../data/repositories/monthly_limit_repository.dart';
+import '../../../common/navigation/main_navigation.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -11,17 +12,18 @@ class SplashScreen extends StatefulWidget {
   State<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen> with WidgetsBindingObserver {
+class _SplashScreenState extends State<SplashScreen>
+    with WidgetsBindingObserver {
   static const _kLastReconKey = 'last_reconcile_yyyymm';
+  bool _navigated = false;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _fireAndForgetReconcileOncePerMonth();
-    Timer(const Duration(seconds: 3), () {
-      if (!mounted) return;
-      Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const LoginScreen()));
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await _decideAndNavigateSafely();
     });
   }
 
@@ -29,6 +31,42 @@ class _SplashScreenState extends State<SplashScreen> with WidgetsBindingObserver
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
+  }
+
+  Future<void> _decideAndNavigateSafely() async {
+    if (!mounted || _navigated) return;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final jwt = prefs.getString('jwt_token') ?? '';
+      if (jwt.isNotEmpty) {
+        _navigated = true;
+        if (!mounted) return;
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (_) => const MainNavigation()),
+          (route) => false,
+        );
+        return;
+      }
+
+      // Pequeño delay solo para mostrar el splash si no hay sesión
+      await Future.delayed(const Duration(milliseconds: 1200));
+      if (!mounted || _navigated) return;
+      final Widget target = const LoginScreen();
+      if (!mounted || _navigated) return;
+      _navigated = true;
+      if (!mounted) return;
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (_) => target),
+        (route) => false,
+      );
+    } catch (_) {
+      if (!mounted || _navigated) return;
+      _navigated = true;
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (_) => const LoginScreen()),
+        (route) => false,
+      );
+    }
   }
 
   // Llama reconcile cuando la app vuelve al frente (por si cambió de mes en background)
@@ -49,7 +87,8 @@ class _SplashScreenState extends State<SplashScreen> with WidgetsBindingObserver
 
       // yyyymm local para evitar repetir reconcile el mismo mes
       final now = DateTime.now();
-      final yyyymm = '${now.year.toString().padLeft(4, '0')}${now.month.toString().padLeft(2, '0')}';
+      final yyyymm =
+          '${now.year.toString().padLeft(4, '0')}${now.month.toString().padLeft(2, '0')}';
       final last = prefs.getString(_kLastReconKey);
 
       if (last == yyyymm) return; // ya se reconcilió este mes
@@ -76,7 +115,11 @@ class _SplashScreenState extends State<SplashScreen> with WidgetsBindingObserver
       body: Center(
         child: Text(
           "Fynso",
-          style: TextStyle(fontSize: 40, fontWeight: FontWeight.bold, color: Colors.blueAccent),
+          style: TextStyle(
+            fontSize: 40,
+            fontWeight: FontWeight.bold,
+            color: Colors.blueAccent,
+          ),
         ),
       ),
     );
