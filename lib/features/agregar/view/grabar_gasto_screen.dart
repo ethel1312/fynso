@@ -540,8 +540,6 @@ class _GrabarGastoScreenState extends State<GrabarGastoScreen>
 
   @override
   Widget build(BuildContext context) {
-    final isBusy = isRecording || isUploading;
-
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -549,14 +547,7 @@ class _GrabarGastoScreenState extends State<GrabarGastoScreen>
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: isBusy
-              ? null
-              : () {
-            Navigator.pushReplacementNamed(context, '/home');
-          },
-        ),
+        automaticallyImplyLeading: false,
       ),
       body: Center(
         child: Padding(

@@ -10,5 +10,5 @@ String formatFecha(String fechaIso) {
 }
 
 String formatMonto(double monto) {
-  return '\$${monto.toStringAsFixed(2)}'; // $15.00
+  return monto.toStringAsFixed(2); // 15.00
 }

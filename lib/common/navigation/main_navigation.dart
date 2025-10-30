@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
+import '../../features/agregar/view/agregar_gasto_screen.dart';
 import '../../features/agregar/view/grabar_gasto_screen.dart';
 import '../../features/agregar/view/historial_gastos_screen.dart';
 import '../../features/analytics/view/analytics_screen.dart';
 import '../../features/home/view/home_screen.dart';
 import '../themes/app_color.dart';
-import '../../features/settings/view/settings_screen.dart';
 
 class MainNavigation extends StatefulWidget {
   const MainNavigation({super.key});
@@ -18,10 +18,10 @@ class _MainNavigationState extends State<MainNavigation> {
 
   final List<Widget> _pages = [
     const HomeScreen(),
+    const AgregarGastoScreen(),
     const GrabarGastoScreen(),
     const HistorialGastosScreen(),
     const AnalyticsScreen(),
-    const SettingsScreen(),
   ];
 
   void _onItemTapped(int index) {
@@ -60,8 +60,12 @@ class _MainNavigationState extends State<MainNavigation> {
               label: 'Inicio',
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.add_circle_rounded),
-              label: 'Agregar',
+              icon: Icon(Icons.edit_note_rounded),
+              label: 'Registrar',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.mic_rounded),
+              label: 'Grabar',
             ),
             BottomNavigationBarItem(
               icon: Icon(Icons.history_rounded),
@@ -70,10 +74,6 @@ class _MainNavigationState extends State<MainNavigation> {
             BottomNavigationBarItem(
               icon: Icon(Icons.pie_chart_rounded),
               label: 'Analíticas',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.person_rounded),
-              label: 'Perfil',
             ),
           ],
         ),
