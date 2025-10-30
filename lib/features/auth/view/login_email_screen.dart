@@ -18,12 +18,8 @@ class LoginEmailScreen extends StatefulWidget {
 }
 
 class _LoginEmailScreenState extends State<LoginEmailScreen> {
-  final TextEditingController _usernameController = TextEditingController(
-    text: "fynso",
-  );
-  final TextEditingController _passwordController = TextEditingController(
-    text: "12345",
-  );
+  final TextEditingController _usernameController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
 
   final AuthViewModel _authViewModel = AuthViewModel();
 
@@ -44,9 +40,7 @@ class _LoginEmailScreenState extends State<LoginEmailScreen> {
       if (_authViewModel.authResponse != null) {
         // Login exitoso → limpiar stack y navegar a MainNavigation
         Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(
-            builder: (context) => const MainNavigation(),
-          ),
+          MaterialPageRoute(builder: (context) => const MainNavigation()),
           (route) => false,
         );
       } else {
