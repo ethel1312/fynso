@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:fynso/common/themes/app_color.dart';
+import 'package:fynso/common/widgets/custom_text_blue.dart';
 
 class SettingsFooter extends StatelessWidget {
   const SettingsFooter({super.key});
@@ -6,14 +8,19 @@ class SettingsFooter extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
-      children: const [
-        Text("ExpenseTracker v2.1.0", style: TextStyle(color: Colors.grey)),
-        SizedBox(height: 8),
-        Text(
-          "Terms   •   Privacy   •   Help",
-          style: TextStyle(color: Colors.grey),
+      children: [
+        const Text("Fynso v1.0.0", style: TextStyle(color: Colors.grey)),
+        const SizedBox(height: 8),
+        CustomTextBlue(
+          text: "Términos y condiciones",
+          isBold: false, // si quieres que se vea más liviano
+          onPressed: () {
+            Navigator.pushNamed(
+              context,
+              '/terminos',
+            ); // o tu ruta correspondiente
+          },
         ),
-        SizedBox(height: 16),
       ],
     );
   }

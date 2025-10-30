@@ -1,16 +1,7 @@
 import 'package:flutter/material.dart';
 
 class ProfileCard extends StatelessWidget {
-  final String nombre;
-  final String presupuesto;
-  final String iniciales;
-
-  const ProfileCard({
-    super.key,
-    required this.nombre,
-    required this.presupuesto,
-    required this.iniciales,
-  });
+  const ProfileCard({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -25,9 +16,9 @@ class ProfileCard extends StatelessWidget {
             CircleAvatar(
               radius: 30,
               backgroundColor: Colors.blue[100],
-              child: Text(
-                iniciales,
-                style: const TextStyle(
+              child: const Text(
+                "SA",
+                style: TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
                   color: Colors.blue,
@@ -38,29 +29,23 @@ class ProfileCard extends StatelessWidget {
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    "Nombre completo",
+                children: const [
+                  Text(
+                    "Full Name",
                     style: TextStyle(fontSize: 14, color: Colors.grey),
                   ),
                   Text(
-                    nombre,
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    "Sarah Anderson",
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    "Presupuesto mensual",
+                  SizedBox(height: 8),
+                  Text(
+                    "Monthly Budget",
                     style: TextStyle(fontSize: 14, color: Colors.grey),
                   ),
                   Text(
-                    presupuesto,
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    "\$3,500",
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                 ],
               ),

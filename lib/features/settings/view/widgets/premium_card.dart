@@ -2,8 +2,25 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../view_model/premium_view_model.dart';
 
-class PremiumCard extends StatelessWidget {
+class PremiumCard extends StatefulWidget {
   const PremiumCard({super.key});
+
+  @override
+  State<PremiumCard> createState() => _PremiumCardState();
+}
+
+class _PremiumCardState extends State<PremiumCard> {
+  @override
+  void initState() {
+    super.initState();
+    // Al cargar la card, verificamos si el usuario es premium
+    Future.microtask(
+      () => Provider.of<PremiumViewModel>(
+        context,
+        listen: false,
+      ).verificarEstadoPremium(),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -22,8 +39,8 @@ class PremiumCard extends StatelessWidget {
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: const [
-                  Text(
+                children: [
+                  const Text(
                     "Fynso Premium",
                     style: TextStyle(
                       fontSize: 18,
@@ -31,32 +48,42 @@ class PremiumCard extends StatelessWidget {
                       color: Colors.black87,
                     ),
                   ),
+                  const SizedBox(height: 4),
                   Text(
-                    "Desbloquea funciones avanzadas y reportes exclusivos.",
-                    style: TextStyle(fontSize: 14, color: Colors.black54),
+                    viewModel.isPremium
+                        ? "✨ Tu suscripción premium está activa"
+                        : "Desbloquea funciones avanzadas y reportes exclusivos.",
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: viewModel.isPremium
+                          ? Colors.green[700]
+                          : Colors.black54,
+                    ),
                   ),
                 ],
               ),
             ),
-            ElevatedButton(
-              onPressed: viewModel.isLoading
-                  ? null
-                  : () async {
-                      final error = await viewModel.iniciarSuscripcion();
-                      if (error != null) {
-                        ScaffoldMessenger.of(
-                          context,
-                        ).showSnackBar(SnackBar(content: Text(error)));
-                      }
-                    },
-              child: viewModel.isLoading
-                  ? const SizedBox(
-                      height: 16,
-                      width: 16,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : const Text("Mejorar"),
-            ),
+            viewModel.isPremium
+                ? const Icon(Icons.verified, color: Colors.green)
+                : ElevatedButton(
+                    onPressed: viewModel.isLoading
+                        ? null
+                        : () async {
+                            final error = await viewModel.iniciarSuscripcion();
+                            if (error != null) {
+                              ScaffoldMessenger.of(
+                                context,
+                              ).showSnackBar(SnackBar(content: Text(error)));
+                            }
+                          },
+                    child: viewModel.isLoading
+                        ? const SizedBox(
+                            height: 16,
+                            width: 16,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Text("Mejorar"),
+                  ),
           ],
         ),
       ),

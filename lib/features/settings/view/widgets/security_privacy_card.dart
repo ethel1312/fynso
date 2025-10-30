@@ -13,23 +13,23 @@ class SecurityPrivacyCard extends StatelessWidget {
         children: const [
           ListTile(
             title: Text(
-              "Security & Privacy",
+              "Seguridad y privacidad",
               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
             ),
           ),
           ListTile(
             leading: Icon(Icons.credit_card),
-            title: Text("Manage Payment Methods"),
+            title: Text("Gestionar métodos de pago"),
             trailing: Icon(Icons.chevron_right),
           ),
           ListTile(
             leading: Icon(Icons.lock),
-            title: Text("Change Password"),
+            title: Text("Cambiar contraseña"),
             trailing: Icon(Icons.chevron_right),
           ),
           ListTile(
             leading: Icon(Icons.privacy_tip),
-            title: Text("Privacy Settings"),
+            title: Text("Configuración de privacidad"),
             trailing: Icon(Icons.chevron_right),
           ),
         ],
