@@ -4,10 +4,9 @@ import '../../features/analytics/view/analytics_screen.dart';
 import '../../features/home/view/home_screen.dart';
 import '../themes/app_color.dart';
 
-//import '../../features/analytics/view/analytics_screen.dart'; // placeholder
 //import '../../features/add/view/add_screen.dart'; // placeholder
 //import '../../features/search/view/search_screen.dart'; // placeholder
-//import '../../features/settings/view/settings_screen.dart'; // placeholder
+import '../../features/settings/view/settings_screen.dart'; // placeholder
 
 class MainNavigation extends StatefulWidget {
   const MainNavigation({super.key});
@@ -24,7 +23,7 @@ class _MainNavigationState extends State<MainNavigation> {
     const GrabarGastoScreen(),
     const AnalyticsScreen(),
     //const SearchScreen(),
-    //const SettingsScreen(),
+    const SettingsScreen(),
   ];
 
   void _onItemTapped(int index) {
