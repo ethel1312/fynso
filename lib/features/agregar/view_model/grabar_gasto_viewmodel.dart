@@ -7,17 +7,19 @@ class GrabarGastoViewModel extends ChangeNotifier {
   final AudioRepository repository;
   bool isLoading = false;
   TranscribeResponse? transcribeResult;
+  String? error;
 
   GrabarGastoViewModel(this.repository);
 
   Future<void> enviarAudio(File audioFile, String jwt) async {
     isLoading = true;
+    error = null;
     notifyListeners();
 
     try {
       transcribeResult = await repository.transcribirAudio(audioFile, jwt);
     } catch (e) {
-      print('Error en VM: $e');
+      error = e.toString();
       transcribeResult = null;
     } finally {
       isLoading = false;
