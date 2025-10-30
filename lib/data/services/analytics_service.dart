@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:fynso/data/models/monthly_spending_trend.dart';
 
 class CategoryBreakdownItem {
   final int idCategory;
@@ -96,5 +97,27 @@ class AnalyticsService {
     } else {
       throw Exception('Error HTTP ${resp.statusCode}');
     }
+  }
+
+  Future<MonthlySpendingTrendResponse> getMonthlySpendingLast6PlusCurrent({
+    required String jwt,
+  }) async {
+    final uri = Uri.parse('$baseUrl/api/analytics/monthly_spending_last6_plus_current');
+
+    final resp = await http.get(
+      uri,
+      headers: {'Authorization': 'JWT $jwt', 'Accept': 'application/json'},
+    );
+
+    if (resp.statusCode != 200) {
+      throw Exception('Error HTTP ${resp.statusCode}');
+    }
+
+    final decoded = jsonDecode(resp.body) as Map<String, dynamic>;
+    if ((decoded['code'] ?? 0) != 1) {
+      throw Exception(decoded['message']?.toString() ?? 'Error en tendencia mensual');
+    }
+
+    return MonthlySpendingTrendResponse.fromJson(decoded);
   }
 }

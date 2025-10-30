@@ -45,6 +45,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                   ),
                   // Botón a la derecha
                   // BOTONES PERIOD
+                  /*
                   Row(
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
@@ -60,7 +61,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                         onTap: () => setState(() => selectedPeriod = "Year"),
                       ),
                     ],
-                  ),
+                  )*/
                 ],
               ),
             ),
