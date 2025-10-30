@@ -23,14 +23,14 @@ class InsightCard extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: color,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(12),
       ),
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(12),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, color: iconColor, size: 30),
-          const SizedBox(width: 12),
+          Icon(icon, color: iconColor, size: 24),
+          const SizedBox(width: 10),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -40,18 +40,19 @@ class InsightCard extends StatelessWidget {
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     color: iconColor,
-                    fontSize: 16,
+                    fontSize: 14,
                   ),
                 ),
-                const SizedBox(height: 6),
+                const SizedBox(height: 4),
                 Text(
                   message1,
-                  style: const TextStyle(fontSize: 14, color: Colors.black87),
+                  style: const TextStyle(fontSize: 13, color: Colors.black87),
                 ),
-                Text(
-                  message2,
-                  style: const TextStyle(fontSize: 14, color: Colors.black87),
-                ),
+                if (message2.isNotEmpty)
+                  Text(
+                    message2,
+                    style: const TextStyle(fontSize: 13, color: Colors.black87),
+                  ),
               ],
             ),
           ),
