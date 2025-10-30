@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:fynso/data/models/monthly_spending_trend.dart';
+import 'package:fynso/data/models/insights_response.dart';
+import 'package:fynso/data/models/category_status_response.dart';
 
 class CategoryBreakdownItem {
   final int idCategory;
@@ -119,5 +121,67 @@ class AnalyticsService {
     }
 
     return MonthlySpendingTrendResponse.fromJson(decoded);
+  }
+
+  Future<InsightsResponse> getRecommendations({
+    required String jwt,
+    int limit = 7,
+    bool shuffle = false,
+    String? tzName,
+  }) async {
+    final uri = Uri.parse('$baseUrl/api/insights/recommendations')
+        .replace(queryParameters: {
+      'limit': '$limit',
+      'shuffle': shuffle ? '1' : '0',
+      if (tzName != null) 'tz_name': tzName,
+    });
+
+    final resp = await http.get(
+      uri,
+      headers: {'Authorization': 'JWT $jwt', 'Accept': 'application/json'},
+    );
+
+    if (resp.statusCode != 200) {
+      throw Exception('Error HTTP ${resp.statusCode}');
+    }
+
+    final decoded = jsonDecode(resp.body) as Map<String, dynamic>;
+    if ((decoded['code'] ?? 0) != 1) {
+      throw Exception(decoded['message']?.toString() ?? 'Error en recomendaciones');
+    }
+
+    return InsightsResponse.fromJson(decoded);
+  }
+
+  Future<CategoryStatusResponse> getCategoryStatusCards({
+    required String jwt,
+    int? anio,
+    int? mes,
+    double minAmount = 50.00,
+  }) async {
+    final queryParams = <String, String>{
+      'min_amount': '$minAmount',
+    };
+    if (anio != null) queryParams['anio'] = '$anio';
+    if (mes != null) queryParams['mes'] = '$mes';
+
+    final uri = Uri.parse('$baseUrl/api/analytics/category_status_cards')
+        .replace(queryParameters: queryParams);
+
+    final resp = await http.get(
+      uri,
+      headers: {'Authorization': 'JWT $jwt', 'Accept': 'application/json'},
+    );
+
+    if (resp.statusCode != 200) {
+      throw Exception('Error HTTP ${resp.statusCode}');
+    }
+
+    final decoded = jsonDecode(resp.body) as Map<String, dynamic>;
+    if ((decoded['code'] ?? 0) != 1) {
+      throw Exception(decoded['message']?.toString() ?? 'Error en category status');
+    }
+
+    return CategoryStatusResponse.fromJson(decoded);
   }
 }
