@@ -1,30 +1,16 @@
+// lib/features/settings/view/widgets/premium_card.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../view_model/premium_view_model.dart';
+import '../../view_model/usuario_premium_view_model.dart';
 
-class PremiumCard extends StatefulWidget {
+class PremiumCard extends StatelessWidget {
   const PremiumCard({super.key});
-
-  @override
-  State<PremiumCard> createState() => _PremiumCardState();
-}
-
-class _PremiumCardState extends State<PremiumCard> {
-  @override
-  void initState() {
-    super.initState();
-    // Al cargar la card, verificamos si el usuario es premium
-    Future.microtask(
-      () => Provider.of<PremiumViewModel>(
-        context,
-        listen: false,
-      ).verificarEstadoPremium(),
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
     final viewModel = Provider.of<PremiumViewModel>(context);
+    final vm = Provider.of<UsuarioPremiumViewModel>(context);
 
     return Card(
       color: Colors.amber[50],
@@ -50,20 +36,18 @@ class _PremiumCardState extends State<PremiumCard> {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    viewModel.isPremium
+                    vm.isPremium
                         ? "✨ Tu suscripción premium está activa"
                         : "Desbloquea funciones avanzadas y reportes exclusivos.",
                     style: TextStyle(
                       fontSize: 14,
-                      color: viewModel.isPremium
-                          ? Colors.green[700]
-                          : Colors.black54,
+                      color: vm.isPremium ? Colors.green[700] : Colors.black54,
                     ),
                   ),
                 ],
               ),
             ),
-            viewModel.isPremium
+            vm.isPremium
                 ? const Icon(Icons.verified, color: Colors.green)
                 : ElevatedButton(
                     onPressed: viewModel.isLoading
