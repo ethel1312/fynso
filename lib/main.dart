@@ -14,6 +14,7 @@ import 'common/navigation/route_observer.dart';
 import 'features/agregar/view/detalle_gasto_screen.dart';
 import 'features/agregar/view/grabar_gasto_screen.dart';
 import 'features/agregar/view/historial_gastos_screen.dart';
+import 'package:fynso/features/analytics/view/category_breakdown_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -59,6 +60,7 @@ class MyApp extends StatelessWidget {
         '/pago': (context) => const PagoScreen(),
         '/aprobado': (context) => const AprobadoScreen(),
         '/rechazado': (context) => const RechazadoScreen(),
+        '/desgloseCategorias': (context) => const CategoryBreakdownScreen(),
       },
 
       // Importante para que RouteAware funcione

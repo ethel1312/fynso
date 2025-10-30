@@ -1,66 +1,158 @@
 import 'package:flutter/material.dart';
-import 'package:fynso/common/themes/app_color.dart';
+import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-class CategoryBreakdownCard extends StatelessWidget {
-  const CategoryBreakdownCard({super.key});
+import 'package:fynso/features/analytics/view_model/category_breakdown_view_model.dart';
+import 'package:fynso/common/utils/utils.dart' show formatMonto;
+import 'package:fynso/common/ui/category_visuals.dart';
+import 'package:fynso/common/ui/category_badge.dart';
+
+class CategoryBreakdownCard extends StatefulWidget {
+  final VoidCallback? onVerTodo;
+
+  /// Por si más adelante quieres controlar el periodo desde afuera:
+  final int? anio;
+  final int? mes;
+  final int top;
+
+  const CategoryBreakdownCard({
+    super.key,
+    this.onVerTodo,
+    this.anio,
+    this.mes,
+    this.top = 5,
+  });
+
+  @override
+  State<CategoryBreakdownCard> createState() => _CategoryBreakdownCardState();
+}
+
+class _CategoryBreakdownCardState extends State<CategoryBreakdownCard> {
+  late CategoryBreakdownViewModel vm;
+  bool _loaded = false;
+
+  @override
+  void initState() {
+    super.initState();
+    vm = CategoryBreakdownViewModel();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_loaded) return;
+    _loaded = true;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final prefs = await SharedPreferences.getInstance();
+      final jwt = prefs.getString('jwt_token') ?? '';
+
+      final now = DateTime.now();
+      final anio = widget.anio ?? now.year;
+      final mes = widget.mes ?? now.month;
+
+      await vm.load(jwt: jwt, anio: anio, mes: mes, top: widget.top);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      color: Colors.white,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      elevation: 4,
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: const [
-            Text(
-              "Desglose por categoría",
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+    return ChangeNotifierProvider.value(
+      value: vm,
+      child: Consumer<CategoryBreakdownViewModel>(
+        builder: (context, vm, _) {
+          return Card(
+            color: Colors.white,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            elevation: 4,
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Header con título + "Ver Todo"
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        "Desglose por categoría",
+                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                      ),
+                      TextButton(
+                        onPressed: widget.onVerTodo ??
+                                () => Navigator.pushNamed(context, '/desgloseCategorias'),
+                        child: const Text("Ver Todo"),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+
+                  if (vm.loading) ...[
+                    const Center(
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(vertical: 12.0),
+                        child: CircularProgressIndicator(),
+                      ),
+                    ),
+                  ] else if (vm.error != null) ...[
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 12.0),
+                      child: Text(
+                        vm.error!,
+                        style: TextStyle(color: Colors.grey[700]),
+                      ),
+                    ),
+                  ] else if (vm.data == null || vm.data!.topItems.isEmpty) ...[
+                    const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 12.0),
+                      child: Text('Sin gastos este mes'),
+                    ),
+                  ] else ...[
+                    // Nota si el límite es 0
+                    if ((vm.data?.limiteActual ?? 0) <= 0) ...[
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(12),
+                        margin: const EdgeInsets.only(bottom: 12),
+                        decoration: BoxDecoration(
+                          color: Colors.orange.withOpacity(0.08),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Text(
+                          'Configura tu límite mensual para ver barras comparativas',
+                          style: TextStyle(fontSize: 12, color: Colors.orange),
+                        ),
+                      ),
+                    ],
+
+                    // Filas dinámicas (top N)
+                    ...vm.data!.topItems.map((it) {
+                      final icon  = CategoryVisuals.iconFor(nombre: it.nombre);
+                      final color = CategoryVisuals.colorFor(nombre: it.nombre);
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 16.0),
+                        child: CategoryRow(
+                          icono: icon,
+                          nombre: it.nombre,
+                          monto: it.montoMes,
+                          esteMes: it.ratioMes.clamp(0.0, 1.0),
+                          mesAnterior: it.ratioMesAnterior.clamp(0.0, 1.0),
+                          color: color,
+                        ),
+                      );
+                    }).toList(),
+                  ],
+                ],
+              ),
             ),
-            SizedBox(height: 16),
-            CategoryRow(
-              icono: Icons.fastfood_rounded,
-              nombre: "Comida",
-              monto: 1150,
-              esteMes: 0.85,
-              mesAnterior: 0.75,
-              color: AppColor.azulFynso,
-            ),
-            SizedBox(height: 16),
-            CategoryRow(
-              icono: Icons.directions_car_rounded,
-              nombre: "Transporte",
-              monto: 680,
-              esteMes: 0.65,
-              mesAnterior: 0.55,
-              color: Colors.orange,
-            ),
-            SizedBox(height: 16),
-            CategoryRow(
-              icono: Icons.lightbulb_rounded,
-              nombre: "Servicios",
-              monto: 520,
-              esteMes: 0.55,
-              mesAnterior: 0.50,
-              color: Colors.amber,
-            ),
-            SizedBox(height: 16),
-            CategoryRow(
-              icono: Icons.shopping_bag_rounded,
-              nombre: "Compras",
-              monto: 350,
-              esteMes: 0.40,
-              mesAnterior: 0.35,
-              color: Colors.pinkAccent,
-            ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }
 }
+
+// ==================== Sub-widgets ====================
 
 class CategoryRow extends StatelessWidget {
   final IconData icono;
@@ -91,14 +183,7 @@ class CategoryRow extends StatelessWidget {
           children: [
             Row(
               children: [
-                Container(
-                  decoration: BoxDecoration(
-                    color: color.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  padding: const EdgeInsets.all(6),
-                  child: Icon(icono, color: color, size: 20),
-                ),
+                CategoryBadge(icon: icono, color: color),
                 const SizedBox(width: 8),
                 Text(
                   nombre,
@@ -110,22 +195,16 @@ class CategoryRow extends StatelessWidget {
               ],
             ),
             Text(
-              "\$${monto.toStringAsFixed(0)}",
+              "S/.${formatMonto(monto)}",
               style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
             ),
           ],
         ),
-
         const SizedBox(height: 6),
-
         // Barras comparativas
         CategoryBar(etiqueta: "Este mes", valor: esteMes, color: color),
         const SizedBox(height: 6),
-        CategoryBar(
-          etiqueta: "Mes anterior",
-          valor: mesAnterior,
-          color: Colors.grey,
-        ),
+        CategoryBar(etiqueta: "Mes anterior", valor: mesAnterior, color: Colors.grey),
       ],
     );
   }
@@ -158,7 +237,7 @@ class CategoryBar extends StatelessWidget {
               ),
             ),
             FractionallySizedBox(
-              widthFactor: valor,
+              widthFactor: valor.isNaN ? 0 : valor.clamp(0.0, 1.0),
               child: Container(
                 height: 8,
                 decoration: BoxDecoration(

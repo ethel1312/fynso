@@ -8,6 +8,9 @@ class GastoCard extends StatelessWidget {
   final String fecha; // puede venir en ISO, HTTP-date, dd/MM/yyyy o yyyy-MM-dd
   final VoidCallback onTap;
 
+  /// 👉 NUEVO: widget opcional para mostrar a la izquierda (badge con ícono/color)
+  final Widget? leading;
+
   const GastoCard({
     super.key,
     required this.categoria,
@@ -15,6 +18,7 @@ class GastoCard extends StatelessWidget {
     required this.monto,
     required this.fecha,
     required this.onTap,
+    this.leading, // <-- nuevo param
   });
 
   DateTime? _parseDateFlexible(String raw) {
@@ -68,9 +72,18 @@ class GastoCard extends StatelessWidget {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       margin: const EdgeInsets.only(bottom: 12),
       child: ListTile(
-        title: Text('$categoria - $subcategoria'),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        leading: leading, // 👈 NUEVO: se muestra si viene un widget
+        title: Text(
+          '$categoria - $subcategoria',
+          overflow: TextOverflow.ellipsis,
+          style: const TextStyle(fontWeight: FontWeight.w600),
+        ),
         subtitle: Text(fechaCorta),
-        trailing: Text('S/ ${monto.toStringAsFixed(2)}'),
+        trailing: Text(
+          'S/ ${monto.toStringAsFixed(2)}',
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
         onTap: onTap,
       ),
     );

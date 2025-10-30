@@ -11,6 +11,8 @@ import 'package:http/http.dart' as http;
 import 'package:fynso/common/widgets/custom_text_title.dart';
 import 'package:fynso/features/agregar/view/widgets/boton_mic.dart';
 import 'package:fynso/features/agregar/view/widgets/gasto_card.dart';
+import 'package:fynso/common/ui/category_visuals.dart';
+import 'package:fynso/common/ui/category_badge.dart';
 import '../../../common/themes/app_color.dart';
 import '../../../data/models/transaction_detail_request.dart';
 import '../../../data/models/transaction_response.dart';
@@ -587,10 +589,14 @@ class _HistorialGastosScreenState extends State<HistorialGastosScreen>
 
   // ========= Build Dismissible + Gestos alrededor del GastoCard =========
   Widget _buildSwipeableCard(TransactionResponse t) {
+    // Icono y color según la categoría (por nombre; si luego tienes el id, también soporta idCategory)
+    final icon  = CategoryVisuals.iconFor(nombre: t.category);
+    final color = CategoryVisuals.colorFor(nombre: t.category);
+
     return Dismissible(
       key: ValueKey('tx_${t.idTransaction}'),
       background: _bgDelete(),             // 👉 deslizar a la derecha = eliminar
-      secondaryBackground: _bgEdit(),      // 👈 deslizar a la izquierda = editar
+      secondaryBackground: _bgEdit() ,     // 👈 deslizar a la izquierda = editar
       confirmDismiss: (direction) async {
         if (direction == DismissDirection.startToEnd) {
           // Eliminar con confirmación y borrado real
@@ -599,8 +605,7 @@ class _HistorialGastosScreenState extends State<HistorialGastosScreen>
           try {
             final done = await viewModel.deleteTransaction(jwt: jwt, idTransaction: t.idTransaction);
             if (!done) throw Exception('No se pudo eliminar');
-            // true => Dismissible animará y quitará la card
-            return true;
+            return true; // quita la card
           } catch (e) {
             await _showError(e.toString().replaceFirst('Exception: ', ''));
             return false;
@@ -615,6 +620,9 @@ class _HistorialGastosScreenState extends State<HistorialGastosScreen>
       child: GestureDetector(
         onLongPressStart: (d) => _showCardMenu(t, d.globalPosition),
         child: GastoCard(
+          // 👇 NUEVO: el badge con icono/color va dentro del ListTile (prop leading del GastoCard)
+          leading: CategoryBadge(icon: icon, color: color),
+
           categoria: t.category,
           subcategoria: t.subcategory,
           monto: t.monto,
