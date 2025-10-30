@@ -16,8 +16,9 @@ import 'features/pago/view/pago_screen.dart';
 import 'features/pago/view/rechazado_screen.dart';
 import 'features/analytics/view/category_breakdown_screen.dart';
 
-// 👇 Importa solo este ViewModel
+// 👇 Importa ViewModels
 import 'features/auth/view_model/auth_view_model.dart';
+import 'features/auth/view_model/password_view_model.dart';
 
 void main() {
   runApp(const MyApp());
@@ -28,8 +29,11 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (_) => AuthViewModel(), // 👈 solo uno
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => AuthViewModel()),
+        ChangeNotifierProvider(create: (_) => PasswordViewModel()),
+      ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
         title: 'Fynso',

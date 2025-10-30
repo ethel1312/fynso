@@ -9,7 +9,7 @@ class UserService {
       Uri.parse('$baseUrl/api_me_nombre'),
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': 'JWT $jwt', // <- flask_jwt
+        'Authorization': 'JWT $jwt',
       },
     );
 

@@ -24,10 +24,11 @@ class AuthViewModel extends ChangeNotifier {
       final result = await _repository.login(username, password);
       _authResponse = result;
 
-      // 🔹 Guardar token automáticamente en SharedPreferences
+      // 🔹 Guardar token y email/username automáticamente en SharedPreferences
       if (_authResponse != null && _authResponse!.accessToken.isNotEmpty) {
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('jwt_token', _authResponse!.accessToken);
+        await prefs.setString('user_email', username); // Guardar email/username
         print(
           "✅ JWT guardado: ${_authResponse!.accessToken}",
         ); // <-- agrega esto
@@ -72,6 +73,7 @@ class AuthViewModel extends ChangeNotifier {
   Future<void> logout() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('jwt_token');
+    await prefs.remove('user_email');
     _authResponse = null;
     notifyListeners();
   }

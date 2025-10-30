@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:intl/intl.dart';
 
 import '../../../common/themes/app_color.dart';
 import '../../../common/widgets/custom_button.dart';
@@ -62,10 +63,54 @@ class _EditarGastoScreenState extends State<EditarGastoScreen> {
       _categoriaController.text = transaction.category;
       _subcategoriaController.text = transaction.subcategory;
       _montoController.text = transaction.monto.toString();
-      _fechaController.text = transaction.fecha.substring(0, 10);
-      _horaController.text = transaction.fecha.length > 10
-          ? transaction.fecha.substring(11, 16)
-          : '';
+      
+      // Parsear fecha correctamente - manejo robusto
+      String fechaStr = '';
+      String horaStr = '';
+      
+      try {
+        // Intenta parsear la fecha del backend
+        DateTime fechaDt;
+        
+        // Si la fecha tiene formato ISO con T (ej: 2025-10-29T13:45:00)
+        if (transaction.fecha.contains('T')) {
+          fechaDt = DateTime.parse(transaction.fecha);
+        } 
+        // Si es formato con espacio (ej: 2025-10-29 13:45:00)
+        else if (transaction.fecha.contains(' ')) {
+          final parts = transaction.fecha.split(' ');
+          if (parts.length >= 2) {
+            fechaStr = parts[0]; // fecha
+            horaStr = parts[1].substring(0, 5); // hora HH:mm
+            // Validar que sea formato correcto
+            if (fechaStr.length == 10 && fechaStr.contains('-')) {
+              _fechaController.text = fechaStr;
+              _horaController.text = horaStr;
+              _lugarController.text = transaction.lugar ?? '';
+              _notasController.text = transaction.descripcion;
+              _transcripcionController.text = transaction.transcripcion ?? '';
+              _controllersInitialized = true;
+              return; // Salir temprano si funciona
+            }
+          }
+          fechaDt = DateTime.parse(transaction.fecha);
+        }
+        // Intenta parse directo
+        else {
+          fechaDt = DateTime.parse(transaction.fecha);
+        }
+        
+        fechaStr = DateFormat('yyyy-MM-dd').format(fechaDt);
+        horaStr = DateFormat('HH:mm').format(fechaDt);
+      } catch (e) {
+        // Si todo falla, usar valores por defecto
+        print('Error parsing fecha: ${transaction.fecha}, error: $e');
+        fechaStr = DateTime.now().toString().substring(0, 10);
+        horaStr = '00:00';
+      }
+      
+      _fechaController.text = fechaStr;
+      _horaController.text = horaStr;
       _lugarController.text = transaction.lugar ?? '';
       _notasController.text = transaction.descripcion;
       _transcripcionController.text = transaction.transcripcion ?? '';
@@ -245,8 +290,20 @@ class _EditarGastoScreenState extends State<EditarGastoScreen> {
     );
   }
 
+  bool _isTransactionInCurrentMonth() {
+    try {
+      final now = DateTime.now();
+      final txDate = DateTime.parse(transaction.fecha);
+      return txDate.year == now.year && txDate.month == now.month;
+    } catch (e) {
+      return true; // Si no se puede parsear, permitir editar
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final isOutOfMonth = !_isTransactionInCurrentMonth();
+    
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(
@@ -312,6 +369,34 @@ class _EditarGastoScreenState extends State<EditarGastoScreen> {
               padding: const EdgeInsets.all(16),
               child: Column(
                 children: [
+                  // Mensaje de advertencia si está fuera del mes actual
+                  if (isOutOfMonth)
+                    Container(
+                      margin: const EdgeInsets.only(bottom: 16),
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.orange[50],
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.orange[300]!, width: 1),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(Icons.warning_amber_rounded, color: Colors.orange[700]),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              'Este gasto está fuera del mes actual. Solo puedes registrar gastos del mes en curso.',
+                              style: TextStyle(
+                                color: Colors.orange[900],
+                                fontSize: 13,
+                                height: 1.3,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  
                   // ---------- Categoría (textfield con desplegable) ----------
                   _pickerTextField(
                     label: 'Categoría',

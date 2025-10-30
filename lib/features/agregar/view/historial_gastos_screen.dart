@@ -16,6 +16,7 @@ import 'package:fynso/common/ui/category_badge.dart';
 import '../../../common/themes/app_color.dart';
 import '../../../data/models/transaction_detail_request.dart';
 import '../../../data/models/transaction_response.dart';
+import '../../../data/services/transaction_detail_service.dart';
 import '../../../common/navigation/route_observer.dart';
 
 import '../view_model/historial_gastos_view_model.dart';
@@ -39,6 +40,7 @@ class _YearMonth {
 class _HistorialGastosScreenState extends State<HistorialGastosScreen>
     with RouteAware {
   late HistorialGastosViewModel viewModel;
+  final TransactionDetailService _detailService = TransactionDetailService();
   String jwt = '';
 
   // ===== Rango disponible desde backend =====
@@ -199,7 +201,11 @@ class _HistorialGastosScreenState extends State<HistorialGastosScreen>
     final weekAgo = t0.subtract(const Duration(days: 7));
 
     final map = <String, List<TransactionResponse>>{
-      'Hoy': [], 'Ayer': [], 'Semana pasada': [], 'Anteriores': [],
+      'Fechas futuras': [], // Nueva sección al principio
+      'Hoy': [], 
+      'Ayer': [], 
+      'Semana pasada': [], 
+      'Anteriores': [],
     };
 
     for (final t in list) {
@@ -209,7 +215,11 @@ class _HistorialGastosScreenState extends State<HistorialGastosScreen>
         continue;
       }
       final dd = DateTime(d.year, d.month, d.day);
-      if (dd == t0) {
+      
+      // Primero verificar si es fecha futura
+      if (dd.isAfter(t0)) {
+        map['Fechas futuras']!.add(t);
+      } else if (dd == t0) {
         map['Hoy']!.add(t);
       } else if (dd == y1) {
         map['Ayer']!.add(t);
@@ -549,8 +559,30 @@ class _HistorialGastosScreenState extends State<HistorialGastosScreen>
         arguments: TransactionDetailRequest(idTransaction: t.idTransaction, jwt: jwt),
       );
     } else if (selected == 'editar') {
-      final res = await Navigator.pushNamed(context, '/editarGasto', arguments: t);
-      if (res != null) _reloadSameMonth();
+      // Cargar la transacción fresca del backend
+      try {
+        final detail = await _detailService.getTransactionDetail(
+          jwt: jwt,
+          idTransaction: t.idTransaction,
+        );
+        // Convertir TransactionDetailResponse a TransactionResponse
+        final updated = TransactionResponse(
+          idTransaction: detail.idTransaction,
+          idSubcategory: detail.subcategory.id,
+          idTransactionType: detail.transactionType.id,
+          monto: detail.monto,
+          descripcion: detail.descripcion,
+          fecha: detail.fecha,
+          lugar: detail.lugar,
+          transcripcion: detail.transcripcion,
+          category: detail.category.nombre,
+          subcategory: detail.subcategory.nombre,
+        );
+        final res = await Navigator.pushNamed(context, '/editarGasto', arguments: updated);
+        if (res != null) await _reloadSameMonth();
+      } catch (e) {
+        await _showError('No se pudo cargar el gasto: $e');
+      }
     } else if (selected == 'eliminar') {
       final ok = await _confirmDeleteDialog();
       if (ok) {
@@ -611,9 +643,32 @@ class _HistorialGastosScreenState extends State<HistorialGastosScreen>
             return false;
           }
         } else {
-          // Editar: navegar y NO quitar la card
-          final res = await Navigator.pushNamed(context, '/editarGasto', arguments: t);
-          if (res != null) _reloadSameMonth();
+          // Editar: cargar transacción fresca del backend
+          try {
+            final detail = await _detailService.getTransactionDetail(
+              jwt: jwt,
+              idTransaction: t.idTransaction,
+            );
+            // Convertir TransactionDetailResponse a TransactionResponse
+            final updated = TransactionResponse(
+              idTransaction: detail.idTransaction,
+              idSubcategory: detail.subcategory.id,
+              idTransactionType: detail.transactionType.id,
+              monto: detail.monto,
+              descripcion: detail.descripcion,
+              fecha: detail.fecha,
+              lugar: detail.lugar,
+              transcripcion: detail.transcripcion,
+              category: detail.category.nombre,
+              subcategory: detail.subcategory.nombre,
+            );
+            final res = await Navigator.pushNamed(context, '/editarGasto', arguments: updated);
+            if (res != null) await _reloadSameMonth();
+          } catch (e) {
+            if (mounted) {
+              await _showError('No se pudo cargar el gasto: $e');
+            }
+          }
           return false;
         }
       },
@@ -928,13 +983,17 @@ class _HistorialGastosScreenState extends State<HistorialGastosScreen>
                   const SizedBox(height: 48),
                   const Center(child: Text('No hay transacciones')),
                 ] else ...[
-                  for (final section in ['Hoy','Ayer','Semana pasada','Anteriores'])
+                  for (final section in ['Fechas futuras','Hoy','Ayer','Semana pasada','Anteriores'])
                     if ((grouped[section] ?? []).isNotEmpty) ...[
                       Padding(
                         padding: const EdgeInsets.symmetric(vertical: 6.0),
                         child: Text(
                           section,
-                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold, 
+                            fontSize: 14,
+                            color: section == 'Fechas futuras' ? Colors.blue[700] : Colors.black,
+                          ),
                         ),
                       ),
                       ...grouped[section]!.map(_buildSwipeableCard),

@@ -1,21 +1,36 @@
 import 'package:flutter/material.dart';
-import 'package:fynso/common/themes/app_color.dart';
-import 'package:fynso/features/auth/view/verify_code_screen.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../../../common/themes/app_color.dart';
 import '../../../common/widgets/custom_button.dart';
 import '../../../common/widgets/custom_textfield.dart';
 import '../../../common/widgets/custom_text_title.dart';
-import '../view_model/password_view_model.dart';
+import '../../auth/view/verify_code_screen.dart';
+import '../../auth/view_model/password_view_model.dart';
 
-class ForgotPasswordScreen extends StatefulWidget {
-  const ForgotPasswordScreen({super.key});
+class ChangePasswordScreen extends StatefulWidget {
+  const ChangePasswordScreen({super.key});
 
   @override
-  State<ForgotPasswordScreen> createState() => _ForgotPasswordScreenState();
+  State<ChangePasswordScreen> createState() => _ChangePasswordScreenState();
 }
 
-class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
+class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
   final TextEditingController _emailController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserEmail();
+  }
+
+  Future<void> _loadUserEmail() async {
+    final prefs = await SharedPreferences.getInstance();
+    final email = prefs.getString('user_email');
+    if (email != null) {
+      _emailController.text = email;
+    }
+  }
 
   @override
   void dispose() {
@@ -60,6 +75,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        title: const Text(
+          'Cambiar contraseña',
+          style: TextStyle(color: Colors.black),
+        ),
         backgroundColor: Colors.transparent,
         elevation: 0,
         iconTheme: const IconThemeData(color: Colors.black),
@@ -71,10 +90,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const CustomTextTitle("¿Olvidaste tu contraseña?"),
+              const CustomTextTitle("Cambiar contraseña"),
               const SizedBox(height: 8),
               const Text(
-                "Por favor escribe tu correo electrónico para recibir un código de confirmación para establecer una nueva contraseña.",
+                "Para cambiar tu contraseña, confirma tu correo electrónico y te enviaremos un código de verificación.",
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 16, fontFamily: 'Roboto'),
               ),
@@ -88,11 +107,11 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
               ),
               const SizedBox(height: 24),
 
-              // Botón confirmar código
+              // Botón confirmar correo
               Consumer<PasswordViewModel>(
                 builder: (context, viewModel, child) {
                   return CustomButton(
-                    text: viewModel.isLoading ? "Enviando..." : "Confirmar correo",
+                    text: viewModel.isLoading ? "Enviando..." : "Enviar código",
                     backgroundColor: AppColor.azulFynso,
                     onPressed: viewModel.isLoading ? null : () async => _sendCode(context),
                   );
