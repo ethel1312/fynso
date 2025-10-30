@@ -14,6 +14,8 @@ class AuthViewModel extends ChangeNotifier {
 
   AuthResponse? get authResponse => _authResponse;
 
+  // LOGIN
+
   Future<void> login(String username, String password) async {
     _isLoading = true;
     notifyListeners();
@@ -36,13 +38,37 @@ class AuthViewModel extends ChangeNotifier {
     }
   }
 
-  // 🔹 Método opcional para obtener el token en cualquier parte
+  // REGISTER
+
+  Future<Map<String, dynamic>?> register(
+    String username,
+    String email,
+    String password,
+  ) async {
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      final result = await _repository.register(username, email, password);
+      return result; // Devuelve el JSON del backend: { code, message, data }
+    } catch (e) {
+      print('Error en AuthViewModel (register): $e');
+      return null;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  // OBTENER TOKEN
+
   Future<String?> getToken() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString('jwt_token');
   }
 
-  // 🔹 Método opcional para cerrar sesión
+  // LOGOUT
+
   Future<void> logout() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('jwt_token');
