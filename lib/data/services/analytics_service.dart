@@ -34,8 +34,9 @@ class CategoryBreakdownItem {
 class CategoryBreakdownResponse {
   final int anio;
   final int mes;
-  final double limiteActual;
+  final double? limiteActual;            // 👈 ahora nullable
   final double totalMes;
+  final bool hasUserDefaultLimit;        // 👈 nuevo
   final List<CategoryBreakdownItem> items;
   final List<CategoryBreakdownItem> topItems;
 
@@ -44,6 +45,7 @@ class CategoryBreakdownResponse {
     required this.mes,
     required this.limiteActual,
     required this.totalMes,
+    required this.hasUserDefaultLimit,
     required this.items,
     required this.topItems,
   });
@@ -51,11 +53,13 @@ class CategoryBreakdownResponse {
   factory CategoryBreakdownResponse.fromJson(Map<String, dynamic> j) {
     Iterable it = (j['items'] as List? ?? []);
     Iterable top = (j['top_items'] as List? ?? []);
+    final lim = j['limite_actual']; // puede ser null
     return CategoryBreakdownResponse(
       anio: j['anio'] as int,
       mes: j['mes'] as int,
-      limiteActual: (j['limite_actual'] as num?)?.toDouble() ?? 0.0,
+      limiteActual: (lim == null) ? null : ((lim is num) ? lim.toDouble() : double.tryParse('$lim')),
       totalMes: (j['total_mes'] as num?)?.toDouble() ?? 0.0,
+      hasUserDefaultLimit: (j['has_user_default_limit'] as bool?) ?? false,
       items: it.map((e) => CategoryBreakdownItem.fromJson(e)).toList(),
       topItems: top.map((e) => CategoryBreakdownItem.fromJson(e)).toList(),
     );

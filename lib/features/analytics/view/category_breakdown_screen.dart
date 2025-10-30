@@ -16,9 +16,18 @@ class CategoryBreakdownScreen extends StatefulWidget {
   State<CategoryBreakdownScreen> createState() => _CategoryBreakdownScreenState();
 }
 
+class _YearMonth {
+  final int year;
+  final int month;
+  const _YearMonth(this.year, this.month);
+}
+
 class _CategoryBreakdownScreenState extends State<CategoryBreakdownScreen> {
   late CategoryBreakdownListViewModel vm;
   bool _booted = false;
+
+  // ✅ Evita parpadeo “Sin datos”: loader a pantalla completa hasta terminar init()
+  bool _initializing = true;
 
   @override
   void initState() {
@@ -32,9 +41,11 @@ class _CategoryBreakdownScreenState extends State<CategoryBreakdownScreen> {
     if (_booted) return;
     _booted = true;
     WidgetsBinding.instance.addPostFrameCallback((_) async {
+      setState(() => _initializing = true);
       final prefs = await SharedPreferences.getInstance();
       final jwt = prefs.getString('jwt_token') ?? '';
       await vm.init(jwt: jwt);
+      if (mounted) setState(() => _initializing = false);
     });
   }
 
@@ -43,12 +54,160 @@ class _CategoryBreakdownScreenState extends State<CategoryBreakdownScreen> {
     return s[0].toUpperCase() + s.substring(1);
   }
 
+  // ===== Month Picker helpers =====
+  int _ymCompare(int y1, int m1, int y2, int m2) {
+    if (y1 != y2) return y1.compareTo(y2);
+    return m1.compareTo(m2);
+  }
+
+  bool _isMonthInRange({
+    required int year, required int month,
+    required int minY, required int minM,
+    required int maxY, required int maxM,
+  }) {
+    final lo = _ymCompare(year, month, minY, minM) >= 0;
+    final hi = _ymCompare(year, month, maxY, maxM) <= 0;
+    return lo && hi;
+  }
+
+  Future<void> _openMonthSheet() async {
+    if (!mounted) return;
+
+    final range = vm.allowedRangeForPicker();
+    final minY = range['minY']!;
+    final minM = range['minM']!;
+    final maxY = range['maxY']!;
+    final maxM = range['maxM']!;
+
+    int tempYear = vm.anio;
+
+    final picked = await showModalBottomSheet<_YearMonth>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (ctx) {
+        return SafeArea(
+          top: false,
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: EdgeInsets.fromLTRB(16, 12, 16, 16 + MediaQuery.of(ctx).viewInsets.bottom),
+              child: StatefulBuilder(
+                builder: (ctx, setStateSheet) {
+                  final months = List<int>.generate(12, (i) => i + 1);
+
+                  bool isEnabled(int y, int m) => _isMonthInRange(
+                    year: y, month: m, minY: minY, minM: minM, maxY: maxY, maxM: maxM,
+                  );
+
+                  String monthName(int m) =>
+                      DateFormat('MMM', 'es').format(DateTime(2000, m, 1)).toUpperCase();
+
+                  return Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Row(
+                        children: [
+                          IconButton(
+                            splashRadius: 20,
+                            onPressed: _ymCompare(tempYear - 1, 12, minY, minM) >= 0
+                                ? () => setStateSheet(() => tempYear -= 1)
+                                : null,
+                            icon: const Icon(Icons.chevron_left),
+                            color: AppColor.azulFynso,
+                          ),
+                          Expanded(
+                            child: Center(
+                              child: Text(
+                                '$tempYear',
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold, fontSize: 16, color: Colors.black,
+                                ),
+                              ),
+                            ),
+                          ),
+                          IconButton(
+                            splashRadius: 20,
+                            onPressed: _ymCompare(tempYear + 1, 1, maxY, maxM) <= 0
+                                ? () => setStateSheet(() => tempYear += 1)
+                                : null,
+                            icon: const Icon(Icons.chevron_right),
+                            color: AppColor.azulFynso,
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+
+                      GridView.count(
+                        crossAxisCount: 3,
+                        mainAxisSpacing: 6,
+                        crossAxisSpacing: 6,
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        childAspectRatio: 2.4,
+                        children: [
+                          for (final m in months)
+                            TextButton(
+                              style: TextButton.styleFrom(
+                                foregroundColor: isEnabled(tempYear, m)
+                                    ? AppColor.azulFynso : Colors.grey,
+                                padding: const EdgeInsets.symmetric(vertical: 10),
+                              ),
+                              onPressed: isEnabled(tempYear, m)
+                                  ? () => Navigator.pop(ctx, _YearMonth(tempYear, m))
+                                  : null,
+                              child: Text(monthName(m)),
+                            ),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                    ],
+                  );
+                },
+              ),
+            ),
+          ),
+        );
+      },
+    );
+
+    if (picked != null) {
+      setState(() => _initializing = true);      // loader mientras recarga
+      vm.anio = picked.year;
+      vm.mes = picked.month;
+      await vm.load();
+      if (mounted) setState(() => _initializing = false);
+    }
+  }
+
+  bool _isFutureMonth(int y, int m) {
+    final now = DateTime.now();
+    final cur = DateTime(now.year, now.month, 1);
+    final sel = DateTime(y, m, 1);
+    return sel.isAfter(cur);
+  }
+
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider.value(
       value: vm,
       child: Consumer<CategoryBreakdownListViewModel>(
         builder: (context, vm, _) {
+          // ✅ Loader a pantalla completa hasta que termine init()/load()
+          if (_initializing) {
+            return Scaffold(
+              appBar: AppBar(
+                title: const Text('Desglose por categoría'),
+                backgroundColor: Colors.white,
+                foregroundColor: Colors.black,
+                elevation: 1,
+              ),
+              body: const Center(child: CircularProgressIndicator()),
+            );
+          }
+
           final data = vm.data;
 
           return Scaffold(
@@ -59,46 +218,74 @@ class _CategoryBreakdownScreenState extends State<CategoryBreakdownScreen> {
               elevation: 1,
             ),
             body: RefreshIndicator(
-              onRefresh: () => vm.load(),
+              onRefresh: () async {
+                setState(() => _initializing = true);
+                await vm.load();
+                if (mounted) setState(() => _initializing = false);
+              },
               child: ListView(
                 padding: const EdgeInsets.all(16),
                 children: [
-                  // Header: selector de mes simple (prev/next)
-                  Row(
-                    children: [
-                      IconButton(
-                        splashRadius: 22,
-                        icon: const Icon(Icons.chevron_left),
-                        color: AppColor.azulFynso,
-                        onPressed: vm.loading ? null : vm.prevMonth,
-                      ),
-                      Expanded(
-                        child: OutlinedButton(
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor: Colors.black,
-                            side: BorderSide(color: AppColor.azulFynso),
-                            textStyle: const TextStyle(fontWeight: FontWeight.bold),
-                            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
+                  // ===== Header con flechas + picker (respetando el rango permitido) =====
+                  Builder(
+                    builder: (ctx) {
+                      final r = vm.allowedRangeForPicker();
+                      final minY = r['minY']!, minM = r['minM']!;
+                      final maxY = r['maxY']!, maxM = r['maxM']!;
+                      bool canPrev = _ymCompare(vm.anio, vm.mes, minY, minM) > 0;
+                      bool canNext = _ymCompare(vm.anio, vm.mes, maxY, maxM) < 0;
+
+                      return Row(
+                        children: [
+                          IconButton(
+                            splashRadius: 22,
+                            icon: const Icon(Icons.chevron_left),
+                            color: canPrev ? AppColor.azulFynso : Colors.grey,
+                            onPressed: (!vm.loading && canPrev)
+                                ? () async {
+                              setState(() => _initializing = true);
+                              final m = vm.mes == 1 ? 12 : vm.mes - 1;
+                              final y = vm.mes == 1 ? vm.anio - 1 : vm.anio;
+                              vm.anio = y; vm.mes = m;
+                              await vm.load();
+                              if (mounted) setState(() => _initializing = false);
+                            }
+                                : null,
                           ),
-                          onPressed: null, // Si quieres un month picker, lo puedes agregar aquí
-                          child: Text(_monthLabel(vm.anio, vm.mes), overflow: TextOverflow.ellipsis),
-                        ),
-                      ),
-                      IconButton(
-                        splashRadius: 22,
-                        icon: const Icon(Icons.chevron_right),
-                        color: AppColor.azulFynso,
-                        onPressed: vm.loading ? null : vm.nextMonth,
-                      ),
-                    ],
+                          Expanded(
+                            child: OutlinedButton(
+                              style: OutlinedButton.styleFrom(
+                                foregroundColor: Colors.black,
+                                side: BorderSide(color: AppColor.azulFynso),
+                                textStyle: const TextStyle(fontWeight: FontWeight.bold),
+                                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
+                              ),
+                              onPressed: vm.loading ? null : _openMonthSheet,
+                              child: Text(_monthLabel(vm.anio, vm.mes), overflow: TextOverflow.ellipsis),
+                            ),
+                          ),
+                          IconButton(
+                            splashRadius: 22,
+                            icon: const Icon(Icons.chevron_right),
+                            color: canNext ? AppColor.azulFynso : Colors.grey,
+                            onPressed: (!vm.loading && canNext)
+                                ? () async {
+                              setState(() => _initializing = true);
+                              final m = vm.mes == 12 ? 1 : vm.mes + 1;
+                              final y = vm.mes == 12 ? vm.anio + 1 : vm.anio;
+                              vm.anio = y; vm.mes = m;
+                              await vm.load();
+                              if (mounted) setState(() => _initializing = false);
+                            }
+                                : null,
+                          ),
+                        ],
+                      );
+                    },
                   ),
                   const SizedBox(height: 12),
 
-                  if (vm.loading) ...[
-                    const SizedBox(height: 24),
-                    const Center(child: CircularProgressIndicator()),
-                    const SizedBox(height: 24),
-                  ] else if (vm.error != null) ...[
+                  if (vm.error != null) ...[
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
@@ -111,14 +298,17 @@ class _CategoryBreakdownScreenState extends State<CategoryBreakdownScreen> {
                     const SizedBox(height: 24),
                     const Center(child: Text('Sin datos')),
                   ] else ...[
-                    // Resumen de límite vs gasto total del mes
+                    // ===== Resumen mensual (usa límite actual si existe; si es futuro y el usuario tiene default, NO mostramos banner) =====
                     _SummaryLimitCard(
-                      limite: data.limiteActual,
+                      limite: data.limiteActual,  // puede ser null => mostramos "—" en el label
                       totalMes: data.totalMes,
                     ),
                     const SizedBox(height: 16),
 
-                    if (data.limiteActual <= 0) ...[
+                    // Banner "Configura tu límite..." SOLO si NO hay límite en meses actuales/pasados
+                    // y también en futuros cuando NO existe default_monthly_limit
+                    if (!(_isFutureMonth(vm.anio, vm.mes) && vm.hasUserDefaultLimit) &&
+                        ((data.limiteActual ?? 0) <= 0)) ...[
                       Container(
                         width: double.infinity,
                         padding: const EdgeInsets.all(12),
@@ -134,7 +324,7 @@ class _CategoryBreakdownScreenState extends State<CategoryBreakdownScreen> {
                       ),
                     ],
 
-                    // Lista completa de categorías ordenadas por gasto del mes
+                    // Lista completa de categorías (orden ya llega por monto_mes)
                     ...data.items.map((it) {
                       final icon  = CategoryVisuals.iconFor(nombre: it.nombre);
                       final color = CategoryVisuals.colorFor(nombre: it.nombre);
@@ -165,7 +355,7 @@ class _CategoryBreakdownScreenState extends State<CategoryBreakdownScreen> {
 // ------- Widgets auxiliares -------
 
 class _SummaryLimitCard extends StatelessWidget {
-  final double limite;
+  final double? limite;   // puede ser null
   final double totalMes;
 
   const _SummaryLimitCard({
@@ -175,7 +365,8 @@ class _SummaryLimitCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final ratio = (limite > 0) ? (totalMes / limite).clamp(0.0, 1.0) : 0.0;
+    final lim = limite ?? 0;
+    final ratio = (lim > 0) ? (totalMes / lim).clamp(0.0, 1.0) : 0.0;
 
     return Card(
       color: Colors.white,
@@ -191,7 +382,7 @@ class _SummaryLimitCard extends StatelessWidget {
             Row(
               children: [
                 Expanded(child: _kv('Gastado', 'S/.${formatMonto(totalMes)}')),
-                Expanded(child: _kv('Límite',  limite > 0 ? 'S/.${formatMonto(limite)}' : '—')),
+                Expanded(child: _kv('Límite',  (limite == null) ? '—' : 'S/.${formatMonto(lim)}')),
               ],
             ),
             const SizedBox(height: 10),
