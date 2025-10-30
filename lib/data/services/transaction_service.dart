@@ -2,6 +2,8 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../models/transaction_response.dart';
 import '../models/transactions_filter.dart';
+import '../models/create_transaction_request.dart';
+import '../models/create_transaction_response.dart';
 
 class TransactionService {
   final String baseUrl = 'https://fynso.pythonanywhere.com';
@@ -91,6 +93,33 @@ class TransactionService {
       throw Exception(msg);
     } else {
       throw Exception('Error al eliminar: ${resp.statusCode}');
+    }
+  }
+
+  // POST crear transacción manual
+  Future<CreateTransactionResponse> createTransaction({
+    required String jwt,
+    required CreateTransactionRequest request,
+  }) async {
+    final uri = Uri.parse('$baseUrl/api/transactions');
+
+    final response = await http.post(
+      uri,
+      headers: {
+        'Authorization': 'JWT $jwt',
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+      body: jsonEncode(request.toJson()),
+    );
+
+    if (response.statusCode == 200) {
+      final jsonBody = jsonDecode(response.body) as Map<String, dynamic>;
+      return CreateTransactionResponse.fromJson(jsonBody);
+    } else {
+      final jsonBody = jsonDecode(response.body);
+      final message = jsonBody['message'] ?? 'Error al crear transacción';
+      throw Exception(message);
     }
   }
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../features/settings/view/settings_screen.dart';
 
 class AddButton extends StatelessWidget {
   const AddButton({super.key});
@@ -8,9 +9,14 @@ class AddButton extends StatelessWidget {
     return FloatingActionButton(
       backgroundColor: const Color(0xFF1565C0),
       onPressed: () {
-        // TODO: Conectar con lógica de agregar transacción
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const SettingsScreen(),
+          ),
+        );
       },
-      child: const Icon(Icons.add, color: Colors.white),
+      child: const Icon(Icons.person, color: Colors.white),
     );
   }
 }

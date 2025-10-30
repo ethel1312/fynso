@@ -31,8 +31,8 @@ class TermsScreen extends StatelessWidget {
             ),
             SizedBox(height: 8),
             Text(
-              "- La app está destinada únicamente para estudiantes que deseen llevar control de sus ingresos, gastos y presupuestos.\n"
-              "- Los usuarios son responsables de la información que ingresan; la app no realiza transacciones reales ni retiene dinero.\n"
+              "- La app está destinada para personas que deseen llevar control de sus gastos y presupuestos.\n"
+              "- Los usuarios son responsables de la información que ingresan; la app no realiza transacciones reales (exceptuando el plan Fynso Premium) ni retiene dinero.\n"
               "- No se permite el uso de la app para fines ilegales o fraudulentos.",
             ),
             SizedBox(height: 16),

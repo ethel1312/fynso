@@ -2,6 +2,8 @@ import '../models/transaction_update_resquest.dart';
 import '../services/transaction_service.dart';
 import '../models/transaction_response.dart';
 import '../models/transactions_filter.dart';
+import '../models/create_transaction_request.dart';
+import '../models/create_transaction_response.dart';
 
 class TransactionRepository {
   final TransactionService _service = TransactionService();
@@ -41,5 +43,12 @@ class TransactionRepository {
     required int idTransaction,
   }) {
     return _service.deleteTransaction(jwt: jwt, idTransaction: idTransaction);
+  }
+
+  Future<CreateTransactionResponse> createTransaction({
+    required String jwt,
+    required CreateTransactionRequest request,
+  }) {
+    return _service.createTransaction(jwt: jwt, request: request);
   }
 }
