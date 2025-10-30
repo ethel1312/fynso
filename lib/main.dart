@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:fynso/features/auth/view/terms_screen.dart';
 import 'package:provider/provider.dart'; // 👈 necesario
 
 import 'common/navigation/route_observer.dart';
@@ -63,6 +64,7 @@ class MyApp extends StatelessWidget {
           '/aprobado': (context) => const AprobadoScreen(),
           '/rechazado': (context) => const RechazadoScreen(),
           '/desgloseCategorias': (context) => const CategoryBreakdownScreen(),
+          '/terminos': (context) => const TermsScreen(),
         },
 
         navigatorObservers: [routeObserver],
