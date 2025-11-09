@@ -1,6 +1,7 @@
 // lib/features/settings/view/widgets/premium_card.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../../pago/view/pago_screen.dart';
 import '../../view_model/premium_view_model.dart';
 import '../../view_model/usuario_premium_view_model.dart';
 
@@ -53,11 +54,22 @@ class PremiumCard extends StatelessWidget {
                     onPressed: viewModel.isLoading
                         ? null
                         : () async {
-                            final error = await viewModel.iniciarSuscripcion();
-                            if (error != null) {
+                            final result = await viewModel.iniciarSuscripcion();
+                            if (result != null &&
+                                result is String &&
+                                result.startsWith("http")) {
+                              // ✅ Navegar al WebView con la URL del pago
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => PagoScreen(url: result),
+                                ),
+                              );
+                            } else if (result != null) {
+                              // ⚠️ Mostrar error si no es una URL
                               ScaffoldMessenger.of(
                                 context,
-                              ).showSnackBar(SnackBar(content: Text(error)));
+                              ).showSnackBar(SnackBar(content: Text(result)));
                             }
                           },
                     child: viewModel.isLoading

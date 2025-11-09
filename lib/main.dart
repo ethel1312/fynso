@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:fynso/features/auth/view/terms_screen.dart';
+import 'package:fynso/features/pago/view/pendiente_screen.dart';
 import 'package:provider/provider.dart'; // 👈 necesario
 
 import 'common/navigation/route_observer.dart';
 import 'features/auth/view/login_screen.dart';
+import 'features/settings/view_model/premium_view_model.dart';
 import 'features/splash/view/splash_screen.dart';
 import 'features/home/view/home_screen.dart';
 import 'features/agregar/view/editar_gasto_screen.dart';
@@ -33,6 +35,7 @@ class MyApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create: (_) => AuthViewModel()),
         ChangeNotifierProvider(create: (_) => PasswordViewModel()),
+        ChangeNotifierProvider(create: (_) => PremiumViewModel()),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
@@ -67,6 +70,7 @@ class MyApp extends StatelessWidget {
           '/pago': (context) => const PagoScreen(),
           '/aprobado': (context) => const AprobadoScreen(),
           '/rechazado': (context) => const RechazadoScreen(),
+          '/pendiente': (context) => const PendienteScreen(),
           '/desgloseCategorias': (context) => const CategoryBreakdownScreen(),
           '/terminos': (context) => const TermsScreen(),
         },

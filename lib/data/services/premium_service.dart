@@ -23,7 +23,9 @@ class PremiumService {
     }
   }
 
-  Future<PremiumStatusResponse> verificarEstadoPremium({required String jwt}) async {
+  Future<PremiumStatusResponse> verificarEstadoPremium({
+    required String jwt,
+  }) async {
     final url = Uri.parse("$baseUrl/api_usuario_premium_estado");
 
     final response = await http.get(
@@ -40,5 +42,17 @@ class PremiumService {
     } else {
       throw Exception("Error HTTP ${response.statusCode}");
     }
+  }
+
+  /// 🔹 Llamada para confirmar el pago en tu backend
+  Future<http.Response> confirmarPago({required String jwt}) async {
+    final url = Uri.parse("$baseUrl/api_confirmar_pago");
+
+    final response = await http.post(
+      url,
+      headers: {'Authorization': 'JWT $jwt', 'Accept': 'application/json'},
+    );
+
+    return response;
   }
 }
