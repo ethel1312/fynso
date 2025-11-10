@@ -3,6 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../../data/models/monthly_summary.dart';
 import '../../../data/repositories/monthly_summary_repository.dart';
 import '../../../data/repositories/monthly_limit_repository.dart';
+import '../../../data/services/notification_service.dart';
 
 class MonthlySummaryViewModel extends ChangeNotifier {
   final MonthlySummaryRepository _summaryRepo = MonthlySummaryRepository();
@@ -14,12 +15,20 @@ class MonthlySummaryViewModel extends ChangeNotifier {
 
   MonthlySummary? summary;
 
-  Future<void> load({required String jwt, required int anio, required int mes}) async {
+  Future<void> load({
+    required String jwt,
+    required int anio,
+    required int mes,
+  }) async {
     isLoading = true;
     error = null;
     notifyListeners();
     try {
-      summary = await _summaryRepo.fetchMonthlySummary(jwt: jwt, anio: anio, mes: mes);
+      summary = await _summaryRepo.fetchMonthlySummary(
+        jwt: jwt,
+        anio: anio,
+        mes: mes,
+      );
     } catch (e) {
       error = e.toString();
       summary = null;
@@ -39,8 +48,17 @@ class MonthlySummaryViewModel extends ChangeNotifier {
     isSaving = true;
     notifyListeners();
     try {
-      await _summaryRepo.setMonthlyLimit(jwt: jwt, anio: anio, mes: mes, limite: limite);
-      summary = await _summaryRepo.fetchMonthlySummary(jwt: jwt, anio: anio, mes: mes);
+      await _summaryRepo.setMonthlyLimit(
+        jwt: jwt,
+        anio: anio,
+        mes: mes,
+        limite: limite,
+      );
+      summary = await _summaryRepo.fetchMonthlySummary(
+        jwt: jwt,
+        anio: anio,
+        mes: mes,
+      );
       return true;
     } catch (e) {
       error = e.toString();
@@ -53,7 +71,9 @@ class MonthlySummaryViewModel extends ChangeNotifier {
 
   // ------ Helpers de UI ------
   double get limite => summary?.limiteDouble ?? 0.0;
+
   double get gastado => summary?.gastoDouble ?? 0.0;
+
   double get restante => (limite > 0) ? (limite - gastado) : 0.0;
 
   double get progress {
@@ -74,16 +94,21 @@ class MonthlySummaryViewModel extends ChangeNotifier {
     final year = summary?.anio ?? _now.year;
     final month = summary?.mes ?? _now.month;
     final last = DateTime(year, month + 1, 0);
-    final diff = last.difference(DateTime(_now.year, _now.month, _now.day)).inDays;
+    final diff = last
+        .difference(DateTime(_now.year, _now.month, _now.day))
+        .inDays;
     return diff;
   }
 
   bool get isClosed => (summary?.estado.toLowerCase() == 'cerrado');
+
   bool get hasBudget => limite > 0;
 
   // ====== “Predeterminado” en BACKEND ======
 
-  Future<(bool enabled, double amount)> getCarryOverPrefs({required String jwt}) async {
+  Future<(bool enabled, double amount)> getCarryOverPrefs({
+    required String jwt,
+  }) async {
     try {
       final res = await _limitRepo.getDefaultMonthlyLimit(jwt: jwt);
       return (res.enabled, res.defaultLimit);
@@ -122,9 +147,43 @@ class MonthlySummaryViewModel extends ChangeNotifier {
       );
       // recargar resumen del mes actual
       await load(jwt: jwt, anio: now.year, mes: now.month);
+      // aquí se verifica y se lanza la alerta si corresponde
+      await verificarPresupuesto();
     } catch (e) {
       error = e.toString();
       notifyListeners();
+    }
+  }
+
+  Future<void> checkBudgetAlert() async {
+    final prefs = await SharedPreferences.getInstance();
+    final alertEnabled = prefs.getBool('budget_alerts') ?? true;
+    if (!alertEnabled) return; // Si no está activado, no hacer nada
+
+    if (gastado >= limite) {
+      // Aquí mostrar notificación o pop-up de alerta
+    }
+  }
+
+  Future<void> verificarPresupuesto() async {
+    if (!hasBudget) return;
+
+    final porcentaje = progress * 100;
+
+    if (porcentaje >= 100) {
+      await NotificationService.show(
+        title: '💸 Presupuesto superado',
+        body:
+            'Has gastado más de tu límite mensual de S/.${limite.toStringAsFixed(2)}',
+        isBudgetAlert: true,
+      );
+    } else if (porcentaje >= 90) {
+      await NotificationService.show(
+        title: '⚠️ Presupuesto casi completo',
+        body:
+            'Ya usaste el ${porcentaje.toStringAsFixed(0)}% de tu presupuesto mensual.',
+        isBudgetAlert: true,
+      );
     }
   }
 }

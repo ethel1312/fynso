@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 // ViewModels
 import 'common/themes/app_color.dart';
 import 'common/themes/theme_view_model.dart';
+import 'data/services/notification_service.dart';
 import 'features/auth/view_model/auth_view_model.dart';
 import 'features/auth/view_model/password_view_model.dart';
 import 'features/settings/view_model/premium_view_model.dart';
@@ -25,7 +26,9 @@ import 'features/analytics/view/category_breakdown_screen.dart';
 import 'features/auth/view/terms_screen.dart';
 import 'common/navigation/route_observer.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await NotificationService.init();
   runApp(const MyApp());
 }
 

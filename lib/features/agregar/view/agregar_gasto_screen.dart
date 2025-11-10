@@ -7,6 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:provider/provider.dart';
 import '../../../data/models/create_transaction_request.dart';
 import '../../../data/repositories/transaction_repository.dart';
+import '../../home/view_model/monthly_summary_view_model.dart';
 import '../view_model/category_view_model.dart';
 import 'package:intl/intl.dart';
 
@@ -217,8 +218,26 @@ class _AgregarGastoScreenState extends State<AgregarGastoScreen> {
     );
   }
 
+  // ===== ALERTA DE PRESUPUESTO =====
+  void _showBudgetAlert(double total, double limite) {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('¡Alerta de presupuesto!'),
+        content: Text(
+          'Has gastado S/ ${total.toStringAsFixed(2)} de S/ ${limite.toStringAsFixed(2)}.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Aceptar'),
+          ),
+        ],
+      ),
+    );
+  }
+
   Future<void> _submitForm(CategoryViewModel cvm) async {
-    // Validaciones
     final monto = _montoController.text.trim();
 
     if (monto.isEmpty) {
@@ -257,9 +276,7 @@ class _AgregarGastoScreenState extends State<AgregarGastoScreen> {
         throw Exception('No se encontró token de usuario');
       }
 
-      // Formato fecha: YYYY-MM-DD
       final dateStr = DateFormat('yyyy-MM-dd').format(_selectedDate);
-      // Formato hora: HH:MM
       final timeStr =
           '${_selectedTime.hour.toString().padLeft(2, '0')}:${_selectedTime.minute.toString().padLeft(2, '0')}';
 
@@ -290,6 +307,7 @@ class _AgregarGastoScreenState extends State<AgregarGastoScreen> {
             backgroundColor: Colors.green,
           ),
         );
+
         // Limpiar formulario
         _montoController.clear();
         _categoryController.clear();
@@ -300,6 +318,23 @@ class _AgregarGastoScreenState extends State<AgregarGastoScreen> {
           _selectedDate = DateTime.now();
           _selectedTime = TimeOfDay.now();
         });
+
+        // ===== ALERTA DE PRESUPUESTO =====
+        final budgetAlertsEnabled = prefs.getBool('budget_alerts') ?? true;
+        if (budgetAlertsEnabled) {
+          // Suponiendo que tienes un ViewModel de resumen mensual
+          final monthlySummaryVM = Provider.of<MonthlySummaryViewModel>(
+            context,
+            listen: false,
+          );
+
+          final totalGastado = monthlySummaryVM.gastado;
+          final limitePresupuesto = monthlySummaryVM.limite;
+
+          if (totalGastado >= limitePresupuesto && limitePresupuesto > 0) {
+            _showBudgetAlert(totalGastado, limitePresupuesto);
+          }
+        }
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -327,10 +362,13 @@ class _AgregarGastoScreenState extends State<AgregarGastoScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (_) => CategoryViewModel(),
-      child: Consumer<CategoryViewModel>(
-        builder: (context, cvm, _) {
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => CategoryViewModel()),
+        ChangeNotifierProvider(create: (_) => MonthlySummaryViewModel()),
+      ],
+      child: Consumer2<CategoryViewModel, MonthlySummaryViewModel>(
+        builder: (context, cvm, monthlyVM, _) {
           return Scaffold(
             appBar: AppBar(
               title: const CustomTextTitle('Registrar'),
@@ -359,7 +397,7 @@ class _AgregarGastoScreenState extends State<AgregarGastoScreen> {
                   ),
                   const SizedBox(height: 16),
 
-                  // Categoría (requerida) - con selector
+                  // Categoría
                   _pickerTextField(
                     label: 'Categoría *',
                     controller: _categoryController,
@@ -369,7 +407,7 @@ class _AgregarGastoScreenState extends State<AgregarGastoScreen> {
                   ),
                   const SizedBox(height: 16),
 
-                  // Subcategoría (requerida) - con selector
+                  // Subcategoría
                   _pickerTextField(
                     label: 'Subcategoría *',
                     controller: _subcategoryController,
@@ -379,7 +417,7 @@ class _AgregarGastoScreenState extends State<AgregarGastoScreen> {
                   ),
                   const SizedBox(height: 16),
 
-                  // Fecha y Hora
+                  // Fecha y hora
                   Row(
                     children: [
                       Expanded(
@@ -447,14 +485,14 @@ class _AgregarGastoScreenState extends State<AgregarGastoScreen> {
                   ),
                   const SizedBox(height: 16),
 
-                  // Lugar (opcional)
+                  // Lugar
                   CustomTextField(
                     label: 'Lugar (opcional)',
                     controller: _placeController,
                   ),
                   const SizedBox(height: 16),
 
-                  // Notas (opcional)
+                  // Notas
                   CustomTextField(
                     label: 'Notas (opcional)',
                     controller: _notesController,
