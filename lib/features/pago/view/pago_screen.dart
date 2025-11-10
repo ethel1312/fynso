@@ -1,13 +1,12 @@
-// lib/features/pago/view/pago_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
-import 'package:fynso/features/pago/view/pendiente_screen.dart';
-import 'package:fynso/features/pago/view/rechazado_screen.dart';
-import 'package:fynso/features/settings/view_model/premium_view_model.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'aprobado_screen.dart';
+import 'pendiente_screen.dart';
+import 'rechazado_screen.dart';
+import '../../settings/view_model/premium_view_model.dart';
 
 class PagoScreen extends StatefulWidget {
   final String? url;
@@ -22,6 +21,7 @@ class _PagoScreenState extends State<PagoScreen> {
   String jwt = '';
   final GlobalKey webViewKey = GlobalKey();
   InAppWebViewController? webViewController;
+  bool isLoading = true;
 
   @override
   void initState() {
@@ -29,7 +29,7 @@ class _PagoScreenState extends State<PagoScreen> {
     _loadJwt();
   }
 
-  /// 🔹 Carga el token JWT almacenado localmente
+  /// 🔹 Cargar token JWT almacenado localmente
   Future<void> _loadJwt() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
@@ -41,7 +41,7 @@ class _PagoScreenState extends State<PagoScreen> {
   Widget build(BuildContext context) {
     final viewModel = Provider.of<PremiumViewModel>(context, listen: false);
 
-    // 🧩 Verifica que haya una URL válida
+    // 🧩 Validar que exista URL válida
     if (widget.url == null || widget.url!.isEmpty) {
       return const Scaffold(
         body: Center(
@@ -56,7 +56,7 @@ class _PagoScreenState extends State<PagoScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text("Procesando pago"),
-        backgroundColor: Colors.amber[700],
+        backgroundColor: const Color(0xFF007BFF), // Azul Fynso
       ),
       body: SafeArea(
         child: Stack(
@@ -65,40 +65,54 @@ class _PagoScreenState extends State<PagoScreen> {
               key: webViewKey,
               initialUrlRequest: URLRequest(url: WebUri(widget.url!)),
               initialOptions: InAppWebViewGroupOptions(
-                crossPlatform: InAppWebViewOptions(javaScriptEnabled: true),
+                crossPlatform: InAppWebViewOptions(
+                  javaScriptEnabled: true,
+                  useOnDownloadStart: true,
+                  mediaPlaybackRequiresUserGesture: false,
+                ),
               ),
               onWebViewCreated: (controller) {
                 webViewController = controller;
+              },
+              onLoadStart: (controller, url) {
+                setState(() => isLoading = true);
+              },
+              onLoadStop: (controller, url) async {
+                setState(() => isLoading = false);
               },
               onUpdateVisitedHistory: (controller, url, androidIsReload) async {
                 final currentUrl = url?.toString() ?? '';
                 print("🔗 Navegando a: $currentUrl");
 
-                if (currentUrl.isEmpty) return;
+                if (currentUrl.isEmpty || !context.mounted) return;
 
-                // 🔹 Ajusta estas condiciones según tus URLs reales de Mercado Pago
+                // 🔹 Redirecciones esperadas
                 if (currentUrl.contains("pago_exitoso")) {
-                  // ✅ Confirmar pago en tu backend
+                  controller.stopLoading();
                   final error = await viewModel.confirmarPago(jwt: jwt);
                   if (error == null && context.mounted) {
                     Navigator.pushReplacement(
                       context,
                       MaterialPageRoute(builder: (_) => const AprobadoScreen()),
                     );
-                  } else {
+                  } else if (context.mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: Text(error ?? "Error al confirmar pago"),
+                        content: Text(error ?? "Error al confirmar el pago"),
                         backgroundColor: Colors.redAccent,
                       ),
                     );
                   }
-                } else if (currentUrl.contains("failure")) {
+                } else if (currentUrl.contains("pago_fallido") ||
+                    currentUrl.contains("failure")) {
+                  controller.stopLoading();
                   Navigator.pushReplacement(
                     context,
                     MaterialPageRoute(builder: (_) => const RechazadoScreen()),
                   );
-                } else if (currentUrl.contains("pending")) {
+                } else if (currentUrl.contains("pago_pendiente") ||
+                    currentUrl.contains("pending")) {
+                  controller.stopLoading();
                   Navigator.pushReplacement(
                     context,
                     MaterialPageRoute(builder: (_) => const PendienteScreen()),
@@ -106,6 +120,14 @@ class _PagoScreenState extends State<PagoScreen> {
                 }
               },
             ),
+
+            // 🔹 Loader visual mientras carga el pago
+            if (isLoading)
+              const Center(
+                child: CircularProgressIndicator(
+                  color: Color(0xFF007BFF), // Azul Fynso
+                ),
+              ),
           ],
         ),
       ),

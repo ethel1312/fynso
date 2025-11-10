@@ -34,6 +34,7 @@ class HistorialGastosScreen extends StatefulWidget {
 class _YearMonth {
   final int year;
   final int month;
+
   const _YearMonth(this.year, this.month);
 }
 
@@ -79,7 +80,11 @@ class _HistorialGastosScreenState extends State<HistorialGastosScreen>
       viewModel.changeMonth(clamped.year, clamped.month);
     }
 
-    await viewModel.loadTransactions(jwt: jwt, anio: viewModel.anio, mes: viewModel.mes);
+    await viewModel.loadTransactions(
+      jwt: jwt,
+      anio: viewModel.anio,
+      mes: viewModel.mes,
+    );
     await viewModel.initCatalogs();
 
     if (mounted) setState(() => _booting = false);
@@ -137,31 +142,37 @@ class _HistorialGastosScreenState extends State<HistorialGastosScreen>
       if ((root['code'] ?? 0) != 1) return;
 
       final data = (root['data'] as Map<String, dynamic>?) ?? {};
-      _minYear   = data['min_year'] as int?;
-      _minMonth  = data['min_month'] as int?;
+      _minYear = data['min_year'] as int?;
+      _minMonth = data['min_month'] as int?;
       _maxYearTx = data['max_year'] as int?;
-      _maxMonthTx= data['max_month'] as int?;
+      _maxMonthTx = data['max_month'] as int?;
 
       if (_minYear != null && _minMonth != null) {
         _minDateAvailable = DateTime(_minYear!, _minMonth!, 1);
       }
       if (_maxYearTx != null && _maxMonthTx != null) {
         _maxDateAvailable = DateTime(
-          _maxYearTx!, _maxMonthTx!, _lastDayOfMonth(_maxYearTx!, _maxMonthTx!),
+          _maxYearTx!,
+          _maxMonthTx!,
+          _lastDayOfMonth(_maxYearTx!, _maxMonthTx!),
         );
       }
 
       final today = DateTime.now();
       _minDateAvailable ??= DateTime(today.year, today.month, 1);
-      _maxDateAvailable ??= DateTime(today.year, today.month, _lastDayOfMonth(today.year, today.month));
+      _maxDateAvailable ??= DateTime(
+        today.year,
+        today.month,
+        _lastDayOfMonth(today.year, today.month),
+      );
 
-      _minYear   ??= _minDateAvailable!.year;
-      _minMonth  ??= _minDateAvailable!.month;
+      _minYear ??= _minDateAvailable!.year;
+      _minMonth ??= _minDateAvailable!.month;
       _maxYearTx ??= _maxDateAvailable!.year;
-      _maxMonthTx??= _maxDateAvailable!.month;
+      _maxMonthTx ??= _maxDateAvailable!.month;
 
       final capNext = DateTime(_maxYearTx!, _maxMonthTx! + 1, 1);
-      _capNextYear  = capNext.year;
+      _capNextYear = capNext.year;
       _capNextMonth = capNext.month;
     } catch (_) {}
     if (mounted) setState(() {});
@@ -193,7 +204,9 @@ class _HistorialGastosScreenState extends State<HistorialGastosScreen>
     return null;
   }
 
-  Map<String, List<TransactionResponse>> _groupTransactions(List<TransactionResponse> list) {
+  Map<String, List<TransactionResponse>> _groupTransactions(
+    List<TransactionResponse> list,
+  ) {
     final today = DateTime.now();
     DateTime onlyDate(DateTime d) => DateTime(d.year, d.month, d.day);
     final t0 = onlyDate(today);
@@ -202,9 +215,9 @@ class _HistorialGastosScreenState extends State<HistorialGastosScreen>
 
     final map = <String, List<TransactionResponse>>{
       'Fechas futuras': [], // Nueva sección al principio
-      'Hoy': [], 
-      'Ayer': [], 
-      'Semana pasada': [], 
+      'Hoy': [],
+      'Ayer': [],
+      'Semana pasada': [],
       'Anteriores': [],
     };
 
@@ -215,7 +228,7 @@ class _HistorialGastosScreenState extends State<HistorialGastosScreen>
         continue;
       }
       final dd = DateTime(d.year, d.month, d.day);
-      
+
       // Primero verificar si es fecha futura
       if (dd.isAfter(t0)) {
         map['Fechas futuras']!.add(t);
@@ -241,9 +254,12 @@ class _HistorialGastosScreenState extends State<HistorialGastosScreen>
   }
 
   bool _isMonthInRange({
-    required int year, required int month,
-    required int minY, required int minM,
-    required int maxY, required int maxM,
+    required int year,
+    required int month,
+    required int minY,
+    required int minM,
+    required int maxY,
+    required int maxM,
   }) {
     final lo = _ymCompare(year, month, minY, minM) >= 0;
     final hi = _ymCompare(year, month, maxY, maxM) <= 0;
@@ -272,14 +288,13 @@ class _HistorialGastosScreenState extends State<HistorialGastosScreen>
     final minY = _minYear ?? viewModel.anio;
     final minM = _minMonth ?? viewModel.mes;
     final maxY = _capNextYear == 0 ? viewModel.anio : _capNextYear;
-    final maxM = _capNextMonth == 0 ? viewModel.mes  : _capNextMonth;
+    final maxM = _capNextMonth == 0 ? viewModel.mes : _capNextMonth;
 
     int tempYear = viewModel.anio;
 
     final picked = await showModalBottomSheet<_YearMonth>(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.white,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
@@ -288,17 +303,29 @@ class _HistorialGastosScreenState extends State<HistorialGastosScreen>
           top: false,
           child: SingleChildScrollView(
             child: Padding(
-              padding: EdgeInsets.fromLTRB(16, 12, 16, 16 + MediaQuery.of(ctx).viewInsets.bottom),
+              padding: EdgeInsets.fromLTRB(
+                16,
+                12,
+                16,
+                16 + MediaQuery.of(ctx).viewInsets.bottom,
+              ),
               child: StatefulBuilder(
                 builder: (ctx, setStateSheet) {
                   final months = List<int>.generate(12, (i) => i + 1);
 
                   bool isEnabled(int y, int m) => _isMonthInRange(
-                    year: y, month: m, minY: minY, minM: minM, maxY: maxY, maxM: maxM,
+                    year: y,
+                    month: m,
+                    minY: minY,
+                    minM: minM,
+                    maxY: maxY,
+                    maxM: maxM,
                   );
 
-                  String monthName(int m) =>
-                      DateFormat('MMM', 'es').format(DateTime(2000, m, 1)).toUpperCase();
+                  String monthName(int m) => DateFormat(
+                    'MMM',
+                    'es',
+                  ).format(DateTime(2000, m, 1)).toUpperCase();
 
                   return Column(
                     mainAxisSize: MainAxisSize.min,
@@ -307,7 +334,8 @@ class _HistorialGastosScreenState extends State<HistorialGastosScreen>
                         children: [
                           IconButton(
                             splashRadius: 20,
-                            onPressed: _ymCompare(tempYear - 1, 12, minY, minM) >= 0
+                            onPressed:
+                                _ymCompare(tempYear - 1, 12, minY, minM) >= 0
                                 ? () => setStateSheet(() => tempYear -= 1)
                                 : null,
                             icon: const Icon(Icons.chevron_left),
@@ -318,14 +346,16 @@ class _HistorialGastosScreenState extends State<HistorialGastosScreen>
                               child: Text(
                                 '$tempYear',
                                 style: const TextStyle(
-                                  fontWeight: FontWeight.bold, fontSize: 16, color: Colors.black,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
                                 ),
                               ),
                             ),
                           ),
                           IconButton(
                             splashRadius: 20,
-                            onPressed: _ymCompare(tempYear + 1, 1, maxY, maxM) <= 0
+                            onPressed:
+                                _ymCompare(tempYear + 1, 1, maxY, maxM) <= 0
                                 ? () => setStateSheet(() => tempYear += 1)
                                 : null,
                             icon: const Icon(Icons.chevron_right),
@@ -347,11 +377,17 @@ class _HistorialGastosScreenState extends State<HistorialGastosScreen>
                             TextButton(
                               style: TextButton.styleFrom(
                                 foregroundColor: isEnabled(tempYear, m)
-                                    ? AppColor.azulFynso : Colors.grey,
-                                padding: const EdgeInsets.symmetric(vertical: 10),
+                                    ? AppColor.azulFynso
+                                    : Colors.grey,
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 10,
+                                ),
                               ),
                               onPressed: isEnabled(tempYear, m)
-                                  ? () => Navigator.pop(ctx, _YearMonth(tempYear, m))
+                                  ? () => Navigator.pop(
+                                      ctx,
+                                      _YearMonth(tempYear, m),
+                                    )
                                   : null,
                               child: Text(monthName(m)),
                             ),
@@ -371,7 +407,11 @@ class _HistorialGastosScreenState extends State<HistorialGastosScreen>
     if (picked != null) {
       final clamped = _clampMonth(picked);
       viewModel.changeMonth(clamped.year, clamped.month);
-      await viewModel.loadTransactions(jwt: jwt, anio: clamped.year, mes: clamped.month);
+      await viewModel.loadTransactions(
+        jwt: jwt,
+        anio: clamped.year,
+        mes: clamped.month,
+      );
       if (mounted) setState(() {});
     }
   }
@@ -379,32 +419,37 @@ class _HistorialGastosScreenState extends State<HistorialGastosScreen>
   // ========= Fynso dialogs =========
   Future<bool> _confirmDeleteDialog() async {
     return await _showFynsoCardDialog<bool>(
-      title: 'Eliminar gasto',
-      message: '¿Seguro que deseas eliminar este gasto? Esta acción no se puede deshacer.',
-      icon: Icons.delete_outline,
-      actions: [
-        OutlinedButton(
-          style: OutlinedButton.styleFrom(
-            foregroundColor: Colors.black,
-            side: BorderSide(color: AppColor.azulFynso),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-            minimumSize: const Size.fromHeight(44),
-          ),
-          onPressed: () => Navigator.pop(context, false),
-          child: const Text('Cancelar'),
-        ),
-        ElevatedButton(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.redAccent,
-            foregroundColor: Colors.white,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-            minimumSize: const Size.fromHeight(44),
-          ),
-          onPressed: () => Navigator.pop(context, true),
-          child: const Text('Eliminar'),
-        ),
-      ],
-    ) ??
+          title: 'Eliminar gasto',
+          message:
+              '¿Seguro que deseas eliminar este gasto? Esta acción no se puede deshacer.',
+          icon: Icons.delete_outline,
+          actions: [
+            OutlinedButton(
+              style: OutlinedButton.styleFrom(
+                foregroundColor: Colors.black,
+                side: BorderSide(color: AppColor.azulFynso),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                minimumSize: const Size.fromHeight(44),
+              ),
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Cancelar'),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.redAccent,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                minimumSize: const Size.fromHeight(44),
+              ),
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('Eliminar'),
+            ),
+          ],
+        ) ??
         false;
   }
 
@@ -420,7 +465,9 @@ class _HistorialGastosScreenState extends State<HistorialGastosScreen>
       builder: (ctx) {
         return Dialog(
           insetPadding: const EdgeInsets.symmetric(horizontal: 24),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
           child: Container(
             decoration: BoxDecoration(
               color: Colors.white,
@@ -454,7 +501,9 @@ class _HistorialGastosScreenState extends State<HistorialGastosScreen>
                       child: Text(
                         title,
                         style: const TextStyle(
-                          fontWeight: FontWeight.w700, fontSize: 16, color: Colors.black87,
+                          fontWeight: FontWeight.w700,
+                          fontSize: 16,
+                          color: Colors.black87,
                         ),
                       ),
                     ),
@@ -465,13 +514,24 @@ class _HistorialGastosScreenState extends State<HistorialGastosScreen>
                   alignment: Alignment.centerLeft,
                   child: Text(
                     message,
-                    style: const TextStyle(fontSize: 14, color: Colors.black87, height: 1.3),
+                    style: const TextStyle(
+                      fontSize: 14,
+                      color: Colors.black87,
+                      height: 1.3,
+                    ),
                   ),
                 ),
                 const SizedBox(height: 16),
                 Row(
                   children: actions
-                      .map((w) => Expanded(child: Padding(padding: const EdgeInsets.symmetric(horizontal: 6), child: w)))
+                      .map(
+                        (w) => Expanded(
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 6),
+                            child: w,
+                          ),
+                        ),
+                      )
                       .toList(),
                 ),
                 const SizedBox(height: 8),
@@ -493,7 +553,9 @@ class _HistorialGastosScreenState extends State<HistorialGastosScreen>
           style: ElevatedButton.styleFrom(
             backgroundColor: AppColor.azulFynso,
             foregroundColor: Colors.white,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
             minimumSize: const Size.fromHeight(44),
           ),
           onPressed: () => Navigator.pop(context),
@@ -526,24 +588,33 @@ class _HistorialGastosScreenState extends State<HistorialGastosScreen>
       items: [
         PopupMenuItem(
           value: 'ver',
-          child: Row(children: [
-            Icon(Icons.visibility_outlined, color: AppColor.azulFynso), const SizedBox(width: 8),
-            const Text('Ver'),
-          ]),
+          child: Row(
+            children: [
+              Icon(Icons.visibility_outlined, color: AppColor.azulFynso),
+              const SizedBox(width: 8),
+              const Text('Ver'),
+            ],
+          ),
         ),
         PopupMenuItem(
           value: 'editar',
-          child: Row(children: [
-            Icon(Icons.edit_outlined, color: AppColor.azulFynso), const SizedBox(width: 8),
-            const Text('Editar'),
-          ]),
+          child: Row(
+            children: [
+              Icon(Icons.edit_outlined, color: AppColor.azulFynso),
+              const SizedBox(width: 8),
+              const Text('Editar'),
+            ],
+          ),
         ),
         PopupMenuItem(
           value: 'eliminar',
-          child: Row(children: const [
-            Icon(Icons.delete_outline, color: Colors.redAccent), SizedBox(width: 8),
-            Text('Eliminar'),
-          ]),
+          child: Row(
+            children: const [
+              Icon(Icons.delete_outline, color: Colors.redAccent),
+              SizedBox(width: 8),
+              Text('Eliminar'),
+            ],
+          ),
         ),
       ],
     );
@@ -556,7 +627,10 @@ class _HistorialGastosScreenState extends State<HistorialGastosScreen>
       Navigator.pushNamed(
         context,
         '/detalleGasto',
-        arguments: TransactionDetailRequest(idTransaction: t.idTransaction, jwt: jwt),
+        arguments: TransactionDetailRequest(
+          idTransaction: t.idTransaction,
+          jwt: jwt,
+        ),
       );
     } else if (selected == 'editar') {
       // Cargar la transacción fresca del backend
@@ -578,7 +652,11 @@ class _HistorialGastosScreenState extends State<HistorialGastosScreen>
           category: detail.category.nombre,
           subcategory: detail.subcategory.nombre,
         );
-        final res = await Navigator.pushNamed(context, '/editarGasto', arguments: updated);
+        final res = await Navigator.pushNamed(
+          context,
+          '/editarGasto',
+          arguments: updated,
+        );
         if (res != null) await _reloadSameMonth();
       } catch (e) {
         await _showError('No se pudo cargar el gasto: $e');
@@ -587,12 +665,15 @@ class _HistorialGastosScreenState extends State<HistorialGastosScreen>
       final ok = await _confirmDeleteDialog();
       if (ok) {
         try {
-          final done = await viewModel.deleteTransaction(jwt: jwt, idTransaction: t.idTransaction);
+          final done = await viewModel.deleteTransaction(
+            jwt: jwt,
+            idTransaction: t.idTransaction,
+          );
           if (!done) throw Exception('No se pudo eliminar');
           if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Gasto eliminado')),
-            );
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(const SnackBar(content: Text('Gasto eliminado')));
           }
         } catch (e) {
           await _showError(e.toString().replaceFirst('Exception: ', ''));
@@ -607,9 +688,14 @@ class _HistorialGastosScreenState extends State<HistorialGastosScreen>
       color: Colors.redAccent.withOpacity(0.12),
       alignment: Alignment.centerLeft,
       padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: const Icon(Icons.delete_outline, color: Colors.redAccent, size: 28),
+      child: const Icon(
+        Icons.delete_outline,
+        color: Colors.redAccent,
+        size: 28,
+      ),
     );
   }
+
   Widget _bgEdit() {
     return Container(
       color: AppColor.azulFynso.withOpacity(0.12),
@@ -622,20 +708,25 @@ class _HistorialGastosScreenState extends State<HistorialGastosScreen>
   // ========= Build Dismissible + Gestos alrededor del GastoCard =========
   Widget _buildSwipeableCard(TransactionResponse t) {
     // Icono y color según la categoría (por nombre; si luego tienes el id, también soporta idCategory)
-    final icon  = CategoryVisuals.iconFor(nombre: t.category);
+    final icon = CategoryVisuals.iconFor(nombre: t.category);
     final color = CategoryVisuals.colorFor(nombre: t.category);
 
     return Dismissible(
       key: ValueKey('tx_${t.idTransaction}'),
-      background: _bgDelete(),             // 👉 deslizar a la derecha = eliminar
-      secondaryBackground: _bgEdit() ,     // 👈 deslizar a la izquierda = editar
+      background: _bgDelete(),
+      // 👉 deslizar a la derecha = eliminar
+      secondaryBackground: _bgEdit(),
+      // 👈 deslizar a la izquierda = editar
       confirmDismiss: (direction) async {
         if (direction == DismissDirection.startToEnd) {
           // Eliminar con confirmación y borrado real
           final ok = await _confirmDeleteDialog();
           if (!ok) return false;
           try {
-            final done = await viewModel.deleteTransaction(jwt: jwt, idTransaction: t.idTransaction);
+            final done = await viewModel.deleteTransaction(
+              jwt: jwt,
+              idTransaction: t.idTransaction,
+            );
             if (!done) throw Exception('No se pudo eliminar');
             return true; // quita la card
           } catch (e) {
@@ -662,7 +753,11 @@ class _HistorialGastosScreenState extends State<HistorialGastosScreen>
               category: detail.category.nombre,
               subcategory: detail.subcategory.nombre,
             );
-            final res = await Navigator.pushNamed(context, '/editarGasto', arguments: updated);
+            final res = await Navigator.pushNamed(
+              context,
+              '/editarGasto',
+              arguments: updated,
+            );
             if (res != null) await _reloadSameMonth();
           } catch (e) {
             if (mounted) {
@@ -686,7 +781,10 @@ class _HistorialGastosScreenState extends State<HistorialGastosScreen>
             Navigator.pushNamed(
               context,
               '/detalleGasto',
-              arguments: TransactionDetailRequest(idTransaction: t.idTransaction, jwt: jwt),
+              arguments: TransactionDetailRequest(
+                idTransaction: t.idTransaction,
+                jwt: jwt,
+              ),
             );
           },
         ),
@@ -703,9 +801,13 @@ class _HistorialGastosScreenState extends State<HistorialGastosScreen>
     final catController = ValueNotifier<int?>(filter.categoryId);
     final subcatController = ValueNotifier<int?>(filter.subcategoryId);
     final dateFromController = ValueNotifier<DateTime?>(filter.dateFrom);
-    final dateToController   = ValueNotifier<DateTime?>(filter.dateTo);
-    final amountMinCtrl = TextEditingController(text: filter.amountMin != null ? filter.amountMin!.toString() : '');
-    final amountMaxCtrl = TextEditingController(text: filter.amountMax != null ? filter.amountMax!.toString() : '');
+    final dateToController = ValueNotifier<DateTime?>(filter.dateTo);
+    final amountMinCtrl = TextEditingController(
+      text: filter.amountMin != null ? filter.amountMin!.toString() : '',
+    );
+    final amountMaxCtrl = TextEditingController(
+      text: filter.amountMax != null ? filter.amountMax!.toString() : '',
+    );
 
     if (filter.categoryId != null) {
       await vm.loadSubcategories(filter.categoryId!);
@@ -714,14 +816,16 @@ class _HistorialGastosScreenState extends State<HistorialGastosScreen>
     await showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.white,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
       builder: (ctx) {
         return Padding(
           padding: EdgeInsets.only(
-            left: 16, right: 16, top: 16, bottom: 16 + MediaQuery.of(ctx).viewInsets.bottom,
+            left: 16,
+            right: 16,
+            top: 16,
+            bottom: 16 + MediaQuery.of(ctx).viewInsets.bottom,
           ),
           child: StatefulBuilder(
             builder: (ctx, setStateSheet) {
@@ -729,11 +833,15 @@ class _HistorialGastosScreenState extends State<HistorialGastosScreen>
 
               Future<void> pickDateRange() async {
                 final first = _minDateAvailable ?? DateTime(2000, 1, 1);
-                final last  = _maxDateAvailable ?? DateTime.now();
+                final last = _maxDateAvailable ?? DateTime.now();
 
                 final initialDateRange =
-                (dateFromController.value != null && dateToController.value != null)
-                    ? DateTimeRange(start: dateFromController.value!, end: dateToController.value!)
+                    (dateFromController.value != null &&
+                        dateToController.value != null)
+                    ? DateTimeRange(
+                        start: dateFromController.value!,
+                        end: dateToController.value!,
+                      )
                     : DateTimeRange(start: first, end: last);
 
                 final picked = await showDateRangePicker(
@@ -747,8 +855,16 @@ class _HistorialGastosScreenState extends State<HistorialGastosScreen>
                   locale: const Locale('es', ''),
                 );
                 if (picked != null) {
-                  dateFromController.value = DateTime(picked.start.year, picked.start.month, picked.start.day);
-                  dateToController.value   = DateTime(picked.end.year, picked.end.month, picked.end.day);
+                  dateFromController.value = DateTime(
+                    picked.start.year,
+                    picked.start.month,
+                    picked.start.day,
+                  );
+                  dateToController.value = DateTime(
+                    picked.end.year,
+                    picked.end.month,
+                    picked.end.day,
+                  );
                   setStateSheet(() {});
                 }
               }
@@ -762,14 +878,28 @@ class _HistorialGastosScreenState extends State<HistorialGastosScreen>
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Filtros', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                    const Text(
+                      'Filtros',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                     const SizedBox(height: 12),
 
                     DropdownButtonFormField<int?>(
                       value: catController.value,
                       items: <DropdownMenuItem<int?>>[
-                        const DropdownMenuItem(value: null, child: Text('Todas las categorías')),
-                        ...categories.map((c) => DropdownMenuItem<int?>(value: c.idCategory, child: Text(c.nombre))),
+                        const DropdownMenuItem(
+                          value: null,
+                          child: Text('Todas las categorías'),
+                        ),
+                        ...categories.map(
+                          (c) => DropdownMenuItem<int?>(
+                            value: c.idCategory,
+                            child: Text(c.nombre),
+                          ),
+                        ),
                       ],
                       onChanged: (v) async {
                         catController.value = v;
@@ -788,14 +918,24 @@ class _HistorialGastosScreenState extends State<HistorialGastosScreen>
                     DropdownButtonFormField<int?>(
                       value: subcatController.value,
                       items: <DropdownMenuItem<int?>>[
-                        const DropdownMenuItem(value: null, child: Text('Todas las subcategorías')),
-                        ...subs.map((s) => DropdownMenuItem<int?>(value: s.idSubcategory, child: Text(s.nombre))),
+                        const DropdownMenuItem(
+                          value: null,
+                          child: Text('Todas las subcategorías'),
+                        ),
+                        ...subs.map(
+                          (s) => DropdownMenuItem<int?>(
+                            value: s.idSubcategory,
+                            child: Text(s.nombre),
+                          ),
+                        ),
                       ],
                       onChanged: (v) {
                         subcatController.value = v;
                         setStateSheet(() {});
                       },
-                      decoration: const InputDecoration(labelText: 'Subcategoría'),
+                      decoration: const InputDecoration(
+                        labelText: 'Subcategoría',
+                      ),
                     ),
                     const SizedBox(height: 8),
 
@@ -804,7 +944,6 @@ class _HistorialGastosScreenState extends State<HistorialGastosScreen>
                         Expanded(
                           child: OutlinedButton(
                             style: OutlinedButton.styleFrom(
-                              foregroundColor: Colors.black,
                               side: BorderSide(color: AppColor.azulFynso),
                             ),
                             onPressed: pickDateRange,
@@ -832,16 +971,24 @@ class _HistorialGastosScreenState extends State<HistorialGastosScreen>
                         Expanded(
                           child: TextFormField(
                             controller: amountMinCtrl,
-                            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                            decoration: const InputDecoration(labelText: 'Monto mínimo'),
+                            keyboardType: const TextInputType.numberWithOptions(
+                              decimal: true,
+                            ),
+                            decoration: const InputDecoration(
+                              labelText: 'Monto mínimo',
+                            ),
                           ),
                         ),
                         const SizedBox(width: 12),
                         Expanded(
                           child: TextFormField(
                             controller: amountMaxCtrl,
-                            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                            decoration: const InputDecoration(labelText: 'Monto máximo'),
+                            keyboardType: const TextInputType.numberWithOptions(
+                              decimal: true,
+                            ),
+                            decoration: const InputDecoration(
+                              labelText: 'Monto máximo',
+                            ),
                           ),
                         ),
                       ],
@@ -863,7 +1010,7 @@ class _HistorialGastosScreenState extends State<HistorialGastosScreen>
                         Expanded(
                           child: ElevatedButton(
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: AppColor.azulFynso, foregroundColor: Colors.white,
+                              backgroundColor: AppColor.azulFynso,
                             ),
                             onPressed: () async {
                               final f = TransactionsFilter(
@@ -873,10 +1020,14 @@ class _HistorialGastosScreenState extends State<HistorialGastosScreen>
                                 dateTo: dateToController.value,
                                 amountMin: amountMinCtrl.text.trim().isEmpty
                                     ? null
-                                    : double.tryParse(amountMinCtrl.text.trim()),
+                                    : double.tryParse(
+                                        amountMinCtrl.text.trim(),
+                                      ),
                                 amountMax: amountMaxCtrl.text.trim().isEmpty
                                     ? null
-                                    : double.tryParse(amountMaxCtrl.text.trim()),
+                                    : double.tryParse(
+                                        amountMaxCtrl.text.trim(),
+                                      ),
                               );
                               await viewModel.applyFilter(f);
                               if (mounted) Navigator.pop(context);
@@ -907,7 +1058,10 @@ class _HistorialGastosScreenState extends State<HistorialGastosScreen>
           final grouped = _groupTransactions(vm.transactions);
 
           final monthLabel = () {
-            final s = DateFormat('MMMM yyyy', 'es').format(DateTime(vm.anio, vm.mes, 1));
+            final s = DateFormat(
+              'MMMM yyyy',
+              'es',
+            ).format(DateTime(vm.anio, vm.mes, 1));
             return s[0].toUpperCase() + s.substring(1);
           }();
 
@@ -917,10 +1071,12 @@ class _HistorialGastosScreenState extends State<HistorialGastosScreen>
                 Expanded(
                   child: OutlinedButton(
                     style: OutlinedButton.styleFrom(
-                      foregroundColor: Colors.black,
                       side: BorderSide(color: AppColor.azulFynso),
                       textStyle: const TextStyle(fontWeight: FontWeight.bold),
-                      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 12,
+                        horizontal: 12,
+                      ),
                     ),
                     onPressed: _openMonthSheet,
                     child: Text(monthLabel, overflow: TextOverflow.ellipsis),
@@ -929,9 +1085,11 @@ class _HistorialGastosScreenState extends State<HistorialGastosScreen>
                 const SizedBox(width: 8),
                 OutlinedButton.icon(
                   style: OutlinedButton.styleFrom(
-                    foregroundColor: Colors.black,
                     side: BorderSide(color: AppColor.azulFynso),
-                    padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 12,
+                      horizontal: 12,
+                    ),
                   ),
                   icon: const Icon(Icons.filter_list),
                   label: const Text('Filtros'),
@@ -945,8 +1103,6 @@ class _HistorialGastosScreenState extends State<HistorialGastosScreen>
             return Scaffold(
               appBar: AppBar(
                 title: const CustomTextTitle('Historial de gastos'),
-                backgroundColor: Colors.white,
-                foregroundColor: Colors.black,
                 elevation: 1,
               ),
               body: const Center(child: CircularProgressIndicator()),
@@ -960,8 +1116,6 @@ class _HistorialGastosScreenState extends State<HistorialGastosScreen>
           return Scaffold(
             appBar: AppBar(
               title: const CustomTextTitle('Historial de gastos'),
-              backgroundColor: Colors.white,
-              foregroundColor: Colors.black,
               elevation: 1,
             ),
             body: ListView(
@@ -977,22 +1131,33 @@ class _HistorialGastosScreenState extends State<HistorialGastosScreen>
                       border: Border.all(color: Colors.red.shade200),
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: Text(vm.error!, style: const TextStyle(color: Colors.red)),
+                    child: Text(
+                      vm.error!,
+                      style: const TextStyle(color: Colors.red),
+                    ),
                   ),
                 ] else if (vm.transactions.isEmpty) ...[
                   const SizedBox(height: 48),
                   const Center(child: Text('No hay transacciones')),
                 ] else ...[
-                  for (final section in ['Fechas futuras','Hoy','Ayer','Semana pasada','Anteriores'])
+                  for (final section in [
+                    'Fechas futuras',
+                    'Hoy',
+                    'Ayer',
+                    'Semana pasada',
+                    'Anteriores',
+                  ])
                     if ((grouped[section] ?? []).isNotEmpty) ...[
                       Padding(
                         padding: const EdgeInsets.symmetric(vertical: 6.0),
                         child: Text(
                           section,
                           style: TextStyle(
-                            fontWeight: FontWeight.bold, 
+                            fontWeight: FontWeight.bold,
                             fontSize: 14,
-                            color: section == 'Fechas futuras' ? Colors.blue[700] : Colors.black,
+                            color: section == 'Fechas futuras'
+                                ? Colors.blue[700]
+                                : Colors.black,
                           ),
                         ),
                       ),

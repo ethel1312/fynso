@@ -6,19 +6,22 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:fynso/common/themes/app_color.dart';
 import 'package:fynso/common/utils/utils.dart' show formatMonto;
 import 'package:fynso/common/ui/category_visuals.dart';
-import 'package:fynso/features/analytics/view/widgets/category_breakdown_card.dart' show CategoryRow;
+import 'package:fynso/features/analytics/view/widgets/category_breakdown_card.dart'
+    show CategoryRow;
 import 'package:fynso/features/analytics/view_model/category_breakdown_list_view_model.dart';
 
 class CategoryBreakdownScreen extends StatefulWidget {
   const CategoryBreakdownScreen({super.key});
 
   @override
-  State<CategoryBreakdownScreen> createState() => _CategoryBreakdownScreenState();
+  State<CategoryBreakdownScreen> createState() =>
+      _CategoryBreakdownScreenState();
 }
 
 class _YearMonth {
   final int year;
   final int month;
+
   const _YearMonth(this.year, this.month);
 }
 
@@ -61,9 +64,12 @@ class _CategoryBreakdownScreenState extends State<CategoryBreakdownScreen> {
   }
 
   bool _isMonthInRange({
-    required int year, required int month,
-    required int minY, required int minM,
-    required int maxY, required int maxM,
+    required int year,
+    required int month,
+    required int minY,
+    required int minM,
+    required int maxY,
+    required int maxM,
   }) {
     final lo = _ymCompare(year, month, minY, minM) >= 0;
     final hi = _ymCompare(year, month, maxY, maxM) <= 0;
@@ -84,7 +90,6 @@ class _CategoryBreakdownScreenState extends State<CategoryBreakdownScreen> {
     final picked = await showModalBottomSheet<_YearMonth>(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.white,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
@@ -93,17 +98,29 @@ class _CategoryBreakdownScreenState extends State<CategoryBreakdownScreen> {
           top: false,
           child: SingleChildScrollView(
             child: Padding(
-              padding: EdgeInsets.fromLTRB(16, 12, 16, 16 + MediaQuery.of(ctx).viewInsets.bottom),
+              padding: EdgeInsets.fromLTRB(
+                16,
+                12,
+                16,
+                16 + MediaQuery.of(ctx).viewInsets.bottom,
+              ),
               child: StatefulBuilder(
                 builder: (ctx, setStateSheet) {
                   final months = List<int>.generate(12, (i) => i + 1);
 
                   bool isEnabled(int y, int m) => _isMonthInRange(
-                    year: y, month: m, minY: minY, minM: minM, maxY: maxY, maxM: maxM,
+                    year: y,
+                    month: m,
+                    minY: minY,
+                    minM: minM,
+                    maxY: maxY,
+                    maxM: maxM,
                   );
 
-                  String monthName(int m) =>
-                      DateFormat('MMM', 'es').format(DateTime(2000, m, 1)).toUpperCase();
+                  String monthName(int m) => DateFormat(
+                    'MMM',
+                    'es',
+                  ).format(DateTime(2000, m, 1)).toUpperCase();
 
                   return Column(
                     mainAxisSize: MainAxisSize.min,
@@ -112,7 +129,8 @@ class _CategoryBreakdownScreenState extends State<CategoryBreakdownScreen> {
                         children: [
                           IconButton(
                             splashRadius: 20,
-                            onPressed: _ymCompare(tempYear - 1, 12, minY, minM) >= 0
+                            onPressed:
+                                _ymCompare(tempYear - 1, 12, minY, minM) >= 0
                                 ? () => setStateSheet(() => tempYear -= 1)
                                 : null,
                             icon: const Icon(Icons.chevron_left),
@@ -123,14 +141,16 @@ class _CategoryBreakdownScreenState extends State<CategoryBreakdownScreen> {
                               child: Text(
                                 '$tempYear',
                                 style: const TextStyle(
-                                  fontWeight: FontWeight.bold, fontSize: 16, color: Colors.black,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
                                 ),
                               ),
                             ),
                           ),
                           IconButton(
                             splashRadius: 20,
-                            onPressed: _ymCompare(tempYear + 1, 1, maxY, maxM) <= 0
+                            onPressed:
+                                _ymCompare(tempYear + 1, 1, maxY, maxM) <= 0
                                 ? () => setStateSheet(() => tempYear += 1)
                                 : null,
                             icon: const Icon(Icons.chevron_right),
@@ -152,11 +172,17 @@ class _CategoryBreakdownScreenState extends State<CategoryBreakdownScreen> {
                             TextButton(
                               style: TextButton.styleFrom(
                                 foregroundColor: isEnabled(tempYear, m)
-                                    ? AppColor.azulFynso : Colors.grey,
-                                padding: const EdgeInsets.symmetric(vertical: 10),
+                                    ? AppColor.azulFynso
+                                    : Colors.grey,
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 10,
+                                ),
                               ),
                               onPressed: isEnabled(tempYear, m)
-                                  ? () => Navigator.pop(ctx, _YearMonth(tempYear, m))
+                                  ? () => Navigator.pop(
+                                      ctx,
+                                      _YearMonth(tempYear, m),
+                                    )
                                   : null,
                               child: Text(monthName(m)),
                             ),
@@ -174,7 +200,7 @@ class _CategoryBreakdownScreenState extends State<CategoryBreakdownScreen> {
     );
 
     if (picked != null) {
-      setState(() => _initializing = true);      // loader mientras recarga
+      setState(() => _initializing = true); // loader mientras recarga
       vm.anio = picked.year;
       vm.mes = picked.month;
       await vm.load();
@@ -200,8 +226,6 @@ class _CategoryBreakdownScreenState extends State<CategoryBreakdownScreen> {
             return Scaffold(
               appBar: AppBar(
                 title: const Text('Desglose por categoría'),
-                backgroundColor: Colors.white,
-                foregroundColor: Colors.black,
                 elevation: 1,
               ),
               body: const Center(child: CircularProgressIndicator()),
@@ -213,8 +237,6 @@ class _CategoryBreakdownScreenState extends State<CategoryBreakdownScreen> {
           return Scaffold(
             appBar: AppBar(
               title: const Text('Desglose por categoría'),
-              backgroundColor: Colors.white,
-              foregroundColor: Colors.black,
               elevation: 1,
             ),
             body: RefreshIndicator(
@@ -232,8 +254,10 @@ class _CategoryBreakdownScreenState extends State<CategoryBreakdownScreen> {
                       final r = vm.allowedRangeForPicker();
                       final minY = r['minY']!, minM = r['minM']!;
                       final maxY = r['maxY']!, maxM = r['maxM']!;
-                      bool canPrev = _ymCompare(vm.anio, vm.mes, minY, minM) > 0;
-                      bool canNext = _ymCompare(vm.anio, vm.mes, maxY, maxM) < 0;
+                      bool canPrev =
+                          _ymCompare(vm.anio, vm.mes, minY, minM) > 0;
+                      bool canNext =
+                          _ymCompare(vm.anio, vm.mes, maxY, maxM) < 0;
 
                       return Row(
                         children: [
@@ -243,25 +267,36 @@ class _CategoryBreakdownScreenState extends State<CategoryBreakdownScreen> {
                             color: canPrev ? AppColor.azulFynso : Colors.grey,
                             onPressed: (!vm.loading && canPrev)
                                 ? () async {
-                              setState(() => _initializing = true);
-                              final m = vm.mes == 1 ? 12 : vm.mes - 1;
-                              final y = vm.mes == 1 ? vm.anio - 1 : vm.anio;
-                              vm.anio = y; vm.mes = m;
-                              await vm.load();
-                              if (mounted) setState(() => _initializing = false);
-                            }
+                                    setState(() => _initializing = true);
+                                    final m = vm.mes == 1 ? 12 : vm.mes - 1;
+                                    final y = vm.mes == 1
+                                        ? vm.anio - 1
+                                        : vm.anio;
+                                    vm.anio = y;
+                                    vm.mes = m;
+                                    await vm.load();
+                                    if (mounted)
+                                      setState(() => _initializing = false);
+                                  }
                                 : null,
                           ),
                           Expanded(
                             child: OutlinedButton(
                               style: OutlinedButton.styleFrom(
-                                foregroundColor: Colors.black,
                                 side: BorderSide(color: AppColor.azulFynso),
-                                textStyle: const TextStyle(fontWeight: FontWeight.bold),
-                                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
+                                textStyle: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 12,
+                                  horizontal: 12,
+                                ),
                               ),
                               onPressed: vm.loading ? null : _openMonthSheet,
-                              child: Text(_monthLabel(vm.anio, vm.mes), overflow: TextOverflow.ellipsis),
+                              child: Text(
+                                _monthLabel(vm.anio, vm.mes),
+                                overflow: TextOverflow.ellipsis,
+                              ),
                             ),
                           ),
                           IconButton(
@@ -270,13 +305,17 @@ class _CategoryBreakdownScreenState extends State<CategoryBreakdownScreen> {
                             color: canNext ? AppColor.azulFynso : Colors.grey,
                             onPressed: (!vm.loading && canNext)
                                 ? () async {
-                              setState(() => _initializing = true);
-                              final m = vm.mes == 12 ? 1 : vm.mes + 1;
-                              final y = vm.mes == 12 ? vm.anio + 1 : vm.anio;
-                              vm.anio = y; vm.mes = m;
-                              await vm.load();
-                              if (mounted) setState(() => _initializing = false);
-                            }
+                                    setState(() => _initializing = true);
+                                    final m = vm.mes == 12 ? 1 : vm.mes + 1;
+                                    final y = vm.mes == 12
+                                        ? vm.anio + 1
+                                        : vm.anio;
+                                    vm.anio = y;
+                                    vm.mes = m;
+                                    await vm.load();
+                                    if (mounted)
+                                      setState(() => _initializing = false);
+                                  }
                                 : null,
                           ),
                         ],
@@ -292,7 +331,10 @@ class _CategoryBreakdownScreenState extends State<CategoryBreakdownScreen> {
                         border: Border.all(color: Colors.red.shade200),
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      child: Text(vm.error!, style: const TextStyle(color: Colors.red)),
+                      child: Text(
+                        vm.error!,
+                        style: const TextStyle(color: Colors.red),
+                      ),
                     ),
                   ] else if (data == null) ...[
                     const SizedBox(height: 24),
@@ -300,14 +342,16 @@ class _CategoryBreakdownScreenState extends State<CategoryBreakdownScreen> {
                   ] else ...[
                     // ===== Resumen mensual (usa límite actual si existe; si es futuro y el usuario tiene default, NO mostramos banner) =====
                     _SummaryLimitCard(
-                      limite: data.limiteActual,  // puede ser null => mostramos "—" en el label
+                      limite: data.limiteActual,
+                      // puede ser null => mostramos "—" en el label
                       totalMes: data.totalMes,
                     ),
                     const SizedBox(height: 16),
 
                     // Banner "Configura tu límite..." SOLO si NO hay límite en meses actuales/pasados
                     // y también en futuros cuando NO existe default_monthly_limit
-                    if (!(_isFutureMonth(vm.anio, vm.mes) && vm.hasUserDefaultLimit) &&
+                    if (!(_isFutureMonth(vm.anio, vm.mes) &&
+                            vm.hasUserDefaultLimit) &&
                         ((data.limiteActual ?? 0) <= 0)) ...[
                       Container(
                         width: double.infinity,
@@ -326,7 +370,7 @@ class _CategoryBreakdownScreenState extends State<CategoryBreakdownScreen> {
 
                     // Lista completa de categorías (orden ya llega por monto_mes)
                     ...data.items.map((it) {
-                      final icon  = CategoryVisuals.iconFor(nombre: it.nombre);
+                      final icon = CategoryVisuals.iconFor(nombre: it.nombre);
                       final color = CategoryVisuals.colorFor(nombre: it.nombre);
 
                       return Padding(
@@ -355,13 +399,10 @@ class _CategoryBreakdownScreenState extends State<CategoryBreakdownScreen> {
 // ------- Widgets auxiliares -------
 
 class _SummaryLimitCard extends StatelessWidget {
-  final double? limite;   // puede ser null
+  final double? limite; // puede ser null
   final double totalMes;
 
-  const _SummaryLimitCard({
-    required this.limite,
-    required this.totalMes,
-  });
+  const _SummaryLimitCard({required this.limite, required this.totalMes});
 
   @override
   Widget build(BuildContext context) {
@@ -369,7 +410,6 @@ class _SummaryLimitCard extends StatelessWidget {
     final ratio = (lim > 0) ? (totalMes / lim).clamp(0.0, 1.0) : 0.0;
 
     return Card(
-      color: Colors.white,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       elevation: 2,
       child: Padding(
@@ -377,12 +417,20 @@ class _SummaryLimitCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Resumen mensual', style: TextStyle(fontWeight: FontWeight.w600)),
+            const Text(
+              'Resumen mensual',
+              style: TextStyle(fontWeight: FontWeight.w600),
+            ),
             const SizedBox(height: 8),
             Row(
               children: [
                 Expanded(child: _kv('Gastado', 'S/.${formatMonto(totalMes)}')),
-                Expanded(child: _kv('Límite',  (limite == null) ? '—' : 'S/.${formatMonto(lim)}')),
+                Expanded(
+                  child: _kv(
+                    'Límite',
+                    (limite == null) ? '—' : 'S/.${formatMonto(lim)}',
+                  ),
+                ),
               ],
             ),
             const SizedBox(height: 10),

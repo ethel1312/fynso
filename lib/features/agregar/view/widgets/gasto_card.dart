@@ -68,12 +68,12 @@ class GastoCard extends StatelessWidget {
     final fechaCorta = _formatFechaSoloDia(fecha);
 
     return Card(
-      color: Colors.white,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       margin: const EdgeInsets.only(bottom: 12),
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        leading: leading, // 👈 NUEVO: se muestra si viene un widget
+        leading: leading,
+        // 👈 NUEVO: se muestra si viene un widget
         title: Text(
           '$categoria - $subcategoria',
           overflow: TextOverflow.ellipsis,

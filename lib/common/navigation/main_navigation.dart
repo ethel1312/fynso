@@ -45,7 +45,6 @@ class _MainNavigationState extends State<MainNavigation> {
           ),
         ),
         child: BottomNavigationBar(
-          backgroundColor: Colors.white,
           elevation: 0,
           // sin sombra extra
           currentIndex: _selectedIndex,

@@ -1,6 +1,7 @@
 // lib/features/settings/view/settings_screen.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../../common/widgets/custom_button.dart';
 import '../../auth/view_model/auth_view_model.dart';
 import '../view_model/premium_view_model.dart';
 import '../view_model/usuario_premium_view_model.dart';
@@ -25,7 +26,6 @@ class SettingsScreen extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => PremiumViewModel()),
       ],
       child: Scaffold(
-        backgroundColor: Colors.grey[50],
         body: SafeArea(
           child: SingleChildScrollView(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -61,7 +61,7 @@ class SettingsScreen extends StatelessWidget {
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16),
                     ),
-                    color: Colors.white,
+                    color: Theme.of(context).cardColor,
                     child: const Padding(
                       padding: EdgeInsets.symmetric(
                         vertical: 20,
@@ -73,37 +73,28 @@ class SettingsScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 30),
                 Center(
-                  child: ElevatedButton.icon(
+                  child: CustomButton(
+                    text: "Cerrar sesión",
+                    backgroundColor: Colors.redAccent,
                     icon: const Icon(Icons.logout, color: Colors.white),
-                    label: const Text(
-                      "Cerrar sesión",
-                      style: TextStyle(color: Colors.white, fontSize: 16),
-                    ),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.redAccent,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 40,
-                        vertical: 14,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                      elevation: 2,
-                    ),
                     onPressed: () async {
                       final authVM = Provider.of<AuthViewModel>(
                         context,
                         listen: false,
                       );
                       await authVM.logout();
-                      Navigator.pushNamedAndRemoveUntil(
-                        context,
-                        '/login',
-                        (route) => false,
-                      );
+
+                      if (context.mounted) {
+                        Navigator.pushNamedAndRemoveUntil(
+                          context,
+                          '/login',
+                          (route) => false,
+                        );
+                      }
                     },
                   ),
                 ),
+
                 const SizedBox(height: 40),
                 // Aquí tu contenido
               ],

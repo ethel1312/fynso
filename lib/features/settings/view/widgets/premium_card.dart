@@ -38,7 +38,7 @@ class PremiumCard extends StatelessWidget {
                   const SizedBox(height: 4),
                   Text(
                     vm.isPremium
-                        ? "✨ Tu suscripción premium está activa"
+                        ? "Tu suscripción premium está activa"
                         : "Desbloquea funciones avanzadas y reportes exclusivos.",
                     style: TextStyle(
                       fontSize: 14,
@@ -51,6 +51,18 @@ class PremiumCard extends StatelessWidget {
             vm.isPremium
                 ? const Icon(Icons.verified, color: Colors.green)
                 : ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor:
+                          Colors.amber, // 🌟 mismo color que la estrella
+                      foregroundColor: Colors.black,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 12,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
                     onPressed: viewModel.isLoading
                         ? null
                         : () async {
@@ -58,7 +70,6 @@ class PremiumCard extends StatelessWidget {
                             if (result != null &&
                                 result is String &&
                                 result.startsWith("http")) {
-                              // ✅ Navegar al WebView con la URL del pago
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
@@ -66,7 +77,6 @@ class PremiumCard extends StatelessWidget {
                                 ),
                               );
                             } else if (result != null) {
-                              // ⚠️ Mostrar error si no es una URL
                               ScaffoldMessenger.of(
                                 context,
                               ).showSnackBar(SnackBar(content: Text(result)));
@@ -76,9 +86,15 @@ class PremiumCard extends StatelessWidget {
                         ? const SizedBox(
                             height: 16,
                             width: 16,
-                            child: CircularProgressIndicator(strokeWidth: 2),
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
                           )
-                        : const Text("Mejorar"),
+                        : const Text(
+                            "Mejorar",
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
                   ),
           ],
         ),

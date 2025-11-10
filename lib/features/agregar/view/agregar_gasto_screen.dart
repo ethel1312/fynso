@@ -222,23 +222,25 @@ class _AgregarGastoScreenState extends State<AgregarGastoScreen> {
     final monto = _montoController.text.trim();
 
     if (monto.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('El monto es requerido')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('El monto es requerido')));
       return;
     }
 
     final amount = double.tryParse(monto);
     if (amount == null || amount <= 0) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Ingresa un monto válido')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Ingresa un monto válido')));
       return;
     }
 
     if (cvm.selectedSubcategory == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Selecciona una categoría y subcategoría')),
+        const SnackBar(
+          content: Text('Selecciona una categoría y subcategoría'),
+        ),
       );
       return;
     }
@@ -258,15 +260,20 @@ class _AgregarGastoScreenState extends State<AgregarGastoScreen> {
       // Formato fecha: YYYY-MM-DD
       final dateStr = DateFormat('yyyy-MM-dd').format(_selectedDate);
       // Formato hora: HH:MM
-      final timeStr = '${_selectedTime.hour.toString().padLeft(2, '0')}:${_selectedTime.minute.toString().padLeft(2, '0')}';
+      final timeStr =
+          '${_selectedTime.hour.toString().padLeft(2, '0')}:${_selectedTime.minute.toString().padLeft(2, '0')}';
 
       final request = CreateTransactionRequest(
         amount: amount,
         idSubcategory: cvm.selectedSubcategory!.idSubcategory,
         date: dateStr,
         time: timeStr,
-        place: _placeController.text.trim().isNotEmpty ? _placeController.text.trim() : null,
-        notes: _notesController.text.trim().isNotEmpty ? _notesController.text.trim() : null,
+        place: _placeController.text.trim().isNotEmpty
+            ? _placeController.text.trim()
+            : null,
+        notes: _notesController.text.trim().isNotEmpty
+            ? _notesController.text.trim()
+            : null,
       );
 
       final response = await _repository.createTransaction(
@@ -325,11 +332,8 @@ class _AgregarGastoScreenState extends State<AgregarGastoScreen> {
       child: Consumer<CategoryViewModel>(
         builder: (context, cvm, _) {
           return Scaffold(
-            backgroundColor: Colors.white,
             appBar: AppBar(
               title: const CustomTextTitle('Registrar'),
-              backgroundColor: Colors.white,
-              foregroundColor: Colors.black,
               elevation: 0,
               automaticallyImplyLeading: false,
             ),
@@ -340,7 +344,7 @@ class _AgregarGastoScreenState extends State<AgregarGastoScreen> {
                 children: [
                   const Text(
                     'Registra un nuevo gasto',
-                    style: TextStyle(fontSize: 16, color: Colors.black87),
+                    style: TextStyle(fontSize: 16),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 24),
@@ -349,7 +353,9 @@ class _AgregarGastoScreenState extends State<AgregarGastoScreen> {
                   CustomTextField(
                     label: 'Monto *',
                     controller: _montoController,
-                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
                   ),
                   const SizedBox(height: 16),
 
@@ -375,69 +381,85 @@ class _AgregarGastoScreenState extends State<AgregarGastoScreen> {
 
                   // Fecha y Hora
                   Row(
-                children: [
-                  Expanded(
-                    child: InkWell(
-                      onTap: () => _selectDate(context),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
-                        decoration: BoxDecoration(
-                          border: Border.all(color: Colors.grey[300]!),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Row(
-                          children: [
-                            Icon(Icons.calendar_today, color: AppColor.azulFynso, size: 20),
-                            const SizedBox(width: 8),
-                            Text(
-                              DateFormat('dd/MM/yyyy').format(_selectedDate),
-                              style: const TextStyle(fontSize: 16),
+                    children: [
+                      Expanded(
+                        child: InkWell(
+                          onTap: () => _selectDate(context),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              vertical: 16,
+                              horizontal: 12,
                             ),
-                          ],
+                            decoration: BoxDecoration(
+                              border: Border.all(color: Colors.grey[300]!),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.calendar_today,
+                                  color: AppColor.azulFynso,
+                                  size: 20,
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  DateFormat(
+                                    'dd/MM/yyyy',
+                                  ).format(_selectedDate),
+                                  style: const TextStyle(fontSize: 16),
+                                ),
+                              ],
+                            ),
+                          ),
                         ),
                       ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: InkWell(
-                      onTap: () => _selectTime(context),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
-                        decoration: BoxDecoration(
-                          border: Border.all(color: Colors.grey[300]!),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Row(
-                          children: [
-                            Icon(Icons.access_time, color: AppColor.azulFynso, size: 20),
-                            const SizedBox(width: 8),
-                            Text(
-                              _selectedTime.format(context),
-                              style: const TextStyle(fontSize: 16),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: InkWell(
+                          onTap: () => _selectTime(context),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              vertical: 16,
+                              horizontal: 12,
                             ),
-                          ],
+                            decoration: BoxDecoration(
+                              border: Border.all(color: Colors.grey[300]!),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.access_time,
+                                  color: AppColor.azulFynso,
+                                  size: 20,
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  _selectedTime.format(context),
+                                  style: const TextStyle(fontSize: 16),
+                                ),
+                              ],
+                            ),
+                          ),
                         ),
                       ),
-                    ),
+                    ],
                   ),
-                ],
-              ),
-              const SizedBox(height: 16),
+                  const SizedBox(height: 16),
 
-              // Lugar (opcional)
-              CustomTextField(
-                label: 'Lugar (opcional)',
-                controller: _placeController,
-              ),
-              const SizedBox(height: 16),
+                  // Lugar (opcional)
+                  CustomTextField(
+                    label: 'Lugar (opcional)',
+                    controller: _placeController,
+                  ),
+                  const SizedBox(height: 16),
 
-              // Notas (opcional)
-              CustomTextField(
-                label: 'Notas (opcional)',
-                controller: _notesController,
-                maxLines: 3,
-              ),
+                  // Notas (opcional)
+                  CustomTextField(
+                    label: 'Notas (opcional)',
+                    controller: _notesController,
+                    maxLines: 3,
+                  ),
                   const SizedBox(height: 32),
 
                   // Botón guardar

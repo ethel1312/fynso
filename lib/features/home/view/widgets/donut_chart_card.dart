@@ -24,8 +24,19 @@ class _DonutChartCardState extends State<DonutChartCard> {
 
   String _monthNameES(int mes) {
     const meses = [
-      '', 'Enero','Febrero','Marzo','Abril','Mayo','Junio',
-      'Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'
+      '',
+      'Enero',
+      'Febrero',
+      'Marzo',
+      'Abril',
+      'Mayo',
+      'Junio',
+      'Julio',
+      'Agosto',
+      'Septiembre',
+      'Octubre',
+      'Noviembre',
+      'Diciembre',
     ];
     if (mes < 1 || mes > 12) return '';
     return meses[mes];
@@ -52,8 +63,9 @@ class _DonutChartCardState extends State<DonutChartCard> {
       value: _vm,
       child: Consumer<DonutChartViewModel>(
         builder: (context, vm, _) {
-          final tituloMes =
-          (vm.mes > 0 && vm.anio > 0) ? '${_monthNameES(vm.mes)} ${vm.anio}' : '';
+          final tituloMes = (vm.mes > 0 && vm.anio > 0)
+              ? '${_monthNameES(vm.mes)} ${vm.anio}'
+              : '';
 
           Widget body;
           if (vm.isLoading) {
@@ -66,10 +78,7 @@ class _DonutChartCardState extends State<DonutChartCard> {
           } else if (vm.error != null) {
             body = Padding(
               padding: const EdgeInsets.all(16.0),
-              child: Text(
-                vm.error!,
-                style: const TextStyle(color: Colors.red),
-              ),
+              child: Text(vm.error!, style: const TextStyle(color: Colors.red)),
             );
           } else if (vm.items.isEmpty) {
             body = const Padding(
@@ -88,8 +97,10 @@ class _DonutChartCardState extends State<DonutChartCard> {
                         final i = entry.key;
                         final cat = entry.value;
                         return PieChartSectionData(
-                          value: cat.montoDouble,          // usa monto del backend
-                          color: vm.colorForIndex(i),      // colores fijos por índice (Resto=gris)
+                          value: cat.montoDouble,
+                          // usa monto del backend
+                          color: vm.colorForIndex(i),
+                          // colores fijos por índice (Resto=gris)
                           showTitle: false,
                         );
                       }).toList(),
@@ -112,7 +123,9 @@ class _DonutChartCardState extends State<DonutChartCard> {
                             Container(
                               width: 12,
                               height: 12,
-                              color: vm.colorForIndex(i),   // mismo color que el chart
+                              color: vm.colorForIndex(
+                                i,
+                              ), // mismo color que el chart
                             ),
                             const SizedBox(width: 8),
                             Expanded(child: Text(cat.nombre)),
@@ -121,11 +134,16 @@ class _DonutChartCardState extends State<DonutChartCard> {
                               children: [
                                 Text(
                                   'S/. ${cat.monto}',
-                                  style: const TextStyle(fontWeight: FontWeight.bold),
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
                                 Text(
                                   cat.porcentajeFmt,
-                                  style: const TextStyle(fontSize: 12, color: Colors.grey),
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.grey,
+                                  ),
                                 ),
                               ],
                             ),
@@ -140,8 +158,9 @@ class _DonutChartCardState extends State<DonutChartCard> {
           }
 
           return Card(
-            color: Colors.white,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
             elevation: 4,
             child: Padding(
               padding: const EdgeInsets.all(16),
@@ -157,7 +176,10 @@ class _DonutChartCardState extends State<DonutChartCard> {
                       ),
                       Text(
                         tituloMes,
-                        style: const TextStyle(fontSize: 12, color: Colors.grey),
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey,
+                        ),
                       ),
                     ],
                   ),

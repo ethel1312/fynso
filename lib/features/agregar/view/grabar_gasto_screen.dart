@@ -59,8 +59,10 @@ class _GrabarGastoScreenState extends State<GrabarGastoScreen>
       duration: const Duration(seconds: 1),
     )..stop();
 
-    _animation = Tween<double>(begin: 1.0, end: 1.3)
-        .animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
+    _animation = Tween<double>(
+      begin: 1.0,
+      end: 1.3,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
   }
 
   @override
@@ -75,8 +77,14 @@ class _GrabarGastoScreenState extends State<GrabarGastoScreen>
   // ----------------- Helpers -----------------
 
   String _fmtElapsed() {
-    final mm = _recordElapsed.inMinutes.remainder(60).toString().padLeft(2, '0');
-    final ss = _recordElapsed.inSeconds.remainder(60).toString().padLeft(2, '0');
+    final mm = _recordElapsed.inMinutes
+        .remainder(60)
+        .toString()
+        .padLeft(2, '0');
+    final ss = _recordElapsed.inSeconds
+        .remainder(60)
+        .toString()
+        .padLeft(2, '0');
     return '$mm:$ss';
   }
 
@@ -148,7 +156,9 @@ class _GrabarGastoScreenState extends State<GrabarGastoScreen>
       _voiceDetected = false;
 
       // progreso/decibeles
-      await _recorder.setSubscriptionDuration(const Duration(milliseconds: 200));
+      await _recorder.setSubscriptionDuration(
+        const Duration(milliseconds: 200),
+      );
       _recSub?.cancel();
       _recSub = _recorder.onProgress?.listen((event) {
         try {
@@ -158,7 +168,8 @@ class _GrabarGastoScreenState extends State<GrabarGastoScreen>
           setState(() {
             _recordElapsed = dur;
             _lastDb = db;
-            if (db != null && db > -45) _voiceDetected = true; // ~habla normal cerca del micro
+            if (db != null && db > -45)
+              _voiceDetected = true; // ~habla normal cerca del micro
           });
 
           if (_recordElapsed.inSeconds >= _maxSeconds && !isStopping) {
@@ -167,10 +178,7 @@ class _GrabarGastoScreenState extends State<GrabarGastoScreen>
         } catch (_) {}
       });
 
-      await _recorder.startRecorder(
-        toFile: _audioPath,
-        codec: Codec.aacMP4,
-      );
+      await _recorder.startRecorder(toFile: _audioPath, codec: Codec.aacMP4);
 
       setState(() {
         isRecording = true;
@@ -178,9 +186,9 @@ class _GrabarGastoScreenState extends State<GrabarGastoScreen>
       });
 
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Grabación iniciada')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Grabación iniciada')));
     } catch (e) {
       setState(() {
         isRecording = false;
@@ -212,9 +220,9 @@ class _GrabarGastoScreenState extends State<GrabarGastoScreen>
         _voiceDetected = false;
       });
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Grabación cancelada')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Grabación cancelada')));
     } catch (e) {
       if (!mounted) return;
       await _showFynsoError('No se pudo cancelar: $e');
@@ -256,15 +264,16 @@ class _GrabarGastoScreenState extends State<GrabarGastoScreen>
         final choice = await _showFynsoCardDialog<String>(
           title: 'No detectamos audio claro',
           message:
-          'Parece que el micrófono no capturó voz o el volumen fue muy bajo. '
+              'Parece que el micrófono no capturó voz o el volumen fue muy bajo. '
               '¿Quieres regrabar o enviar de todos modos?',
           icon: Icons.mic_off_outlined,
           actions: [
             OutlinedButton(
               style: OutlinedButton.styleFrom(
-                foregroundColor: Colors.black,
                 side: BorderSide(color: AppColor.azulFynso),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
                 minimumSize: const Size.fromHeight(44),
               ),
               onPressed: () => Navigator.pop(context, 'regrabar'),
@@ -274,7 +283,9 @@ class _GrabarGastoScreenState extends State<GrabarGastoScreen>
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColor.azulFynso,
                 foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
                 minimumSize: const Size.fromHeight(44),
               ),
               onPressed: () => Navigator.pop(context, 'enviar'),
@@ -379,14 +390,15 @@ class _GrabarGastoScreenState extends State<GrabarGastoScreen>
       final choice = await _showFynsoCardDialog<String>(
         title: 'Límite de 30 segundos',
         message:
-        'Llegaste al máximo permitido. ¿Deseas enviar este audio o prefieres regrabarlo?',
+            'Llegaste al máximo permitido. ¿Deseas enviar este audio o prefieres regrabarlo?',
         icon: Icons.timer_outlined,
         actions: [
           OutlinedButton(
             style: OutlinedButton.styleFrom(
-              foregroundColor: Colors.black,
               side: BorderSide(color: AppColor.azulFynso),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
               minimumSize: const Size.fromHeight(44),
             ),
             onPressed: () => Navigator.pop(context, 'regrabar'),
@@ -396,7 +408,9 @@ class _GrabarGastoScreenState extends State<GrabarGastoScreen>
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColor.azulFynso,
               foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
               minimumSize: const Size.fromHeight(44),
             ),
             onPressed: () => Navigator.pop(context, 'enviar'),
@@ -420,9 +434,9 @@ class _GrabarGastoScreenState extends State<GrabarGastoScreen>
         _lastDb = null;
         _voiceDetected = false;
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Listo para regrabar')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text('Listo para regrabar')));
         }
       }
     } finally {
@@ -443,7 +457,9 @@ class _GrabarGastoScreenState extends State<GrabarGastoScreen>
       builder: (ctx) {
         return Dialog(
           insetPadding: const EdgeInsets.symmetric(horizontal: 24),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
           child: Container(
             decoration: BoxDecoration(
               color: Colors.white,
@@ -490,18 +506,24 @@ class _GrabarGastoScreenState extends State<GrabarGastoScreen>
                   alignment: Alignment.centerLeft,
                   child: Text(
                     message,
-                    style: const TextStyle(fontSize: 14, color: Colors.black87, height: 1.3),
+                    style: const TextStyle(
+                      fontSize: 14,
+                      color: Colors.black87,
+                      height: 1.3,
+                    ),
                   ),
                 ),
                 const SizedBox(height: 16),
                 Row(
                   children: actions
-                      .map((w) => Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 6),
-                      child: w,
-                    ),
-                  ))
+                      .map(
+                        (w) => Expanded(
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 6),
+                            child: w,
+                          ),
+                        ),
+                      )
                       .toList(),
                 ),
                 const SizedBox(height: 8),
@@ -526,7 +548,9 @@ class _GrabarGastoScreenState extends State<GrabarGastoScreen>
           style: ElevatedButton.styleFrom(
             backgroundColor: AppColor.azulFynso,
             foregroundColor: Colors.white,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
             minimumSize: const Size.fromHeight(44),
           ),
           onPressed: () => Navigator.pop(context),
@@ -541,11 +565,8 @@ class _GrabarGastoScreenState extends State<GrabarGastoScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
       appBar: AppBar(
         title: const CustomTextTitle('Grabar gasto'),
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
         elevation: 0,
         automaticallyImplyLeading: false,
       ),
@@ -558,26 +579,33 @@ class _GrabarGastoScreenState extends State<GrabarGastoScreen>
             children: [
               const Text(
                 'Presiona el botón para grabar tu gasto',
-                style: TextStyle(fontSize: 16, color: Colors.black87),
+                style: TextStyle(fontSize: 16),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 40),
 
               // Botón mic con animación solo cuando graba
               ScaleTransition(
-                scale: isRecording ? _animation : const AlwaysStoppedAnimation(1),
+                scale: isRecording
+                    ? _animation
+                    : const AlwaysStoppedAnimation(1),
                 child: GestureDetector(
                   onTap: _onMicButtonPressed,
                   child: Container(
                     width: 100,
                     height: 100,
                     decoration: BoxDecoration(
-                      color: isRecording ? Colors.redAccent : AppColor.azulFynso,
+                      color: isRecording
+                          ? Colors.redAccent
+                          : AppColor.azulFynso,
                       shape: BoxShape.circle,
                       boxShadow: [
                         BoxShadow(
-                          color: (isRecording ? Colors.redAccent : AppColor.azulFynso)
-                              .withOpacity(0.4),
+                          color:
+                              (isRecording
+                                      ? Colors.redAccent
+                                      : AppColor.azulFynso)
+                                  .withOpacity(0.4),
                           blurRadius: 20,
                           spreadRadius: 3,
                         ),
@@ -586,18 +614,20 @@ class _GrabarGastoScreenState extends State<GrabarGastoScreen>
                     child: Center(
                       child: isUploading
                           ? const SizedBox(
-                        width: 26,
-                        height: 26,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 3,
-                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                        ),
-                      )
+                              width: 26,
+                              height: 26,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 3,
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                  Colors.white,
+                                ),
+                              ),
+                            )
                           : Icon(
-                        isRecording ? Icons.stop : Icons.mic,
-                        color: Colors.white,
-                        size: 45,
-                      ),
+                              isRecording ? Icons.stop : Icons.mic,
+                              color: Colors.white,
+                              size: 45,
+                            ),
                     ),
                   ),
                 ),
@@ -606,7 +636,8 @@ class _GrabarGastoScreenState extends State<GrabarGastoScreen>
               // Timer con padding animado: más separación cuando está grabando
               if (isRecording)
                 AnimatedPadding(
-                  padding: const EdgeInsets.only(top: 36), // ajusta 36→40/48 si quieres más aire
+                  padding: const EdgeInsets.only(top: 36),
+                  // ajusta 36→40/48 si quieres más aire
                   duration: const Duration(milliseconds: 160),
                   curve: Curves.easeOut,
                   child: Text(
@@ -657,8 +688,8 @@ class _GrabarGastoScreenState extends State<GrabarGastoScreen>
                 onPressed: isRecording || isUploading
                     ? null
                     : () async {
-                  await Navigator.pushNamed(context, '/historialGastos');
-                },
+                        await Navigator.pushNamed(context, '/historialGastos');
+                      },
               ),
             ],
           ),

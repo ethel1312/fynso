@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:provider/provider.dart';
+import '../../../../common/themes/app_color.dart';
 import '../../../../data/services/user_service.dart';
 import '../../../home/view_model/monthly_summary_view_model.dart';
 import 'package:intl/intl.dart';
@@ -29,7 +30,7 @@ class _ProfileCardState extends State<ProfileCard> {
       final prefs = await SharedPreferences.getInstance();
       final jwt = prefs.getString('jwt_token');
       final email = prefs.getString('user_email');
-      
+
       if (jwt != null && jwt.isNotEmpty) {
         // Reutilizar el mismo método que usa home_screen
         final firstName = await _userService.getFirstName(jwt);
@@ -68,8 +69,8 @@ class _ProfileCardState extends State<ProfileCard> {
 
   @override
   Widget build(BuildContext context) {
-    final numberFormat = NumberFormat.currency(locale: 'es_PE', symbol: 'S/ ', decimalDigits: 2);
-    
+    final numberFormat = NumberFormat('#,##0.00', 'es_PE');
+
     // Crear ViewModel local para obtener el presupuesto
     return ChangeNotifierProvider(
       create: (_) {
@@ -88,10 +89,12 @@ class _ProfileCardState extends State<ProfileCard> {
         builder: (context, vm, _) {
           final hasData = vm.summary != null;
           final limite = hasData && vm.hasBudget ? vm.limite : null;
-          
+
           return Card(
-            color: Colors.white,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            color: Theme.of(context).cardColor,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
             elevation: 2,
             child: Padding(
               padding: const EdgeInsets.all(16),
@@ -112,7 +115,7 @@ class _ProfileCardState extends State<ProfileCard> {
                             style: const TextStyle(
                               fontSize: 22,
                               fontWeight: FontWeight.bold,
-                              color: Colors.blue,
+                              color: AppColor.azulFynso,
                             ),
                           ),
                         ),
@@ -123,22 +126,34 @@ class _ProfileCardState extends State<ProfileCard> {
                             children: [
                               const Text(
                                 "Nombre",
-                                style: TextStyle(fontSize: 14, color: Colors.grey),
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.grey,
+                                ),
                               ),
                               Text(
                                 _firstName ?? _userEmail ?? 'Usuario',
-                                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                                style: const TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
                               const SizedBox(height: 8),
                               const Text(
                                 "Presupuesto mensual",
-                                style: TextStyle(fontSize: 14, color: Colors.grey),
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.grey,
+                                ),
                               ),
                               Text(
                                 limite != null
-                                    ? numberFormat.format(limite)
+                                    ? 'S/ ${numberFormat.format(limite)}'
                                     : 'No configurado',
-                                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                                style: const TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
                             ],
                           ),

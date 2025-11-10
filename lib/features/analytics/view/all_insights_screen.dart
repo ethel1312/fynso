@@ -32,21 +32,15 @@ class _AllInsightsScreenState extends State<AllInsightsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[50],
       appBar: AppBar(
-        backgroundColor: Colors.white,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: const Text(
           'Recomendaciones con IA',
-          style: TextStyle(
-            color: Colors.black,
-            fontSize: 20,
-            fontWeight: FontWeight.w600,
-          ),
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
         ),
       ),
       body: ChangeNotifierProvider.value(
@@ -57,9 +51,7 @@ class _AllInsightsScreenState extends State<AllInsightsScreen> {
             final hasData = items.isNotEmpty;
 
             if (vm.loading) {
-              return const Center(
-                child: CircularProgressIndicator(),
-              );
+              return const Center(child: CircularProgressIndicator());
             }
 
             if (vm.error != null) {
@@ -91,18 +83,11 @@ class _AllInsightsScreenState extends State<AllInsightsScreen> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: const [
-                    Icon(
-                      Icons.lightbulb_outline,
-                      color: Colors.grey,
-                      size: 64,
-                    ),
+                    Icon(Icons.lightbulb_outline, color: Colors.grey, size: 64),
                     SizedBox(height: 16),
                     Text(
                       'No hay recomendaciones disponibles',
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Colors.grey,
-                      ),
+                      style: TextStyle(fontSize: 16, color: Colors.grey),
                     ),
                   ],
                 ),
@@ -136,7 +121,6 @@ class _AllInsightsScreenState extends State<AllInsightsScreen> {
                               style: TextStyle(
                                 fontSize: 14,
                                 fontWeight: FontWeight.w600,
-                                color: Colors.black87,
                               ),
                             ),
                           ],
@@ -171,10 +155,6 @@ class _AllInsightsScreenState extends State<AllInsightsScreen> {
                     Container(
                       decoration: isTopThree
                           ? BoxDecoration(
-                              border: Border.all(
-                                color: const Color(0xFFFFB300),
-                                width: 2,
-                              ),
                               borderRadius: BorderRadius.circular(12),
                             )
                           : null,

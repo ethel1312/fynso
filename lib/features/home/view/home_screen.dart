@@ -35,7 +35,6 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[50],
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -55,9 +54,10 @@ class _HomeScreenState extends State<HomeScreen> {
                         FutureBuilder<String?>(
                           future: _firstNameFuture,
                           builder: (context, snap) {
-                            final saludo = (snap.connectionState == ConnectionState.done &&
-                                snap.hasData &&
-                                (snap.data ?? '').isNotEmpty)
+                            final saludo =
+                                (snap.connectionState == ConnectionState.done &&
+                                    snap.hasData &&
+                                    (snap.data ?? '').isNotEmpty)
                                 ? "Hola, ${snap.data}!"
                                 : "Hola!";
                             return CustomTextTitle(saludo);

@@ -69,8 +69,9 @@ class _TransactionsCardState extends State<TransactionsCard> {
       child: Consumer<RecentTransactionsViewModel>(
         builder: (context, vm, _) {
           return Card(
-            color: Colors.white,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
             elevation: 4,
             child: Padding(
               padding: const EdgeInsets.all(16),
@@ -114,12 +115,14 @@ class _TransactionsCardState extends State<TransactionsCard> {
                     ),
                   ] else ...[
                     // Lista de transacciones (mantenemos tu diseño)
-                    ...vm.items.map((t) => _TransactionRow(
-                      title: _titleFor(t),
-                      category: t.category,
-                      dateLabel: _dateLabel(t.fecha),
-                      amountLabel: "S/.${formatMonto(t.monto)}",
-                    )),
+                    ...vm.items.map(
+                      (t) => _TransactionRow(
+                        title: _titleFor(t),
+                        category: t.category,
+                        dateLabel: _dateLabel(t.fecha),
+                        amountLabel: "S/.${formatMonto(t.monto)}",
+                      ),
+                    ),
                   ],
                 ],
               ),
@@ -160,20 +163,14 @@ class _TransactionRow extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
                 style: const TextStyle(fontWeight: FontWeight.bold),
               ),
-              Text(
-                category,
-                style: TextStyle(color: Colors.grey[600]),
-              ),
+              Text(category, style: TextStyle(color: Colors.grey[600])),
             ],
           ),
           // Derecha: fecha corta + monto
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              Text(
-                dateLabel,
-                style: TextStyle(color: Colors.grey[600]),
-              ),
+              Text(dateLabel, style: TextStyle(color: Colors.grey[600])),
               Text(
                 amountLabel,
                 style: const TextStyle(fontWeight: FontWeight.bold),

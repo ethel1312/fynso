@@ -63,19 +63,19 @@ class _EditarGastoScreenState extends State<EditarGastoScreen> {
       _categoriaController.text = transaction.category;
       _subcategoriaController.text = transaction.subcategory;
       _montoController.text = transaction.monto.toString();
-      
+
       // Parsear fecha correctamente - manejo robusto
       String fechaStr = '';
       String horaStr = '';
-      
+
       try {
         // Intenta parsear la fecha del backend
         DateTime fechaDt;
-        
+
         // Si la fecha tiene formato ISO con T (ej: 2025-10-29T13:45:00)
         if (transaction.fecha.contains('T')) {
           fechaDt = DateTime.parse(transaction.fecha);
-        } 
+        }
         // Si es formato con espacio (ej: 2025-10-29 13:45:00)
         else if (transaction.fecha.contains(' ')) {
           final parts = transaction.fecha.split(' ');
@@ -99,7 +99,7 @@ class _EditarGastoScreenState extends State<EditarGastoScreen> {
         else {
           fechaDt = DateTime.parse(transaction.fecha);
         }
-        
+
         fechaStr = DateFormat('yyyy-MM-dd').format(fechaDt);
         horaStr = DateFormat('HH:mm').format(fechaDt);
       } catch (e) {
@@ -108,7 +108,7 @@ class _EditarGastoScreenState extends State<EditarGastoScreen> {
         fechaStr = DateTime.now().toString().substring(0, 10);
         horaStr = '00:00';
       }
-      
+
       _fechaController.text = fechaStr;
       _horaController.text = horaStr;
       _lugarController.text = transaction.lugar ?? '';
@@ -303,7 +303,7 @@ class _EditarGastoScreenState extends State<EditarGastoScreen> {
   @override
   Widget build(BuildContext context) {
     final isOutOfMonth = !_isTransactionInCurrentMonth();
-    
+
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(
@@ -360,11 +360,7 @@ class _EditarGastoScreenState extends State<EditarGastoScreen> {
           }
 
           return Scaffold(
-            appBar: AppBar(
-              title: const CustomTextTitle('Editar gasto'),
-              backgroundColor: Colors.white,
-              foregroundColor: Colors.black,
-            ),
+            appBar: AppBar(title: const CustomTextTitle('Editar gasto')),
             body: SingleChildScrollView(
               padding: const EdgeInsets.all(16),
               child: Column(
@@ -377,11 +373,17 @@ class _EditarGastoScreenState extends State<EditarGastoScreen> {
                       decoration: BoxDecoration(
                         color: Colors.orange[50],
                         borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: Colors.orange[300]!, width: 1),
+                        border: Border.all(
+                          color: Colors.orange[300]!,
+                          width: 1,
+                        ),
                       ),
                       child: Row(
                         children: [
-                          Icon(Icons.warning_amber_rounded, color: Colors.orange[700]),
+                          Icon(
+                            Icons.warning_amber_rounded,
+                            color: Colors.orange[700],
+                          ),
                           const SizedBox(width: 12),
                           Expanded(
                             child: Text(
@@ -396,7 +398,7 @@ class _EditarGastoScreenState extends State<EditarGastoScreen> {
                         ],
                       ),
                     ),
-                  
+
                   // ---------- Categoría (textfield con desplegable) ----------
                   _pickerTextField(
                     label: 'Categoría',

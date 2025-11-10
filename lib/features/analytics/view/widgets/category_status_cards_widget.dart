@@ -46,13 +46,10 @@ class _CategoryStatusCardsWidgetState extends State<CategoryStatusCardsWidget> {
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16),
                     ),
-                    color: Colors.white,
                     elevation: 3,
                     child: const Padding(
                       padding: EdgeInsets.all(40.0),
-                      child: Center(
-                        child: CircularProgressIndicator(),
-                      ),
+                      child: Center(child: CircularProgressIndicator()),
                     ),
                   ),
                 ),
@@ -62,13 +59,10 @@ class _CategoryStatusCardsWidgetState extends State<CategoryStatusCardsWidget> {
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16),
                     ),
-                    color: Colors.white,
                     elevation: 3,
                     child: const Padding(
                       padding: EdgeInsets.all(40.0),
-                      child: Center(
-                        child: CircularProgressIndicator(),
-                      ),
+                      child: Center(child: CircularProgressIndicator()),
                     ),
                   ),
                 ),

@@ -62,8 +62,9 @@ class _CategoryBreakdownCardState extends State<CategoryBreakdownCard> {
       child: Consumer<CategoryBreakdownViewModel>(
         builder: (context, vm, _) {
           return Card(
-            color: Colors.white,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
             elevation: 4,
             child: Padding(
               padding: const EdgeInsets.all(16),
@@ -76,11 +77,18 @@ class _CategoryBreakdownCardState extends State<CategoryBreakdownCard> {
                     children: [
                       const Text(
                         "Desglose por categoría",
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                       TextButton(
-                        onPressed: widget.onVerTodo ??
-                                () => Navigator.pushNamed(context, '/desgloseCategorias'),
+                        onPressed:
+                            widget.onVerTodo ??
+                            () => Navigator.pushNamed(
+                              context,
+                              '/desgloseCategorias',
+                            ),
                         child: const Text("Ver Todo"),
                       ),
                     ],
@@ -127,7 +135,7 @@ class _CategoryBreakdownCardState extends State<CategoryBreakdownCard> {
 
                     // Filas dinámicas (top N)
                     ...vm.data!.topItems.map((it) {
-                      final icon  = CategoryVisuals.iconFor(nombre: it.nombre);
+                      final icon = CategoryVisuals.iconFor(nombre: it.nombre);
                       final color = CategoryVisuals.colorFor(nombre: it.nombre);
                       return Padding(
                         padding: const EdgeInsets.only(bottom: 16.0),
@@ -204,7 +212,11 @@ class CategoryRow extends StatelessWidget {
         // Barras comparativas
         CategoryBar(etiqueta: "Este mes", valor: esteMes, color: color),
         const SizedBox(height: 6),
-        CategoryBar(etiqueta: "Mes anterior", valor: mesAnterior, color: Colors.grey),
+        CategoryBar(
+          etiqueta: "Mes anterior",
+          valor: mesAnterior,
+          color: Colors.grey,
+        ),
       ],
     );
   }

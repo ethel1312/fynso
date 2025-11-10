@@ -31,7 +31,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     try {
       final prefs = await SharedPreferences.getInstance();
       final jwt = prefs.getString('jwt_token') ?? '';
-      
+
       if (jwt.isEmpty) {
         setState(() {
           _isCheckingPremium = false;
@@ -57,47 +57,50 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[50],
       body: _isCheckingPremium
           ? const Center(child: CircularProgressIndicator())
           : !_isPremium
-              ? PremiumLockScreen(
-                  onUpgradePressed: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text(
-                          'Ve a la pestaña de Configuración para actualizar a Premium',
-                        ),
-                        duration: Duration(seconds: 3),
-                      ),
-                    );
-                  },
-                )
-              : SingleChildScrollView(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-            // HEADER
-            Padding(
-              padding: const EdgeInsets.only(top: 40, left: 16, right: 16),
-              // más espacio arriba
-              child: Row(
+          ? PremiumLockScreen(
+              onUpgradePressed: () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text(
+                      'Ve a la pestaña de Configuración para actualizar a Premium',
+                    ),
+                    duration: Duration(seconds: 3),
+                  ),
+                );
+              },
+            )
+          : SingleChildScrollView(
+              padding: const EdgeInsets.all(16),
+              child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Columna con textos
-                  Expanded(
-                    child: Column(
+                  // HEADER
+                  Padding(
+                    padding: const EdgeInsets.only(
+                      top: 40,
+                      left: 16,
+                      right: 16,
+                    ),
+                    // más espacio arriba
+                    child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        CustomTextTitle("Analíticas"),
-                        const SizedBox(height: 4),
-                      ],
-                    ),
-                  ),
-                  // Botón a la derecha
-                  // BOTONES PERIOD
-                  /*
+                        // Columna con textos
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              CustomTextTitle("Analíticas"),
+                              const SizedBox(height: 4),
+                            ],
+                          ),
+                        ),
+                        // Botón a la derecha
+                        // BOTONES PERIOD
+                        /*
                   Row(
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
@@ -114,31 +117,31 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                       ),
                     ],
                   )*/
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  // CARD: Recomendaciones con IA (dinámico)
+                  const RecommendationsCard(),
+
+                  const SizedBox(height: 20),
+
+                  // CARD: Tendencia de gastos mensuales
+                  MonthlySpendingCard(),
+
+                  SizedBox(height: 20),
+
+                  CategoryBreakdownCard(),
+
+                  SizedBox(height: 20),
+
+                  // Tarjetas de categorías dinámicas
+                  CategoryStatusCardsWidget(),
                 ],
               ),
             ),
-
-            const SizedBox(height: 20),
-
-            // CARD: Recomendaciones con IA (dinámico)
-            const RecommendationsCard(),
-
-            const SizedBox(height: 20),
-
-            // CARD: Tendencia de gastos mensuales
-            MonthlySpendingCard(),
-
-            SizedBox(height: 20),
-
-            CategoryBreakdownCard(),
-
-            SizedBox(height: 20),
-
-            // Tarjetas de categorías dinámicas
-            CategoryStatusCardsWidget(),
-                    ],
-                  ),
-                ),
     );
   }
 }

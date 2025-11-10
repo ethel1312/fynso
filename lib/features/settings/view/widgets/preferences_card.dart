@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../../../../common/themes/app_color.dart';
+import '../../../../common/themes/theme_view_model.dart';
 
 class PreferencesCard extends StatefulWidget {
   const PreferencesCard({super.key});
@@ -10,14 +12,15 @@ class PreferencesCard extends StatefulWidget {
 }
 
 class _PreferencesCardState extends State<PreferencesCard> {
-  bool isDarkMode = false;
   bool pushNotifications = true;
   bool budgetAlerts = true;
 
   @override
   Widget build(BuildContext context) {
+    final themeVM = context.watch<ThemeViewModel>();
+
     return Card(
-      color: Colors.white,
+      color: Theme.of(context).cardColor,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       elevation: 2,
       child: Column(
@@ -31,11 +34,12 @@ class _PreferencesCardState extends State<PreferencesCard> {
           SwitchListTile(
             title: const Text("Modo oscuro"),
             subtitle: const Text("Activar tema oscuro"),
-            value: isDarkMode,
+            value: themeVM.isDarkMode,
             activeColor: AppColor.azulFynso,
-            // Color del switch
             activeTrackColor: AppColor.azulFynso.withOpacity(0.5),
-            onChanged: (val) => setState(() => isDarkMode = val),
+            onChanged: (val) {
+              themeVM.toggleTheme(val); // Guarda y actualiza el tema
+            },
           ),
           SwitchListTile(
             title: const Text("Notificaciones push"),

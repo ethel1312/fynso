@@ -21,7 +21,6 @@ class CategoryStatusCard extends StatelessWidget {
     return Expanded(
       child: Card(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        color: Colors.white,
         elevation: 3,
         child: Padding(
           padding: const EdgeInsets.all(16),
@@ -44,7 +43,6 @@ class CategoryStatusCard extends StatelessWidget {
               Text(
                 title,
                 style: const TextStyle(
-                  color: Colors.black87,
                   fontWeight: FontWeight.w600,
                   fontSize: 14,
                 ),
@@ -56,7 +54,6 @@ class CategoryStatusCard extends StatelessWidget {
               Text(
                 category,
                 style: const TextStyle(
-                  color: Colors.black,
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
                 ),
@@ -65,10 +62,7 @@ class CategoryStatusCard extends StatelessWidget {
               const SizedBox(height: 8),
 
               // 🔹 Porcentaje
-              Text(
-                percentage,
-                style: const TextStyle(color: Colors.black54, fontSize: 13),
-              ),
+              Text(percentage, style: const TextStyle(fontSize: 13)),
             ],
           ),
         ),
