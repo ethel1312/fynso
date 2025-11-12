@@ -18,11 +18,6 @@ class SecurityPrivacyCard extends StatelessWidget {
               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
             ),
           ),
-          const ListTile(
-            leading: Icon(Icons.credit_card),
-            title: Text("Gestionar métodos de pago"),
-            trailing: Icon(Icons.chevron_right),
-          ),
           ListTile(
             leading: const Icon(Icons.lock),
             title: const Text("Cambiar contraseña"),

@@ -195,21 +195,25 @@ class _DetalleGastoScreenState extends State<DetalleGastoScreen> {
     final textColor = Theme.of(context).textTheme.bodyLarge?.color;
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
-      child: RichText(
-        text: TextSpan(
-          style: const TextStyle(fontSize: 16),
-          children: [
-            TextSpan(
-              text: '$label: ',
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            '$label: ',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: textColor,
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value,
               style: TextStyle(fontSize: 16, color: textColor),
+              softWrap: true,
             ),
-
-            TextSpan(
-              text: value,
-              style: TextStyle(color: textColor),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

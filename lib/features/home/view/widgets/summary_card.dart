@@ -324,12 +324,19 @@ class _SummaryCardState extends State<SummaryCard> with WidgetsBindingObserver {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Text(
-                                "Presupuesto: $limiteTxt",
-                                style: const TextStyle(color: Colors.white),
+                              Expanded(
+                                child: Text(
+                                  "Presupuesto: $limiteTxt",
+                                  overflow: TextOverflow.ellipsis,
+                                  maxLines: 1,
+                                  style: const TextStyle(color: Colors.white),
+                                ),
                               ),
+                              const SizedBox(width: 8),
                               Text(
                                 "Restante: $restanteTxt",
+                                overflow: TextOverflow.ellipsis,
+                                maxLines: 1,
                                 style: const TextStyle(color: Colors.white),
                               ),
                             ],

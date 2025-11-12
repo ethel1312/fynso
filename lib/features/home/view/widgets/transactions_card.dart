@@ -152,30 +152,49 @@ class _TransactionRow extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           // Izquierda: título + categoría
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(fontWeight: FontWeight.bold),
-              ),
-              Text(category, style: TextStyle(color: Colors.grey[600])),
-            ],
+          Expanded(
+            flex: 3,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+                Text(
+                  category,
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
+                  style: TextStyle(color: Colors.grey[600]),
+                ),
+              ],
+            ),
           ),
+          const SizedBox(width: 8),
           // Derecha: fecha corta + monto
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(dateLabel, style: TextStyle(color: Colors.grey[600])),
-              Text(
-                amountLabel,
-                style: const TextStyle(fontWeight: FontWeight.bold),
-              ),
-            ],
+          Expanded(
+            flex: 2,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Text(
+                  dateLabel,
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
+                  style: TextStyle(color: Colors.grey[600]),
+                ),
+                Text(
+                  amountLabel,
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
           ),
         ],
       ),

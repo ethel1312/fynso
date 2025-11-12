@@ -237,7 +237,7 @@ class _AgregarGastoScreenState extends State<AgregarGastoScreen> {
     );
   }
 
-  Future<void> _submitForm(CategoryViewModel cvm) async {
+  Future<void> _submitForm(CategoryViewModel cvm, MonthlySummaryViewModel monthlySummaryVM) async {
     final monto = _montoController.text.trim();
 
     if (monto.isEmpty) {
@@ -322,12 +322,6 @@ class _AgregarGastoScreenState extends State<AgregarGastoScreen> {
         // ===== ALERTA DE PRESUPUESTO =====
         final budgetAlertsEnabled = prefs.getBool('budget_alerts') ?? true;
         if (budgetAlertsEnabled) {
-          // Suponiendo que tienes un ViewModel de resumen mensual
-          final monthlySummaryVM = Provider.of<MonthlySummaryViewModel>(
-            context,
-            listen: false,
-          );
-
           final totalGastado = monthlySummaryVM.gastado;
           final limitePresupuesto = monthlySummaryVM.limite;
 
@@ -504,7 +498,7 @@ class _AgregarGastoScreenState extends State<AgregarGastoScreen> {
                   CustomButton(
                     text: _isLoading ? 'Guardando...' : 'Guardar gasto',
                     backgroundColor: AppColor.azulFynso,
-                    onPressed: _isLoading ? null : () async => _submitForm(cvm),
+                    onPressed: _isLoading ? null : () async => _submitForm(cvm, monthlyVM),
                   ),
                 ],
               ),
