@@ -187,23 +187,25 @@ class CategoryRow extends StatelessWidget {
       children: [
         // Fila principal con ícono, nombre y monto
         Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Row(
-              children: [
-                CategoryBadge(icon: icono, color: color),
-                const SizedBox(width: 8),
-                Text(
-                  nombre,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 16,
-                  ),
+            CategoryBadge(icon: icono, color: color),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                nombre,
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
+                style: const TextStyle(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 16,
                 ),
-              ],
+              ),
             ),
+            const SizedBox(width: 8),
             Text(
               "S/.${formatMonto(monto)}",
+              overflow: TextOverflow.ellipsis,
+              maxLines: 1,
               style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
             ),
           ],

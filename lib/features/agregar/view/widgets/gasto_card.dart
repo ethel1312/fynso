@@ -77,11 +77,18 @@ class GastoCard extends StatelessWidget {
         title: Text(
           '$categoria - $subcategoria',
           overflow: TextOverflow.ellipsis,
+          maxLines: 1,
           style: const TextStyle(fontWeight: FontWeight.w600),
         ),
-        subtitle: Text(fechaCorta),
+        subtitle: Text(
+          fechaCorta,
+          overflow: TextOverflow.ellipsis,
+          maxLines: 1,
+        ),
         trailing: Text(
           'S/ ${monto.toStringAsFixed(2)}',
+          overflow: TextOverflow.ellipsis,
+          maxLines: 1,
           style: const TextStyle(fontWeight: FontWeight.bold),
         ),
         onTap: onTap,
