@@ -4,10 +4,10 @@ import 'package:fynso/data/models/transaction_detail_response.dart';
 import 'package:fynso/features/agregar/view_model/transaction_detail_view_model.dart';
 import 'package:provider/provider.dart';
 import '../../../common/themes/app_color.dart';
-import '../../../common/widgets/fynso_card_dialog.dart';
-import '../../../common/widgets/custom_button.dart';
-import '../../../data/models/transaction_detail_request.dart'; // para formatFecha y formatMonto
 import '../../../common/utils/utils.dart';
+import '../../../common/widgets/custom_button.dart';
+import '../../../common/widgets/fynso_card_dialog.dart';
+import '../../../data/models/transaction_detail_request.dart'; // para formatFecha y formatMonto
 
 class DetalleGastoScreen extends StatefulWidget {
   const DetalleGastoScreen({super.key});
@@ -112,7 +112,7 @@ class _DetalleGastoScreenState extends State<DetalleGastoScreen> {
                                 onPressed: () async {
                                   if (_args == null) return;
                                   final confirm = await showFynsoCardDialog<bool>(
-                                    context: context,
+                                    context,
                                     title: 'Eliminar gasto',
                                     message:
                                         '¿Seguro que deseas eliminar este gasto? Esta acción no se puede deshacer.',
@@ -219,4 +219,4 @@ class _DetalleGastoScreenState extends State<DetalleGastoScreen> {
       ),
     );
   }
-
+}

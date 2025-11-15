@@ -8,9 +8,9 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:fynso/common/themes/app_color.dart';
-import '../../../common/widgets/fynso_card_dialog.dart';
 import '../../../common/widgets/custom_button.dart';
 import '../../../common/widgets/custom_text_title.dart';
+import '../../../common/widgets/fynso_card_dialog.dart';
 
 import '../../../data/services/audio_service.dart';
 import '../../../data/repositories/audio_repository.dart';
@@ -263,7 +263,7 @@ class _GrabarGastoScreenState extends State<GrabarGastoScreen>
 
       if (tooSmall || tooShort || likelySilent) {
         final choice = await showFynsoCardDialog<String>(
-          context: context,
+          context,
           title: 'No detectamos audio claro',
           message:
               'Parece que el micrófono no capturó voz o el volumen fue muy bajo. '
@@ -381,16 +381,18 @@ class _GrabarGastoScreenState extends State<GrabarGastoScreen>
     if (!isRecording || isStopping) return;
     isStopping = true;
     try {
+      // 1) Detener
       try {
         await _recorder.stopRecorder();
       } catch (_) {}
+
       setState(() {
         isRecording = false;
         _controller.stop();
       });
 
       final choice = await showFynsoCardDialog<String>(
-        context: context,
+        context,
         title: 'Límite de 30 segundos',
         message:
             'Llegaste al máximo permitido. ¿Deseas enviar este audio o prefieres regrabarlo?',
@@ -453,7 +455,7 @@ class _GrabarGastoScreenState extends State<GrabarGastoScreen>
         ? raw.substring('Exception: '.length).trim()
         : raw.trim();
     await showFynsoCardDialog<void>(
-      context: context,
+      context,
       title: 'No se pudo registrar el gasto',
       message: msg.isEmpty ? 'Ocurrió un error inesperado.' : msg,
       icon: Icons.error_outline,

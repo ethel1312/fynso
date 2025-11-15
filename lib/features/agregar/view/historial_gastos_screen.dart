@@ -420,7 +420,7 @@ class _HistorialGastosScreenState extends State<HistorialGastosScreen>
   // ========= Fynso dialogs =========
   Future<bool> _confirmDeleteDialog() async {
     return await showFynsoCardDialog<bool>(
-          context: context,
+          context,
           title: 'Eliminar gasto',
           message:
               '¿Seguro que deseas eliminar este gasto? Esta acción no se puede deshacer.',
@@ -457,7 +457,7 @@ class _HistorialGastosScreenState extends State<HistorialGastosScreen>
 
   Future<void> _showError(String msg) async {
     await showFynsoCardDialog<void>(
-      context: context,
+      context,
       title: 'No se pudo completar la acción',
       message: msg,
       icon: Icons.error_outline,
