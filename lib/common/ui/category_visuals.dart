@@ -21,11 +21,12 @@ class CategoryVisuals {
     33: Icons.pets_rounded,                // Mascotas
     34: Icons.weekend_rounded,             // Hogar (sofá)
     35: Icons.devices_other_rounded,       // Tecnología
+    36: Icons.spa,                         // Cuidado personal
   };
 
   static final Map<int, Color> _colorById = {
     20: Colors.grey,             // Otros
-    21: AppColor.azulFynso,      // Comida  (como en tu card)
+    21: AppColor.azulFynso,      // Comida
     22: Colors.orange,           // Transporte
     23: Colors.teal,             // Vivienda
     24: Colors.amber,            // Servicios
@@ -39,7 +40,8 @@ class CategoryVisuals {
     32: Colors.brown,            // Impuestos
     33: Colors.lightGreen,       // Mascotas
     34: Colors.blueGrey,         // Hogar
-    35: Colors.cyan,             // Tecnología
+    35: Colors.cyan,             // Tecnología,
+    36: Colors.pinkAccent,
   };
 
   // === Map por nombre normalizado ===
@@ -60,6 +62,7 @@ class CategoryVisuals {
     'mascotas': Icons.pets_rounded,
     'hogar': Icons.weekend_rounded,
     'tecnologia': Icons.devices_other_rounded,
+    'cuidado personal': Icons.spa,
   };
 
   static final Map<String, Color> _colorBySlug = {
@@ -79,6 +82,7 @@ class CategoryVisuals {
     'mascotas': Colors.lightGreen,
     'hogar': Colors.blueGrey,
     'tecnologia': Colors.cyan,
+    'cuidado personal': Colors.pinkAccent,
   };
 
   /// Icono por ID (si lo tienes) o por nombre (fallback)
@@ -88,7 +92,6 @@ class CategoryVisuals {
     }
     final slug = _slug(nombre ?? '');
     return _iconBySlug[slug] ?? Icons.category_rounded;
-    // TIP: Si quieres otro fallback: Icons.label_rounded
   }
 
   /// Color por ID o nombre
@@ -103,7 +106,6 @@ class CategoryVisuals {
   // --------- helpers ---------
   static String _slug(String raw) {
     String s = raw.trim().toLowerCase();
-    // quita acentos comunes (sin paquete extra)
     const _from = 'áéíóúüñ';
     const _to   = 'aeiouun';
     for (int i = 0; i < _from.length; i++) {
