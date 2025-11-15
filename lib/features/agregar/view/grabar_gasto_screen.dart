@@ -10,6 +10,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:fynso/common/themes/app_color.dart';
 import '../../../common/widgets/custom_button.dart';
 import '../../../common/widgets/custom_text_title.dart';
+import '../../../common/widgets/fynso_card_dialog.dart';
 
 import '../../../data/services/audio_service.dart';
 import '../../../data/repositories/audio_repository.dart';
@@ -261,7 +262,8 @@ class _GrabarGastoScreenState extends State<GrabarGastoScreen>
       final likelySilent = !_voiceDetected;
 
       if (tooSmall || tooShort || likelySilent) {
-        final choice = await _showFynsoCardDialog<String>(
+        final choice = await showFynsoCardDialog<String>(
+          context,
           title: 'No detectamos audio claro',
           message:
               'Parece que el micrófono no capturó voz o el volumen fue muy bajo. '
@@ -379,15 +381,18 @@ class _GrabarGastoScreenState extends State<GrabarGastoScreen>
     if (!isRecording || isStopping) return;
     isStopping = true;
     try {
+      // 1) Detener
       try {
         await _recorder.stopRecorder();
       } catch (_) {}
+
       setState(() {
         isRecording = false;
         _controller.stop();
       });
 
-      final choice = await _showFynsoCardDialog<String>(
+      final choice = await showFynsoCardDialog<String>(
+        context,
         title: 'Límite de 30 segundos',
         message:
             'Llegaste al máximo permitido. ¿Deseas enviar este audio o prefieres regrabarlo?',
@@ -445,101 +450,12 @@ class _GrabarGastoScreenState extends State<GrabarGastoScreen>
   }
 
   // =================== Fynso Dialogs (bonitos) ===================
-  Future<T?> _showFynsoCardDialog<T>({
-    required String title,
-    required String message,
-    IconData icon = Icons.info_outline,
-    required List<Widget> actions,
-  }) {
-    return showDialog<T>(
-      context: context,
-      barrierDismissible: false,
-      builder: (ctx) {
-        return Dialog(
-          insetPadding: const EdgeInsets.symmetric(horizontal: 24),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: AppColor.azulFynso.withOpacity(0.15)),
-              boxShadow: [
-                BoxShadow(
-                  color: AppColor.azulFynso.withOpacity(0.08),
-                  blurRadius: 16,
-                  offset: const Offset(0, 8),
-                ),
-              ],
-            ),
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Row(
-                  children: [
-                    Container(
-                      width: 36,
-                      height: 36,
-                      decoration: BoxDecoration(
-                        color: AppColor.azulFynso.withOpacity(0.1),
-                        shape: BoxShape.circle,
-                      ),
-                      child: Icon(icon, color: AppColor.azulFynso),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        title,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.w700,
-                          fontSize: 16,
-                          color: Colors.black87,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    message,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      color: Colors.black87,
-                      height: 1.3,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Row(
-                  children: actions
-                      .map(
-                        (w) => Expanded(
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 6),
-                            child: w,
-                          ),
-                        ),
-                      )
-                      .toList(),
-                ),
-                const SizedBox(height: 8),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
   Future<void> _showFynsoError(String raw) async {
     final msg = raw.startsWith('Exception: ')
         ? raw.substring('Exception: '.length).trim()
         : raw.trim();
-    await _showFynsoCardDialog<void>(
+    await showFynsoCardDialog<void>(
+      context,
       title: 'No se pudo registrar el gasto',
       message: msg.isEmpty ? 'Ocurrió un error inesperado.' : msg,
       icon: Icons.error_outline,

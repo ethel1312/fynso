@@ -14,6 +14,7 @@ import 'package:fynso/features/agregar/view/widgets/gasto_card.dart';
 import 'package:fynso/common/ui/category_visuals.dart';
 import 'package:fynso/common/ui/category_badge.dart';
 import '../../../common/themes/app_color.dart';
+import '../../../common/widgets/fynso_card_dialog.dart';
 import '../../../data/models/transaction_detail_request.dart';
 import '../../../data/models/transaction_response.dart';
 import '../../../data/services/transaction_detail_service.dart';
@@ -418,7 +419,8 @@ class _HistorialGastosScreenState extends State<HistorialGastosScreen>
 
   // ========= Fynso dialogs =========
   Future<bool> _confirmDeleteDialog() async {
-    return await _showFynsoCardDialog<bool>(
+    return await showFynsoCardDialog<bool>(
+          context,
           title: 'Eliminar gasto',
           message:
               '¿Seguro que deseas eliminar este gasto? Esta acción no se puede deshacer.',
@@ -453,98 +455,9 @@ class _HistorialGastosScreenState extends State<HistorialGastosScreen>
         false;
   }
 
-  Future<T?> _showFynsoCardDialog<T>({
-    required String title,
-    required String message,
-    IconData icon = Icons.info_outline,
-    required List<Widget> actions,
-  }) {
-    return showDialog<T>(
-      context: context,
-      barrierDismissible: false,
-      builder: (ctx) {
-        return Dialog(
-          insetPadding: const EdgeInsets.symmetric(horizontal: 24),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: AppColor.azulFynso.withOpacity(0.15)),
-              boxShadow: [
-                BoxShadow(
-                  color: AppColor.azulFynso.withOpacity(0.08),
-                  blurRadius: 16,
-                  offset: const Offset(0, 8),
-                ),
-              ],
-            ),
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Row(
-                  children: [
-                    Container(
-                      width: 36,
-                      height: 36,
-                      decoration: BoxDecoration(
-                        color: AppColor.azulFynso.withOpacity(0.1),
-                        shape: BoxShape.circle,
-                      ),
-                      child: Icon(icon, color: AppColor.azulFynso),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        title,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.w700,
-                          fontSize: 16,
-                          color: Colors.black87,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    message,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      color: Colors.black87,
-                      height: 1.3,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Row(
-                  children: actions
-                      .map(
-                        (w) => Expanded(
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 6),
-                            child: w,
-                          ),
-                        ),
-                      )
-                      .toList(),
-                ),
-                const SizedBox(height: 8),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
   Future<void> _showError(String msg) async {
-    await _showFynsoCardDialog<void>(
+    await showFynsoCardDialog<void>(
+      context,
       title: 'No se pudo completar la acción',
       message: msg,
       icon: Icons.error_outline,
