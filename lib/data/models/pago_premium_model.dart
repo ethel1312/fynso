@@ -7,7 +7,7 @@ class PagoPremium {
   factory PagoPremium.fromJson(Map<String, dynamic> json) {
     return PagoPremium(
       message: json["message"] ?? '',
-      checkoutUrl: json["data"]?["checkout_url"],
+      checkoutUrl: json["data"]?["checkout_url"] ?? json["data"]?["init_point"],
     );
   }
 }

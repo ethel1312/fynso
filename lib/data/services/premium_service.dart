@@ -8,7 +8,7 @@ class PremiumService {
   final String baseUrl = "https://fynso.pythonanywhere.com";
 
   Future<PagoPremium> iniciarSuscripcion({required String jwt}) async {
-    final url = Uri.parse("$baseUrl/api_iniciar_suscripcion_premium");
+    final url = Uri.parse("$baseUrl/api/subscription/start");
 
     final response = await http.post(
       url,
@@ -26,7 +26,7 @@ class PremiumService {
   Future<PremiumStatusResponse> verificarEstadoPremium({
     required String jwt,
   }) async {
-    final url = Uri.parse("$baseUrl/api_usuario_premium_estado");
+    final url = Uri.parse("$baseUrl/api/subscription/status");
 
     final response = await http.get(
       url,
@@ -42,17 +42,5 @@ class PremiumService {
     } else {
       throw Exception("Error HTTP ${response.statusCode}");
     }
-  }
-
-  /// 🔹 Llamada para confirmar el pago en tu backend
-  Future<http.Response> confirmarPago({required String jwt}) async {
-    final url = Uri.parse("$baseUrl/api_confirmar_pago");
-
-    final response = await http.post(
-      url,
-      headers: {'Authorization': 'JWT $jwt', 'Accept': 'application/json'},
-    );
-
-    return response;
   }
 }

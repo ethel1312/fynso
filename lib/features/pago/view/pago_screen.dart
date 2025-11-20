@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
-import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'aprobado_screen.dart';
 import 'pendiente_screen.dart';
 import 'rechazado_screen.dart';
-import '../../settings/view_model/premium_view_model.dart';
 
 class PagoScreen extends StatefulWidget {
   final String? url;
@@ -39,8 +37,6 @@ class _PagoScreenState extends State<PagoScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final viewModel = Provider.of<PremiumViewModel>(context, listen: false);
-
     // 🧩 Validar que exista URL válida
     if (widget.url == null || widget.url!.isEmpty) {
       return const Scaffold(
@@ -89,18 +85,10 @@ class _PagoScreenState extends State<PagoScreen> {
                 // 🔹 Redirecciones esperadas
                 if (currentUrl.contains("pago_exitoso")) {
                   controller.stopLoading();
-                  final error = await viewModel.confirmarPago(jwt: jwt);
-                  if (error == null && context.mounted) {
+                  if (context.mounted) {
                     Navigator.pushReplacement(
                       context,
                       MaterialPageRoute(builder: (_) => const AprobadoScreen()),
-                    );
-                  } else if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(error ?? "Error al confirmar el pago"),
-                        backgroundColor: Colors.redAccent,
-                      ),
                     );
                   }
                 } else if (currentUrl.contains("pago_fallido") ||
