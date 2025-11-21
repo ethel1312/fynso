@@ -219,7 +219,7 @@ class _SplashScreenState extends State<SplashScreen>
                 minimumSize: const Size.fromHeight(44),
               ),
               onPressed: () => Navigator.pop(context, 'update'),
-              child: const Text('Actualizar ahora'),
+              child: const Text('Actualizar'),
             ),
           ],
         );

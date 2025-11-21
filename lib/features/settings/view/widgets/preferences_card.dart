@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:fynso/data/services/notification_service.dart';
 
 import '../../../../common/themes/app_color.dart';
 import '../../../../common/themes/theme_view_model.dart';
@@ -13,8 +14,8 @@ class PreferencesCard extends StatefulWidget {
 }
 
 class _PreferencesCardState extends State<PreferencesCard> {
-  bool pushNotifications = true;
-  bool budgetAlerts = true;
+  bool pushNotifications = false;
+  bool budgetAlerts = false;
 
   @override
   void initState() {
@@ -25,8 +26,9 @@ class _PreferencesCardState extends State<PreferencesCard> {
   Future<void> _loadPreferences() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
-      pushNotifications = prefs.getBool('push_notifications') ?? true;
-      budgetAlerts = prefs.getBool('budget_alerts') ?? true;
+      // Defaults en false
+      pushNotifications = prefs.getBool('push_notifications') ?? false;
+      budgetAlerts = prefs.getBool('budget_alerts') ?? false;
     });
   }
 
@@ -64,28 +66,75 @@ class _PreferencesCardState extends State<PreferencesCard> {
             subtitle: const Text("Recibir avisos sobre tus gastos"),
             value: pushNotifications,
             activeColor: AppColor.azulFynso,
-            onChanged: (val) {
-              setState(() {
-                pushNotifications = val;
-                if (!val)
-                  budgetAlerts = false; // Desactivar alertas si apaga push
-              });
-              _savePreference('push_notifications', val);
-              _savePreference('budget_alerts', budgetAlerts);
+            onChanged: (val) async {
+              if (val) {
+                // Quiere encenderlas: pedimos permiso al SO
+                final granted =
+                await NotificationService.askPermissionsOnce();
+
+                if (!granted) {
+                  if (!mounted) return;
+                  setState(() {
+                    pushNotifications = false;
+                    // NO tocamos budgetAlerts: se queda como estaba
+                  });
+                  await _savePreference('push_notifications', false);
+                  // No cambiamos budget_alerts aquí
+
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text(
+                        'No se pudieron activar las notificaciones. '
+                            'Por favor habilítalas desde los ajustes del sistema.',
+                      ),
+                    ),
+                  );
+                  return;
+                }
+
+                // Permiso OK: primera vez -> encender todos los tipos por defecto
+                final prefs = await SharedPreferences.getInstance();
+                final initialized =
+                    prefs.getBool('notif_types_initialized') ?? false;
+
+                bool newBudgetAlerts = budgetAlerts;
+
+                if (!initialized) {
+                  newBudgetAlerts = true; // encendemos todas las categorías (por ahora solo esta)
+                  await prefs.setBool('budget_alerts', newBudgetAlerts);
+                  await prefs.setBool('notif_types_initialized', true);
+                }
+
+                setState(() {
+                  pushNotifications = true;
+                  budgetAlerts = newBudgetAlerts;
+                });
+
+                await prefs.setBool('push_notifications', true);
+              } else {
+                // Apagar master: NO tocamos lo que el usuario tenía en cada tipo
+                if (!mounted) return;
+                final prefs = await SharedPreferences.getInstance();
+                setState(() {
+                  pushNotifications = false;
+                  // budgetAlerts se mantiene (solo que queda inactivo "lógicamente")
+                });
+                await prefs.setBool('push_notifications', false);
+                // No cambiamos budget_alerts aquí
+              }
             },
           ),
-
           SwitchListTile(
             title: const Text("Alertas de presupuesto"),
             subtitle: const Text("Avisar cuando superes tu presupuesto"),
             value: budgetAlerts,
             activeColor: AppColor.azulFynso,
             onChanged: pushNotifications
-                ? (val) {
-                    setState(() => budgetAlerts = val);
-                    _savePreference('budget_alerts', val);
-                  }
-                : null, // Deshabilitado si push está apagado
+                ? (val) async {
+              setState(() => budgetAlerts = val);
+              await _savePreference('budget_alerts', val);
+            }
+                : null, // 🔒 deshabilitado (gris) si push está apagado
           ),
         ],
       ),

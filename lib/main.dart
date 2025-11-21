@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter/services.dart';
 
 // ViewModels
 import 'common/themes/app_color.dart';
@@ -26,9 +27,18 @@ import 'features/analytics/view/category_breakdown_screen.dart';
 import 'features/auth/view/terms_screen.dart';
 import 'common/navigation/route_observer.dart';
 
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:fynso/data/services/notification_service.dart';
+// ... tus otros imports
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await NotificationService.init();
+  await SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown,
+  ]);
+  await NotificationService.init(); // solo inicializa
   runApp(const MyApp());
 }
 
