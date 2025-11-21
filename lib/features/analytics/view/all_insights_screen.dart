@@ -79,17 +79,25 @@ class _AllInsightsScreenState extends State<AllInsightsScreen> {
             }
 
             if (!hasData) {
-              return Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: const [
-                    Icon(Icons.lightbulb_outline, color: Colors.grey, size: 64),
-                    SizedBox(height: 16),
-                    Text(
-                      'No hay recomendaciones disponibles',
-                      style: TextStyle(fontSize: 16, color: Colors.grey),
-                    ),
-                  ],
+              return const Center(
+                child: Padding(
+                  padding: EdgeInsets.all(24.0),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.lightbulb_outline,
+                        color: Colors.grey,
+                        size: 64,
+                      ),
+                      SizedBox(height: 16),
+                      Text(
+                        'Aún no tienes gastos para generar recomendaciones.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(fontSize: 16, color: Colors.grey),
+                      ),
+                    ],
+                  ),
                 ),
               );
             }

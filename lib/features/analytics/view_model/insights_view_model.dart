@@ -24,8 +24,3 @@ class InsightsViewModel extends ChangeNotifier {
     }
   }
 }
-
-
-
-
-

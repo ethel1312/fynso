@@ -8,6 +8,7 @@ class CustomTextField extends StatefulWidget {
   final TextEditingController? controller;
   final int maxLines;
   final int? maxLength;
+  final bool enabled;
 
   const CustomTextField({
     super.key,
@@ -16,7 +17,8 @@ class CustomTextField extends StatefulWidget {
     this.keyboardType = TextInputType.text,
     this.controller,
     this.maxLines = 1, // por defecto 1 línea
-    this.maxLength, // opcional
+    this.maxLength,
+    this.enabled = true, // opcional
   });
 
   @override
