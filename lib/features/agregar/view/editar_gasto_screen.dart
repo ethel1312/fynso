@@ -513,6 +513,7 @@ class _EditarGastoScreenState extends State<EditarGastoScreen> {
           label: label,
           controller: controller,
           maxLines: maxLines,
+          enabled: enabled,
         ),
       ),
     );

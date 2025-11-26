@@ -37,9 +37,9 @@ class CategoryBreakdownItem {
 class CategoryBreakdownResponse {
   final int anio;
   final int mes;
-  final double? limiteActual;            // 👈 ahora nullable
+  final double? limiteActual; // 👈 ahora nullable
   final double totalMes;
-  final bool hasUserDefaultLimit;        // 👈 nuevo
+  final bool hasUserDefaultLimit; // 👈 nuevo
   final List<CategoryBreakdownItem> items;
   final List<CategoryBreakdownItem> topItems;
 
@@ -60,7 +60,9 @@ class CategoryBreakdownResponse {
     return CategoryBreakdownResponse(
       anio: j['anio'] as int,
       mes: j['mes'] as int,
-      limiteActual: (lim == null) ? null : ((lim is num) ? lim.toDouble() : double.tryParse('$lim')),
+      limiteActual: (lim == null)
+          ? null
+          : ((lim is num) ? lim.toDouble() : double.tryParse('$lim')),
       totalMes: (j['total_mes'] as num?)?.toDouble() ?? 0.0,
       hasUserDefaultLimit: (j['has_user_default_limit'] as bool?) ?? false,
       items: it.map((e) => CategoryBreakdownItem.fromJson(e)).toList(),
@@ -78,12 +80,9 @@ class AnalyticsService {
     required int mes,
     int top = 5,
   }) async {
-    final uri = Uri.parse('$baseUrl/api/analytics/category-breakdown')
-        .replace(queryParameters: {
-      'anio': '$anio',
-      'mes': '$mes',
-      'top': '$top',
-    });
+    final uri = Uri.parse(
+      '$baseUrl/api/analytics/category-breakdown',
+    ).replace(queryParameters: {'anio': '$anio', 'mes': '$mes', 'top': '$top'});
 
     final resp = await http.get(
       uri,
@@ -104,7 +103,9 @@ class AnalyticsService {
   Future<MonthlySpendingTrendResponse> getMonthlySpendingLast6PlusCurrent({
     required String jwt,
   }) async {
-    final uri = Uri.parse('$baseUrl/api/analytics/monthly_spending_last6_plus_current');
+    final uri = Uri.parse(
+      '$baseUrl/api/analytics/monthly_spending_last6_plus_current',
+    );
 
     final resp = await http.get(
       uri,
@@ -117,7 +118,9 @@ class AnalyticsService {
 
     final decoded = jsonDecode(resp.body) as Map<String, dynamic>;
     if ((decoded['code'] ?? 0) != 1) {
-      throw Exception(decoded['message']?.toString() ?? 'Error en tendencia mensual');
+      throw Exception(
+        decoded['message']?.toString() ?? 'Error en tendencia mensual',
+      );
     }
 
     return MonthlySpendingTrendResponse.fromJson(decoded);
@@ -129,17 +132,22 @@ class AnalyticsService {
     bool shuffle = false,
     String? tzName,
   }) async {
-    final uri = Uri.parse('$baseUrl/api/insights/recommendations')
-        .replace(queryParameters: {
-      'limit': '$limit',
-      'shuffle': shuffle ? '1' : '0',
-      if (tzName != null) 'tz_name': tzName,
-    });
+    final uri = Uri.parse('$baseUrl/api/insights/recommendations').replace(
+      queryParameters: {
+        'limit': '$limit',
+        'shuffle': shuffle ? '1' : '0',
+        if (tzName != null) 'tz_name': tzName,
+      },
+    );
 
     final resp = await http.get(
       uri,
       headers: {'Authorization': 'JWT $jwt', 'Accept': 'application/json'},
     );
+
+    print("➡️ GET: $uri");
+    print("⬅️ STATUS: ${resp.statusCode}");
+    print("⬅️ BODY: ${resp.body}");
 
     if (resp.statusCode != 200) {
       throw Exception('Error HTTP ${resp.statusCode}');
@@ -147,7 +155,9 @@ class AnalyticsService {
 
     final decoded = jsonDecode(resp.body) as Map<String, dynamic>;
     if ((decoded['code'] ?? 0) != 1) {
-      throw Exception(decoded['message']?.toString() ?? 'Error en recomendaciones');
+      throw Exception(
+        decoded['message']?.toString() ?? 'Error en recomendaciones',
+      );
     }
 
     return InsightsResponse.fromJson(decoded);
@@ -159,14 +169,13 @@ class AnalyticsService {
     int? mes,
     double minAmount = 50.00,
   }) async {
-    final queryParams = <String, String>{
-      'min_amount': '$minAmount',
-    };
+    final queryParams = <String, String>{'min_amount': '$minAmount'};
     if (anio != null) queryParams['anio'] = '$anio';
     if (mes != null) queryParams['mes'] = '$mes';
 
-    final uri = Uri.parse('$baseUrl/api/analytics/category_status_cards')
-        .replace(queryParameters: queryParams);
+    final uri = Uri.parse(
+      '$baseUrl/api/analytics/category_status_cards',
+    ).replace(queryParameters: queryParams);
 
     final resp = await http.get(
       uri,
@@ -179,7 +188,9 @@ class AnalyticsService {
 
     final decoded = jsonDecode(resp.body) as Map<String, dynamic>;
     if ((decoded['code'] ?? 0) != 1) {
-      throw Exception(decoded['message']?.toString() ?? 'Error en category status');
+      throw Exception(
+        decoded['message']?.toString() ?? 'Error en category status',
+      );
     }
 
     return CategoryStatusResponse.fromJson(decoded);
