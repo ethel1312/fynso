@@ -6,6 +6,7 @@ import 'package:flutter_sound/flutter_sound.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:fynso/data/services/notification_service.dart';
 
 import 'package:fynso/common/themes/app_color.dart';
 import '../../../common/widgets/custom_button.dart';
@@ -242,10 +243,12 @@ class _GrabarGastoScreenState extends State<GrabarGastoScreen>
         await _recorder.stopRecorder();
       } catch (_) {}
 
-      setState(() {
-        isRecording = false;
-        _controller.stop();
-      });
+      if (mounted) {
+        setState(() {
+          isRecording = false;
+          _controller.stop();
+        });
+      }
 
       // 2) Revisar archivo
       if (_audioPath == null || !File(_audioPath!).existsSync()) {
@@ -266,7 +269,7 @@ class _GrabarGastoScreenState extends State<GrabarGastoScreen>
           context,
           title: 'No detectamos audio claro',
           message:
-              'Parece que el micrófono no capturó voz o el volumen fue muy bajo. '
+          'Parece que el micrófono no capturó voz o el volumen fue muy bajo. '
               '¿Quieres regrabar o enviar de todos modos?',
           icon: Icons.mic_off_outlined,
           actions: [
@@ -312,11 +315,24 @@ class _GrabarGastoScreenState extends State<GrabarGastoScreen>
       }
 
       // 3) Subir
-      setState(() => isUploading = true);
+      if (mounted) {
+        setState(() => isUploading = true);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Registrando tu gasto...'),
+          ),
+        );
+      }
 
       final prefs = await SharedPreferences.getInstance();
       final jwt = prefs.getString('jwt_token');
       if (jwt == null || jwt.isEmpty) {
+        // Notificación local para cuando esté en background
+        await NotificationService.show(
+          title: 'No se pudo registrar tu gasto',
+          body: 'No se encontró token de usuario. Vuelve a iniciar sesión.',
+        );
+
         if (!mounted) return;
         await _showFynsoError('No se encontró token de usuario');
         return;
@@ -325,6 +341,12 @@ class _GrabarGastoScreenState extends State<GrabarGastoScreen>
       await _viewModel.enviarAudio(File(_audioPath!), jwt);
 
       if (_viewModel.error != null) {
+        await NotificationService.show(
+          title: 'No se pudo registrar tu gasto',
+          body: _viewModel.error!,
+        );
+
+        if (!mounted) return;
         await _showFynsoError(_viewModel.error!);
         return;
       }
@@ -334,20 +356,46 @@ class _GrabarGastoScreenState extends State<GrabarGastoScreen>
       if (r != null) {
         final txId = r.createdTransactionId ?? r.transaction?.idTransaction;
         if (txId != null) {
+          // ✅ Notificación para el caso en que el usuario se haya ido al home / bloqueado pantalla
+          await NotificationService.show(
+            title: 'Gasto registrado',
+            body: 'Tu gasto ya está disponible en el historial.',
+          );
+
+          if (!mounted) return;
           final req = TransactionDetailRequest(jwt: jwt, idTransaction: txId);
           await Navigator.pushNamed(context, '/detalleGasto', arguments: req);
         } else {
+          await NotificationService.show(
+            title: 'No se pudo registrar tu gasto',
+            body: 'No se obtuvo el ID de la transacción.',
+          );
+
+          if (!mounted) return;
           await _showFynsoError('No se obtuvo el ID de la transacción');
         }
       } else {
+        await NotificationService.show(
+          title: 'No se pudo procesar el audio',
+          body: 'No se pudo extraer información del audio.',
+        );
+
+        if (!mounted) return;
         await _showFynsoError('No se pudo extraer información del audio');
       }
     } catch (e) {
+      await NotificationService.show(
+        title: 'No se pudo registrar tu gasto',
+        body: 'Ocurrió un error inesperado. Intenta de nuevo.',
+      );
+
       if (mounted) {
         await _showFynsoError(e.toString());
       }
     } finally {
-      setState(() => isUploading = false);
+      if (mounted) {
+        setState(() => isUploading = false);
+      }
       isStopping = false;
       await _safeStopAndClose();
     }

@@ -56,7 +56,7 @@ class _EditarGastoScreenState extends State<EditarGastoScreen> {
 
     // Recibe la transacción de la ruta
     transaction =
-        ModalRoute.of(context)?.settings.arguments as TransactionResponse;
+    ModalRoute.of(context)?.settings.arguments as TransactionResponse;
 
     // Setea textos con valores de DB SOLO la primera vez
     if (!_controllersInitialized) {
@@ -162,9 +162,9 @@ class _EditarGastoScreenState extends State<EditarGastoScreen> {
                 child: InkWell(
                   onTap: enabled
                       ? () {
-                          FocusScope.of(context).unfocus();
-                          onTap();
-                        }
+                    FocusScope.of(context).unfocus();
+                    onTap();
+                  }
                       : null,
                 ),
               ),
@@ -174,10 +174,10 @@ class _EditarGastoScreenState extends State<EditarGastoScreen> {
               padding: const EdgeInsets.only(right: 12),
               child: loading
                   ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              )
                   : const Icon(Icons.arrow_drop_down),
             ),
           ],
@@ -207,31 +207,31 @@ class _EditarGastoScreenState extends State<EditarGastoScreen> {
       builder: (_) => SafeArea(
         child: cvm.categories.isEmpty
             ? const Padding(
-                padding: EdgeInsets.all(16.0),
-                child: Text('No hay categorías.'),
-              )
+          padding: EdgeInsets.all(16.0),
+          child: Text('No hay categorías.'),
+        )
             : ListView.separated(
-                itemCount: cvm.categories.length,
-                separatorBuilder: (_, __) => const Divider(height: 1),
-                itemBuilder: (_, i) {
-                  final c = cvm.categories[i];
-                  return ListTile(
-                    title: Text(c.nombre),
-                    onTap: () async {
-                      Navigator.pop(context);
-                      await cvm.selectCategoryById(
-                        jwt: jwt,
-                        idCategory: c.idCategory,
-                      );
-                      // Refresca UI según selección
-                      _categoriaController.text = c.nombre;
-                      _subcategoriaController.text =
-                          cvm.selectedSubcategory?.nombre ?? '';
-                      if (mounted) setState(() {});
-                    },
-                  );
-                },
-              ),
+          itemCount: cvm.categories.length,
+          separatorBuilder: (_, __) => const Divider(height: 1),
+          itemBuilder: (_, i) {
+            final c = cvm.categories[i];
+            return ListTile(
+              title: Text(c.nombre),
+              onTap: () async {
+                Navigator.pop(context);
+                await cvm.selectCategoryById(
+                  jwt: jwt,
+                  idCategory: c.idCategory,
+                );
+                // Refresca UI según selección
+                _categoriaController.text = c.nombre;
+                _subcategoriaController.text =
+                    cvm.selectedSubcategory?.nombre ?? '';
+                if (mounted) setState(() {});
+              },
+            );
+          },
+        ),
       ),
     );
   }
@@ -267,25 +267,25 @@ class _EditarGastoScreenState extends State<EditarGastoScreen> {
       builder: (_) => SafeArea(
         child: cvm.subcategories.isEmpty
             ? const Padding(
-                padding: EdgeInsets.all(16.0),
-                child: Text('No hay subcategorías para esta categoría.'),
-              )
+          padding: EdgeInsets.all(16.0),
+          child: Text('No hay subcategorías para esta categoría.'),
+        )
             : ListView.separated(
-                itemCount: cvm.subcategories.length,
-                separatorBuilder: (_, __) => const Divider(height: 1),
-                itemBuilder: (_, i) {
-                  final s = cvm.subcategories[i];
-                  return ListTile(
-                    title: Text(s.nombre),
-                    onTap: () {
-                      Navigator.pop(context);
-                      cvm.selectSubcategoryById(s.idSubcategory);
-                      _subcategoriaController.text = s.nombre;
-                      if (mounted) setState(() {});
-                    },
-                  );
-                },
-              ),
+          itemCount: cvm.subcategories.length,
+          separatorBuilder: (_, __) => const Divider(height: 1),
+          itemBuilder: (_, i) {
+            final s = cvm.subcategories[i];
+            return ListTile(
+              title: Text(s.nombre),
+              onTap: () {
+                Navigator.pop(context);
+                cvm.selectSubcategoryById(s.idSubcategory);
+                _subcategoriaController.text = s.nombre;
+                if (mounted) setState(() {});
+              },
+            );
+          },
+        ),
       ),
     );
   }
@@ -308,7 +308,7 @@ class _EditarGastoScreenState extends State<EditarGastoScreen> {
       providers: [
         ChangeNotifierProvider(
           create: (_) =>
-              TransactionEditViewModel()..loadTransaction(transaction),
+          TransactionEditViewModel()..loadTransaction(transaction),
         ),
         ChangeNotifierProvider(create: (_) => CategoryViewModel()),
       ],
@@ -326,8 +326,8 @@ class _EditarGastoScreenState extends State<EditarGastoScreen> {
                 // Selecciona categoría y subcategoría inicial por nombre
                 if (cvm.categories.isNotEmpty) {
                   final cat = cvm.categories.firstWhere(
-                    (c) =>
-                        c.nombre.toLowerCase() ==
+                        (c) =>
+                    c.nombre.toLowerCase() ==
                         transaction.category.toLowerCase(),
                     orElse: () => cvm.categories.first,
                   );
@@ -338,8 +338,8 @@ class _EditarGastoScreenState extends State<EditarGastoScreen> {
 
                   // Empareja subcategoría por nombre si existe
                   final sub = cvm.subcategories.where(
-                    (s) =>
-                        s.nombre.toLowerCase() ==
+                        (s) =>
+                    s.nombre.toLowerCase() ==
                         transaction.subcategory.toLowerCase(),
                   );
                   if (sub.isNotEmpty) {
@@ -351,7 +351,7 @@ class _EditarGastoScreenState extends State<EditarGastoScreen> {
                       cvm.selectedCategory?.nombre ?? transaction.category;
                   _subcategoriaController.text =
                       cvm.selectedSubcategory?.nombre ??
-                      transaction.subcategory;
+                          transaction.subcategory;
                   if (mounted) setState(() {});
                 }
               }
@@ -430,12 +430,10 @@ class _EditarGastoScreenState extends State<EditarGastoScreen> {
                   const SizedBox(height: 16),
                   _buildField("Notas", _notasController, maxLines: 3),
                   const SizedBox(height: 16),
-                  _buildField(
-                    "Transcripción",
-                    _transcripcionController,
-                    maxLines: 3,
-                    enabled: false,
-                  ),
+
+                  // ---------- Transcripción solo lectura si existe ----------
+                  if (_transcripcionController.text.trim().isNotEmpty)
+                    _buildReadOnlyTranscription(),
 
                   const SizedBox(height: 24),
                   if (vm.isLoading)
@@ -486,7 +484,8 @@ class _EditarGastoScreenState extends State<EditarGastoScreen> {
                         } else {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
-                              content: Text(vm.error ?? 'Error al actualizar'),
+                              content: Text(
+                                  vm.error ?? 'Error al actualizar'),
                             ),
                           );
                         }
@@ -503,11 +502,10 @@ class _EditarGastoScreenState extends State<EditarGastoScreen> {
 
   // Helper para otros textos
   Widget _buildField(
-    String label,
-    TextEditingController controller, {
-    int maxLines = 1,
-    bool enabled = true,
-  }) {
+      String label,
+      TextEditingController controller, {
+        int maxLines = 1,
+      }) {
     return Center(
       child: SizedBox(
         width: 335,
@@ -516,6 +514,50 @@ class _EditarGastoScreenState extends State<EditarGastoScreen> {
           controller: controller,
           maxLines: maxLines,
           enabled: enabled,
+        ),
+      ),
+    );
+  }
+
+  // 🔹 Transcripción solo lectura, gris y no editable
+  Widget _buildReadOnlyTranscription() {
+    final text = _transcripcionController.text;
+
+    return Center(
+      child: SizedBox(
+        width: 335,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              "Transcripción",
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: Colors.grey,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.grey[100],
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: Colors.grey[300]!,
+                  width: 1,
+                ),
+              ),
+              child: Text(
+                text,
+                style: const TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey,
+                  height: 1.3,
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
