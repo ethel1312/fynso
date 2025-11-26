@@ -16,9 +16,9 @@ class CustomTextField extends StatefulWidget {
     this.isPassword = false,
     this.keyboardType = TextInputType.text,
     this.controller,
-    this.maxLines = 1, // por defecto 1 línea
+    this.maxLines = 1,
     this.maxLength,
-    this.enabled = true, // opcional
+    this.enabled = true,
   });
 
   @override
@@ -42,18 +42,37 @@ class _CustomTextFieldState extends State<CustomTextField> {
       keyboardType: widget.keyboardType,
       maxLines: widget.maxLines,
       maxLength: widget.maxLength,
+      enabled: widget.enabled,
       decoration: InputDecoration(
         labelText: widget.label,
         labelStyle: const TextStyle(fontFamily: 'Roboto'),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+
+        // ⭐ Borde suave (gris claro)
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide(color: Colors.grey.shade400, width: 1.0),
+        ),
+
+        // ⭐ Al enfocar → azul más suave
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(color: AppColor.azulFynso, width: 2),
+          borderSide: const BorderSide(
+            color: AppColor.azulFynso,
+            width: 1.5, // menos grueso
+          ),
         ),
+
+        // ⭐ Borde cuando está deshabilitado
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide(color: Colors.grey.shade300, width: 1.0),
+        ),
+
         floatingLabelStyle: const TextStyle(
           color: AppColor.azulFynso,
           fontFamily: 'Roboto',
         ),
+
         suffixIcon: widget.isPassword
             ? IconButton(
                 icon: Icon(

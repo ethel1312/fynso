@@ -1,11 +1,12 @@
 // lib/data/services/premium_service.dart
 import 'dart:convert';
+import 'package:fynso/common/config.dart';
 import 'package:http/http.dart' as http;
 import '../models/pago_premium_model.dart';
 import '../models/premium_status_response.dart';
 
 class PremiumService {
-  final String baseUrl = "https://fynso.pythonanywhere.com";
+  final String baseUrl = Config.baseUrl;
 
   Future<PagoPremium> iniciarSuscripcion({required String jwt}) async {
     final url = Uri.parse("$baseUrl/api/subscription/start");
