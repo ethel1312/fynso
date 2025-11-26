@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:shared_preferences/shared_preferences.dart'; // <-- agregar
 import '../../../data/models/auth_response.dart';
 import '../../../data/repositories/auth_repository.dart';
 
 class AuthViewModel extends ChangeNotifier {
   final AuthRepository _repository = AuthRepository();
+  final GoogleSignIn _googleSignIn = GoogleSignIn.instance;
 
   bool _isLoading = false;
 
@@ -36,6 +38,17 @@ class AuthViewModel extends ChangeNotifier {
     } finally {
       _isLoading = false;
       notifyListeners();
+    }
+  }
+
+  // En AuthViewModel
+  Future<AuthResponse?> loginWithGoogle(String idToken) async {
+    try {
+      final repo = AuthRepository();
+      return await repo.loginWithGoogle(idToken); // <-- llamas a tu API backend
+    } catch (e) {
+      print("Error en loginWithGoogle: $e");
+      return null;
     }
   }
 
@@ -74,6 +87,15 @@ class AuthViewModel extends ChangeNotifier {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('jwt_token');
     await prefs.remove('user_email');
+
+    // 🔹 Cerrar sesión de Google (si el usuario estaba logueado por Google)
+    try {
+      await _googleSignIn.signOut();
+      print("✔ Sesión de Google cerrada");
+    } catch (e) {
+      print("❌ Error al cerrar sesión de Google: $e");
+    }
+
     _authResponse = null;
     notifyListeners();
   }

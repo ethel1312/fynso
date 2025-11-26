@@ -1,20 +1,19 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:fynso/common/config.dart';
 import 'package:http/http.dart' as http;
 
 import '../models/transcribe_response.dart';
 
 class AudioService {
-  final String baseUrl = 'https://fynso.pythonanywhere.com';
+  final String baseUrl = Config.baseUrl;
 
   Future<TranscribeResponse> enviarAudio(File audioFile, String jwt) async {
     final uri = Uri.parse('$baseUrl/api/transcribe_and_extract');
 
     final request = http.MultipartRequest('POST', uri)
       ..headers['Authorization'] = 'JWT $jwt'
-      ..files.add(
-        await http.MultipartFile.fromPath('audio', audioFile.path),
-      );
+      ..files.add(await http.MultipartFile.fromPath('audio', audioFile.path));
 
     final streamed = await request.send();
     final body = await http.Response.fromStream(streamed);

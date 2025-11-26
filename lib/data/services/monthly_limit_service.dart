@@ -1,8 +1,9 @@
 import 'dart:convert';
+import 'package:fynso/common/config.dart';
 import 'package:http/http.dart' as http;
 
 class MonthlyLimitService {
-  final String baseUrl = 'https://fynso.pythonanywhere.com';
+  final String baseUrl = Config.baseUrl;
 
   // === Reconcile (sin now_iso) ===
   Future<void> reconcile({
@@ -36,10 +37,7 @@ class MonthlyLimitService {
     required String jwt,
   }) async {
     final uri = Uri.parse('$baseUrl/api/user/default_monthly_limit');
-    final res = await http.get(
-      uri,
-      headers: {'Authorization': 'JWT $jwt'},
-    );
+    final res = await http.get(uri, headers: {'Authorization': 'JWT $jwt'});
     if (res.statusCode != 200) {
       throw Exception('HTTP ${res.statusCode}: ${res.body}');
     }
@@ -67,10 +65,7 @@ class MonthlyLimitService {
         'Authorization': 'JWT $jwt',
         'Content-Type': 'application/json',
       },
-      body: json.encode({
-        'enabled': enabled,
-        'default_limit': defaultLimit,
-      }),
+      body: json.encode({'enabled': enabled, 'default_limit': defaultLimit}),
     );
     if (res.statusCode != 200) {
       throw Exception('HTTP ${res.statusCode}: ${res.body}');

@@ -5,6 +5,7 @@ import 'package:fynso/common/widgets/custom_text_title.dart';
 import 'package:fynso/common/widgets/custom_textfield.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:provider/provider.dart';
+import '../../../common/utils/snackbar_utils.dart';
 import '../../../data/models/create_transaction_request.dart';
 import '../../../data/repositories/transaction_repository.dart';
 import '../../home/view_model/monthly_summary_view_model.dart';
@@ -237,7 +238,10 @@ class _AgregarGastoScreenState extends State<AgregarGastoScreen> {
     );
   }
 
-  Future<void> _submitForm(CategoryViewModel cvm, MonthlySummaryViewModel monthlySummaryVM) async {
+  Future<void> _submitForm(
+    CategoryViewModel cvm,
+    MonthlySummaryViewModel monthlySummaryVM,
+  ) async {
     final monto = _montoController.text.trim();
 
     if (monto.isEmpty) {
@@ -301,11 +305,10 @@ class _AgregarGastoScreenState extends State<AgregarGastoScreen> {
       if (!mounted) return;
 
       if (response.code == 1) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(response.message),
-            backgroundColor: Colors.green,
-          ),
+        showAppSnackbar(
+          context: context,
+          type: SnackbarType.success,
+          description: response.message,
         );
 
         // Limpiar formulario
@@ -330,11 +333,10 @@ class _AgregarGastoScreenState extends State<AgregarGastoScreen> {
           }
         }
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(response.message),
-            backgroundColor: Colors.red,
-          ),
+        showAppSnackbar(
+          context: context,
+          type: SnackbarType.error,
+          description: response.message,
         );
       }
     } catch (e) {
@@ -364,11 +366,6 @@ class _AgregarGastoScreenState extends State<AgregarGastoScreen> {
       child: Consumer2<CategoryViewModel, MonthlySummaryViewModel>(
         builder: (context, cvm, monthlyVM, _) {
           return Scaffold(
-            appBar: AppBar(
-              title: const CustomTextTitle('Registrar'),
-              elevation: 0,
-              automaticallyImplyLeading: false,
-            ),
             body: SingleChildScrollView(
               padding: const EdgeInsets.all(24),
               child: Column(
@@ -492,13 +489,15 @@ class _AgregarGastoScreenState extends State<AgregarGastoScreen> {
                     controller: _notesController,
                     maxLines: 3,
                   ),
-                  const SizedBox(height: 32),
+                  const SizedBox(height: 24),
 
                   // Botón guardar
                   CustomButton(
                     text: _isLoading ? 'Guardando...' : 'Guardar gasto',
                     backgroundColor: AppColor.azulFynso,
-                    onPressed: _isLoading ? null : () async => _submitForm(cvm, monthlyVM),
+                    onPressed: _isLoading
+                        ? null
+                        : () async => _submitForm(cvm, monthlyVM),
                   ),
                 ],
               ),
