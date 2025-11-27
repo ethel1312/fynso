@@ -1,10 +1,16 @@
-# Fynso
+# fynso
 
-Fynso es una aplicación móvil desarrollada en Flutter para el registro y seguimiento de gastos personales, con funcionalidades de reconocimiento por voz, categorización inteligente y reportes claros.
+A new Flutter project.
 
-## Características principales
+## Getting Started
 
-- **Registro de gastos por voz**: Añade tus gastos simplemente hablando. Fynso los interpreta y guarda automáticamente.  
-- **Categorización inteligente**: La app detecta la categoría de tus gastos para organizar tu presupuesto sin esfuerzo.  
-- **Reportes visuales**: Gráficos claros y fáciles de entender para analizar tus gastos mensuales.
+This project is a starting point for a Flutter application.
 
+A few resources to get you started if this is your first Flutter project:
+
+- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
+- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+
+For help getting started with Flutter development, view the
+[online documentation](https://docs.flutter.dev/), which offers tutorials,
+samples, guidance on mobile development, and a full API reference.

@@ -20,15 +20,6 @@ class AuthRepository {
     }
   }
 
-  Future<AuthResponse?> loginWithGoogle(String idToken) async {
-    try {
-      return await _authService.loginWithGoogle(idToken);
-    } catch (e) {
-      print("Error en loginWithGoogle: $e");
-      return null;
-    }
-  }
-
   Future<Map<String, dynamic>?> register(
     String username,
     String email,
@@ -72,10 +63,7 @@ class AuthRepository {
   // Actualizar contraseña
   Future<ApiResponse?> updatePassword(String email, String newPassword) async {
     try {
-      final request = UpdatePasswordRequest(
-        email: email,
-        newPassword: newPassword,
-      );
+      final request = UpdatePasswordRequest(email: email, newPassword: newPassword);
       return await _authService.updatePassword(request);
     } catch (e) {
       print('Error en AuthRepository (updatePassword): $e');

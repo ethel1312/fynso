@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'package:fynso/common/config.dart';
 import 'package:http/http.dart' as http;
 import '../models/api_response.dart';
 import '../models/auth_request.dart';
@@ -23,21 +22,6 @@ class AuthService {
       return AuthResponse.fromJson(jsonDecode(response.body));
     } else {
       throw Exception('Error en inicio de sesión: ${response.statusCode}');
-    }
-  }
-
-  Future<AuthResponse?> loginWithGoogle(String googleIdToken) async {
-    final response = await http.post(
-      Uri.parse('$baseUrl/auth/google'),
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({'googleIdToken': googleIdToken}),
-    );
-
-    if (response.statusCode == 200) {
-      return AuthResponse.fromJson(jsonDecode(response.body));
-    } else {
-      print("Error Google login: ${response.body}");
-      return null;
     }
   }
 

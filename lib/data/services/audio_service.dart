@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'dart:io';
-import 'package:fynso/common/config.dart';
 import 'package:http/http.dart' as http;
 import 'package:background_downloader/background_downloader.dart';
 

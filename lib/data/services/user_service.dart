@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'package:fynso/common/config.dart';
 import 'package:http/http.dart' as http;
 
 class UserService {
