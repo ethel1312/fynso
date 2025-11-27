@@ -89,4 +89,21 @@ class AuthService {
       throw Exception('Error al actualizar contraseña: ${response.statusCode}');
     }
   }
+
+  Future<AuthResponse> loginWithGoogle(String idToken) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/api_login_google'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'id_token': idToken}),
+    );
+
+    if (response.statusCode == 200) {
+      return AuthResponse.fromJson(jsonDecode(response.body));
+    } else {
+      throw Exception(
+        'Error en inicio de sesión con Google: ${response.statusCode}',
+      );
+    }
+  }
+
 }

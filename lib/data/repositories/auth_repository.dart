@@ -70,4 +70,14 @@ class AuthRepository {
       return null;
     }
   }
+
+  Future<AuthResponse?> loginWithGoogle(String idToken) async {
+    try {
+      return await _authService.loginWithGoogle(idToken);
+    } catch (e) {
+      print('Error en AuthRepository (loginWithGoogle): $e');
+      return null;
+    }
+  }
+
 }
