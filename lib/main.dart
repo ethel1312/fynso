@@ -1,3 +1,4 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
@@ -26,6 +27,7 @@ import 'features/pago/view/pendiente_screen.dart';
 import 'features/analytics/view/category_breakdown_screen.dart';
 import 'features/auth/view/terms_screen.dart';
 import 'common/navigation/route_observer.dart';
+import 'firebase_options.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';

@@ -1,5 +1,6 @@
 // lib/data/services/premium_service.dart
 import 'dart:convert';
+import 'package:fynso/common/config.dart';
 import 'package:http/http.dart' as http;
 import '../models/pago_premium_model.dart';
 import '../models/premium_status_response.dart';

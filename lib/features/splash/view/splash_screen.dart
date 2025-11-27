@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:fynso/common/config.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import 'package:package_info_plus/package_info_plus.dart';
@@ -11,9 +12,11 @@ import '../../../data/repositories/monthly_limit_repository.dart';
 import '../../../common/navigation/main_navigation.dart';
 import '../../../common/widgets/fynso_card_dialog.dart';
 import '../../../common/themes/app_color.dart';
+import '../../onboarding/view/onboarding_screen.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
+
   @override
   State<SplashScreen> createState() => _SplashScreenState();
 }
@@ -49,6 +52,19 @@ class _SplashScreenState extends State<SplashScreen>
       }
 
       final prefs = await SharedPreferences.getInstance();
+
+      // 🔹 Check onboarding
+      final seenOnboarding = prefs.getBool('onboarding_seen') ?? false;
+      if (!seenOnboarding) {
+        _navigated = true;
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (_) => const OnboardingScreen()),
+          (route) => false,
+        );
+        return;
+      }
+
+      // 🔹 Check JWT
       final jwt = prefs.getString('jwt_token') ?? '';
       if (jwt.isNotEmpty) {
         _navigated = true;
@@ -245,15 +261,29 @@ class _SplashScreenState extends State<SplashScreen>
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
-      backgroundColor: Colors.white,
-      body: Center(
-        child: Text(
-          "Fynso",
-          style: TextStyle(
-            fontSize: 40,
-            fontWeight: FontWeight.bold,
-            color: Colors.blueAccent,
+    return Scaffold(
+      body: Container(
+        width: double.infinity,
+        height: double.infinity,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topRight,
+            end: Alignment.bottomLeft,
+            colors: [
+              AppColor.azulFynso.withOpacity(0.4), // parte superior más clara
+              AppColor.azulFynso, // parte inferior más intensa
+            ],
+          ),
+        ),
+        child: const Center(
+          child: Text(
+            "Fynso",
+            style: TextStyle(
+              color: Colors.white, // letra blanca
+              fontSize: 48,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 2,
+            ),
           ),
         ),
       ),

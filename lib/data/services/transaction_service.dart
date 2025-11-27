@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:fynso/common/config.dart';
 import 'package:http/http.dart' as http;
 import '../models/transaction_response.dart';
 import '../models/transactions_filter.dart';
@@ -27,7 +28,9 @@ class TransactionService {
       qp.addAll(filter.toQueryParams());
     }
 
-    final uri = Uri.parse('$baseUrl/api/transactions').replace(queryParameters: qp);
+    final uri = Uri.parse(
+      '$baseUrl/api/transactions',
+    ).replace(queryParameters: qp);
 
     final response = await http.get(
       uri,
@@ -79,10 +82,7 @@ class TransactionService {
     final uri = Uri.parse('$baseUrl/api/transactions/$idTransaction');
     final resp = await http.delete(
       uri,
-      headers: {
-        'Authorization': 'JWT $jwt',
-        'Accept': 'application/json',
-      },
+      headers: {'Authorization': 'JWT $jwt', 'Accept': 'application/json'},
     );
 
     if (resp.statusCode == 200) {
