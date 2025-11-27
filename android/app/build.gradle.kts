@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.fynso"
+    namespace = "app.fynso.fynso"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = "29.0.14033849"
 
@@ -21,7 +21,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.example.fynso"
+        applicationId = "app.fynso.fynso"
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode

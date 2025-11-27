@@ -30,6 +30,7 @@ import 'common/navigation/route_observer.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:fynso/data/services/notification_service.dart';
+import 'package:background_downloader/background_downloader.dart';
 // ... tus otros imports
 
 void main() async {
@@ -39,6 +40,7 @@ void main() async {
     DeviceOrientation.portraitDown,
   ]);
   await NotificationService.init(); // solo inicializa
+  await FileDownloader().start();
   runApp(const MyApp());
 }
 
