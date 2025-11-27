@@ -1,12 +1,12 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import '../../common/utils/constants.dart';
 import '../models/transaction_response.dart';
 import '../models/transactions_filter.dart';
 import '../models/create_transaction_request.dart';
 import '../models/create_transaction_response.dart';
 
 class TransactionService {
-  final String baseUrl = 'https://fynso.pythonanywhere.com';
 
   Future<List<TransactionResponse>> getTransactions({
     required String jwt,
@@ -27,7 +27,7 @@ class TransactionService {
       qp.addAll(filter.toQueryParams());
     }
 
-    final uri = Uri.parse('$baseUrl/api/transactions').replace(queryParameters: qp);
+    final uri = Uri.parse('$AppConstants.baseUrl/api/transactions').replace(queryParameters: qp);
 
     final response = await http.get(
       uri,
@@ -49,7 +49,7 @@ class TransactionService {
     required int idTransaction,
     required Map<String, dynamic> body,
   }) async {
-    final uri = Uri.parse('$baseUrl/api/transactions/$idTransaction');
+    final uri = Uri.parse('$AppConstants.baseUrl/api/transactions/$idTransaction');
 
     final response = await http.patch(
       uri,
@@ -76,7 +76,7 @@ class TransactionService {
     required String jwt,
     required int idTransaction,
   }) async {
-    final uri = Uri.parse('$baseUrl/api/transactions/$idTransaction');
+    final uri = Uri.parse('$AppConstants.baseUrl/api/transactions/$idTransaction');
     final resp = await http.delete(
       uri,
       headers: {
@@ -101,7 +101,7 @@ class TransactionService {
     required String jwt,
     required CreateTransactionRequest request,
   }) async {
-    final uri = Uri.parse('$baseUrl/api/transactions');
+    final uri = Uri.parse('$AppConstants.baseUrl/api/transactions');
 
     final response = await http.post(
       uri,

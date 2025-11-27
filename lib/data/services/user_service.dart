@@ -1,12 +1,12 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import '../../common/utils/constants.dart';
 
 class UserService {
-  final String baseUrl = 'https://fynso.pythonanywhere.com';
 
   Future<String?> getFirstName(String jwt) async {
     final res = await http.get(
-      Uri.parse('$baseUrl/api_me_nombre'),
+      Uri.parse('$AppConstants.baseUrl/api_me_nombre'),
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'JWT $jwt',
@@ -25,7 +25,7 @@ class UserService {
   // Perfil: username y límite mensual actuales en un solo endpoint
   Future<MeUsernameLimit?> getUsernameAndLimit(String jwt) async {
     final res = await http.get(
-      Uri.parse('$baseUrl/api/me_username_y_limite'),
+      Uri.parse('$AppConstants.baseUrl/api/me_username_y_limite'),
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'JWT $jwt',

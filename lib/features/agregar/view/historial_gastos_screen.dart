@@ -9,6 +9,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 
 import 'package:fynso/common/widgets/custom_text_title.dart';
+import 'package:fynso/common/utils/constants.dart';
 import 'package:fynso/features/agregar/view/widgets/boton_mic.dart';
 import 'package:fynso/features/agregar/view/widgets/gasto_card.dart';
 import 'package:fynso/common/ui/category_visuals.dart';
@@ -46,7 +47,6 @@ class _HistorialGastosScreenState extends State<HistorialGastosScreen>
   String jwt = '';
 
   // ===== Rango disponible desde backend =====
-  static const String _baseUrl = 'https://fynso.pythonanywhere.com';
   int? _minYear;
   int? _minMonth;
   int? _maxYearTx;
@@ -132,7 +132,7 @@ class _HistorialGastosScreenState extends State<HistorialGastosScreen>
   // ====== Backend: rango disponible ======
   Future<void> _fetchAvailableRange() async {
     try {
-      final uri = Uri.parse('$_baseUrl/api/transactions/available_range');
+      final uri = Uri.parse('${AppConstants.baseUrl}/api/transactions/available_range');
       final resp = await http.get(
         uri,
         headers: {'Authorization': 'JWT $jwt', 'Accept': 'application/json'},

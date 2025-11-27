@@ -2,14 +2,14 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:background_downloader/background_downloader.dart';
+import '../../common/utils/constants.dart';
 
 import '../models/transcribe_response.dart';
 
 class AudioService {
-  final String baseUrl = 'https://fynso.pythonanywhere.com';
 
   Future<TranscribeResponse> enviarAudio(File audioFile, String jwt) async {
-    final url = '$baseUrl/api/transcribe_and_extract';
+    final url = '$AppConstants.baseUrl/api/transcribe_and_extract';
 
     // Extraemos baseDirectory, directory y filename a partir de la ruta real
     final (baseDirectory, directory, filename) =

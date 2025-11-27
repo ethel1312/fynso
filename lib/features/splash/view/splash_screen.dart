@@ -11,6 +11,7 @@ import '../../../data/repositories/monthly_limit_repository.dart';
 import '../../../common/navigation/main_navigation.dart';
 import '../../../common/widgets/fynso_card_dialog.dart';
 import '../../../common/themes/app_color.dart';
+import '../../../common/utils/constants.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -125,8 +126,7 @@ class _SplashScreenState extends State<SplashScreen>
       final info = await PackageInfo.fromPlatform();
       final versionCode = int.tryParse(info.buildNumber) ?? 0;
 
-      const baseUrl = 'https://fynso.pythonanywhere.com';
-      final uri = Uri.parse('$baseUrl/api/app/check_update').replace(
+      final uri = Uri.parse('${AppConstants.baseUrl}/api/app/check_update').replace(
         queryParameters: {
           'platform': 'android',
           'version_code': '$versionCode',

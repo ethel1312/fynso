@@ -1,17 +1,17 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import '../../common/utils/constants.dart';
 import '../models/monthly_summary.dart';
 
 class MonthlySummaryService {
-  final String baseUrl = 'https://fynso.pythonanywhere.com';
 
   Future<MonthlySummary> getMonthlySummary({
     required String jwt,
     required int anio,
     required int mes,
   }) async {
-    final uri = Uri.parse('$baseUrl/api/monthly_summary')
+    final uri = Uri.parse('$AppConstants.baseUrl/api/monthly_summary')
         .replace(queryParameters: {'anio': '$anio', 'mes': '$mes'});
 
     final resp = await http
@@ -34,7 +34,7 @@ class MonthlySummaryService {
     required int mes,
     required double limite,
   }) async {
-    final uri = Uri.parse('$baseUrl/api/monthly_limit');
+    final uri = Uri.parse('$AppConstants.baseUrl/api/monthly_limit');
     final body = jsonEncode({'anio': anio, 'mes': mes, 'limite': limite});
 
     final resp = await http
@@ -62,7 +62,7 @@ class MonthlySummaryService {
     required int anio,
     required int mes,
   }) async {
-    final uri = Uri.parse('$baseUrl/api/monthly_limit/close');
+    final uri = Uri.parse('$AppConstants.baseUrl/api/monthly_limit/close');
     final body = jsonEncode({'anio': anio, 'mes': mes});
 
     final resp = await http
@@ -92,7 +92,7 @@ class MonthlySummaryService {
     required bool applyDefaultLimit,
     required double defaultLimit,
   }) async {
-    final uri = Uri.parse('$baseUrl/api/monthly_limit/reconcile');
+    final uri = Uri.parse('$AppConstants.baseUrl/api/monthly_limit/reconcile');
     final body = jsonEncode({
       'tz_name': tzName,
       'apply_default_limit': applyDefaultLimit,
