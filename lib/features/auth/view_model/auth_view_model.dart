@@ -41,17 +41,6 @@ class AuthViewModel extends ChangeNotifier {
     }
   }
 
-  // En AuthViewModel
-  Future<AuthResponse?> loginWithGoogle(String idToken) async {
-    try {
-      final repo = AuthRepository();
-      return await repo.loginWithGoogle(idToken); // <-- llamas a tu API backend
-    } catch (e) {
-      print("Error en loginWithGoogle: $e");
-      return null;
-    }
-  }
-
   // REGISTER
 
   Future<Map<String, dynamic>?> register(
