@@ -20,15 +20,6 @@ class AuthRepository {
     }
   }
 
-  Future<AuthResponse?> loginWithGoogle(String idToken) async {
-    try {
-      return await _authService.loginWithGoogle(idToken);
-    } catch (e) {
-      print("Error en loginWithGoogle: $e");
-      return null;
-    }
-  }
-
   Future<Map<String, dynamic>?> register(
     String username,
     String email,

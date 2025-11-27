@@ -26,21 +26,6 @@ class AuthService {
     }
   }
 
-  Future<AuthResponse?> loginWithGoogle(String googleIdToken) async {
-    final response = await http.post(
-      Uri.parse('$baseUrl/auth/google'),
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({'googleIdToken': googleIdToken}),
-    );
-
-    if (response.statusCode == 200) {
-      return AuthResponse.fromJson(jsonDecode(response.body));
-    } else {
-      print("Error Google login: ${response.body}");
-      return null;
-    }
-  }
-
   Future<Map<String, dynamic>> register(RegisterRequest body) async {
     final uri = Uri.parse('$baseUrl/api_registrar_usuario');
     final response = await http.post(
