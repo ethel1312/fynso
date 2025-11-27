@@ -274,13 +274,13 @@ class _SummaryCardState extends State<SummaryCard> with WidgetsBindingObserver {
               ? 'S/. ${vm.gastado.toStringAsFixed(2)}'
               : 'S/. --';
           final limiteTxt = hasData && vm.hasBudget
-              ? 'S/. ${vm.presupuestoReal.toStringAsFixed(2)}'
+              ? 'S/. ${vm.limite.toStringAsFixed(2)}'
               : '—';
           final restanteTxt = hasData && vm.hasBudget
-              ? 'S/. ${vm.restanteReal.toStringAsFixed(2)}'
+              ? 'S/. ${vm.restante.toStringAsFixed(2)}'
               : '—';
           final footerTxt = hasData
-              ? '${vm.percentUsedLabelReal} - ${vm.daysRemaining()} días restantes'
+              ? '${vm.percentUsedLabel} - ${vm.daysRemaining()} días restantes'
               : (vm.isLoading ? 'Cargando...' : (vm.error ?? '—'));
 
           return InkWell(
@@ -343,7 +343,7 @@ class _SummaryCardState extends State<SummaryCard> with WidgetsBindingObserver {
                           ),
                           const SizedBox(height: 8),
                           LinearProgressIndicator(
-                            value: vm.progressReal,
+                            value: vm.progress,
                             color: Colors.black,
                             backgroundColor: Colors.white24,
                           ),

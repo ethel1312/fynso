@@ -25,20 +25,11 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<String?> _loadFirstName() async {
     final prefs = await SharedPreferences.getInstance();
-
-    // 1️⃣ Primero: revisar si existe un nombre de Google
-    final googleName = prefs.getString('google_name');
-    if (googleName != null && googleName.isNotEmpty) {
-      // Tomar solo el primer nombre
-      return googleName.split(' ').first;
-    }
-
-    // 2️⃣ Si no existe, usamos el backend con JWT (login por correo)
     final jwt = prefs.getString('jwt_token');
     if (jwt == null || jwt.isEmpty) return null;
 
     final svc = UserService();
-    return await svc.getFirstName(jwt); // ya debería ser solo primer nombre
+    return await svc.getFirstName(jwt);
   }
 
   @override

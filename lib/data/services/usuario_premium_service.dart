@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'package:fynso/common/config.dart';
 import 'package:http/http.dart' as http;
 import '../models/usuario_premium_model.dart';
 import 'package:shared_preferences/shared_preferences.dart';

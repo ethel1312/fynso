@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-import 'package:fynso/common/config.dart';
 import 'package:http/http.dart' as http;
 import '../models/monthly_summary.dart';
 
@@ -12,9 +11,8 @@ class MonthlySummaryService {
     required int anio,
     required int mes,
   }) async {
-    final uri = Uri.parse(
-      '$baseUrl/api/monthly_summary',
-    ).replace(queryParameters: {'anio': '$anio', 'mes': '$mes'});
+    final uri = Uri.parse('$baseUrl/api/monthly_summary')
+        .replace(queryParameters: {'anio': '$anio', 'mes': '$mes'});
 
     final resp = await http
         .get(uri, headers: {'Authorization': 'JWT $jwt'})
@@ -41,13 +39,13 @@ class MonthlySummaryService {
 
     final resp = await http
         .post(
-          uri,
-          headers: {
-            'Authorization': 'JWT $jwt',
-            'Content-Type': 'application/json',
-          },
-          body: body,
-        )
+      uri,
+      headers: {
+        'Authorization': 'JWT $jwt',
+        'Content-Type': 'application/json',
+      },
+      body: body,
+    )
         .timeout(const Duration(seconds: 12));
 
     if (resp.statusCode != 200) {
@@ -69,13 +67,13 @@ class MonthlySummaryService {
 
     final resp = await http
         .post(
-          uri,
-          headers: {
-            'Authorization': 'JWT $jwt',
-            'Content-Type': 'application/json',
-          },
-          body: body,
-        )
+      uri,
+      headers: {
+        'Authorization': 'JWT $jwt',
+        'Content-Type': 'application/json',
+      },
+      body: body,
+    )
         .timeout(const Duration(seconds: 12));
 
     if (resp.statusCode != 200) {
@@ -103,13 +101,13 @@ class MonthlySummaryService {
 
     final resp = await http
         .post(
-          uri,
-          headers: {
-            'Authorization': 'JWT $jwt',
-            'Content-Type': 'application/json',
-          },
-          body: body,
-        )
+      uri,
+      headers: {
+        'Authorization': 'JWT $jwt',
+        'Content-Type': 'application/json',
+      },
+      body: body,
+    )
         .timeout(const Duration(seconds: 15));
 
     if (resp.statusCode != 200) {
