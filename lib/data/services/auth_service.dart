@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import '../../common/utils/constants.dart';
 import '../models/api_response.dart';
 import '../models/auth_request.dart';
 import '../models/auth_response.dart';
@@ -10,10 +9,11 @@ import '../models/verify_code_request.dart';
 import '../models/update_password_request.dart';
 
 class AuthService {
+  final String baseUrl = 'https://www.fynso.app';
 
   Future<AuthResponse> login(AuthRequest request) async {
     final response = await http.post(
-      Uri.parse('$AppConstants.baseUrl/auth'),
+      Uri.parse('$baseUrl/auth'),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode(request.toJson()),
     );
@@ -26,7 +26,7 @@ class AuthService {
   }
 
   Future<Map<String, dynamic>> register(RegisterRequest body) async {
-    final uri = Uri.parse('$AppConstants.baseUrl/api_registrar_usuario');
+    final uri = Uri.parse('$baseUrl/api_registrar_usuario');
     final response = await http.post(
       uri,
       headers: {
@@ -48,7 +48,7 @@ class AuthService {
   // Enviar código de verificación al email
   Future<ApiResponse> sendVerificationCode(SendCodeRequest request) async {
     final response = await http.post(
-      Uri.parse('$AppConstants.baseUrl/api_enviar_codigo'),
+      Uri.parse('$baseUrl/api_enviar_codigo'),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode(request.toJson()),
     );
@@ -63,7 +63,7 @@ class AuthService {
   // Verificar código de verificación
   Future<ApiResponse> verifyCode(VerifyCodeRequest request) async {
     final response = await http.post(
-      Uri.parse('$AppConstants.baseUrl/api_verificar_codigo'),
+      Uri.parse('$baseUrl/api_verificar_codigo'),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode(request.toJson()),
     );
@@ -78,7 +78,7 @@ class AuthService {
   // Actualizar contraseña
   Future<ApiResponse> updatePassword(UpdatePasswordRequest request) async {
     final response = await http.post(
-      Uri.parse('$AppConstants.baseUrl/api_actualizar_password'),
+      Uri.parse('$baseUrl/api_actualizar_password'),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode(request.toJson()),
     );

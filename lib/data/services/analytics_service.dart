@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:fynso/common/utils/constants.dart';
 import 'package:fynso/data/models/monthly_spending_trend.dart';
 import 'package:fynso/data/models/insights_response.dart';
 import 'package:fynso/data/models/category_status_response.dart';
@@ -73,6 +72,7 @@ class CategoryBreakdownResponse {
 }
 
 class AnalyticsService {
+  final String baseUrl = 'https://www.fynso.app';
 
   Future<CategoryBreakdownResponse> getCategoryBreakdown({
     required String jwt,
@@ -81,7 +81,7 @@ class AnalyticsService {
     int top = 5,
   }) async {
     final uri = Uri.parse(
-      '$AppConstants.baseUrl/api/analytics/category-breakdown',
+      '$baseUrl/api/analytics/category-breakdown',
     ).replace(queryParameters: {'anio': '$anio', 'mes': '$mes', 'top': '$top'});
 
     final resp = await http.get(
@@ -104,7 +104,7 @@ class AnalyticsService {
     required String jwt,
   }) async {
     final uri = Uri.parse(
-      '$AppConstants.baseUrl/api/analytics/monthly_spending_last6_plus_current',
+      '$baseUrl/api/analytics/monthly_spending_last6_plus_current',
     );
 
     final resp = await http.get(
@@ -132,7 +132,7 @@ class AnalyticsService {
     bool shuffle = false,
     String? tzName,
   }) async {
-    final uri = Uri.parse('$AppConstants.baseUrl/api/insights/recommendations').replace(
+    final uri = Uri.parse('$baseUrl/api/insights/recommendations').replace(
       queryParameters: {
         'limit': '$limit',
         'shuffle': shuffle ? '1' : '0',
@@ -174,7 +174,7 @@ class AnalyticsService {
     if (mes != null) queryParams['mes'] = '$mes';
 
     final uri = Uri.parse(
-      '$AppConstants.baseUrl/api/analytics/category_status_cards',
+      '$baseUrl/api/analytics/category_status_cards',
     ).replace(queryParameters: queryParams);
 
     final resp = await http.get(

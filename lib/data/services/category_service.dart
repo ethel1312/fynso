@@ -1,15 +1,15 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import '../../common/utils/constants.dart';
 
 import '../models/category_item.dart';
 import '../models/subcategory_item.dart';
 
 class CategoryService {
+  final String baseUrl = 'https://www.fynso.app';
 
   Future<List<CategoryItem>> getCategories({required String jwt}) async {
     final resp = await http.get(
-      Uri.parse('$AppConstants.baseUrl/api/categories'),
+      Uri.parse('$baseUrl/api/categories'),
       headers: {'Authorization': 'JWT $jwt'},
     ).timeout(const Duration(seconds: 8));
 
@@ -35,7 +35,7 @@ class CategoryService {
     required int idCategory,
   }) async {
     final resp = await http.get(
-      Uri.parse('$AppConstants.baseUrl/api/categories/$idCategory/subcategories'),
+      Uri.parse('$baseUrl/api/categories/$idCategory/subcategories'),
       headers: {'Authorization': 'JWT $jwt'},
     ).timeout(const Duration(seconds: 8));
 

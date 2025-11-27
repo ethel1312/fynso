@@ -1,10 +1,10 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import '../../common/utils/constants.dart';
 import '../models/top_categories_response.dart';
 
 class HomeAnalyticsService {
+  final String baseUrl = 'https://www.fynso.app';
 
   Future<TopCategoriesResponse> getTopCategories({
     required String jwt,
@@ -16,7 +16,7 @@ class HomeAnalyticsService {
     if (year != null) qp['year'] = '$year';
     if (month != null) qp['month'] = '$month';
 
-    final uri = Uri.parse('$AppConstants.baseUrl/api/analytics/top_categories')
+    final uri = Uri.parse('$baseUrl/api/analytics/top_categories')
         .replace(queryParameters: qp);
 
     try {

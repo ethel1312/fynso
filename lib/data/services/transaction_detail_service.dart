@@ -1,16 +1,16 @@
 // lib/data/services/transaction_detail_service.dart
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import '../../common/utils/constants.dart';
 import '../models/transaction_detail_response.dart';
 
 class TransactionDetailService {
+  final String baseUrl = 'https://www.fynso.app';
 
   Future<TransactionDetailResponse> getTransactionDetail({
     required String jwt,
     required int idTransaction,
   }) async {
-    final uri = Uri.parse('$AppConstants.baseUrl/api/transactions/$idTransaction');
+    final uri = Uri.parse('$baseUrl/api/transactions/$idTransaction');
 
     final response = await http.get(
       uri,

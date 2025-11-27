@@ -1,8 +1,8 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import '../../common/utils/constants.dart';
 
 class MonthlyLimitService {
+  final String baseUrl = 'https://www.fynso.app';
 
   // === Reconcile (sin now_iso) ===
   Future<void> reconcile({
@@ -11,7 +11,7 @@ class MonthlyLimitService {
     bool applyDefaultLimit = false,
     String defaultLimit = '0.00',
   }) async {
-    final uri = Uri.parse('$AppConstants.baseUrl/api/monthly_limit/reconcile');
+    final uri = Uri.parse('$baseUrl/api/monthly_limit/reconcile');
     final res = await http.post(
       uri,
       headers: {
@@ -35,7 +35,7 @@ class MonthlyLimitService {
   Future<({bool enabled, double defaultLimit})> getDefaultMonthlyLimit({
     required String jwt,
   }) async {
-    final uri = Uri.parse('$AppConstants.baseUrl/api/user/default_monthly_limit');
+    final uri = Uri.parse('$baseUrl/api/user/default_monthly_limit');
     final res = await http.get(
       uri,
       headers: {'Authorization': 'JWT $jwt'},
@@ -60,7 +60,7 @@ class MonthlyLimitService {
     required bool enabled,
     required double defaultLimit,
   }) async {
-    final uri = Uri.parse('$AppConstants.baseUrl/api/user/default_monthly_limit');
+    final uri = Uri.parse('$baseUrl/api/user/default_monthly_limit');
     final res = await http.post(
       uri,
       headers: {

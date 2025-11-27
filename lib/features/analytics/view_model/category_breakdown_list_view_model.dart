@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
-import 'package:fynso/common/utils/constants.dart';
 import 'package:fynso/data/repositories/analytics_repository.dart';
 import 'package:fynso/data/services/analytics_service.dart';
 
@@ -22,6 +21,7 @@ class CategoryBreakdownListViewModel extends ChangeNotifier {
   int mes  = DateTime.now().month;
 
   // Rango disponible (según backend /available_range)
+  static const String _baseUrl = 'https://www.fynso.app';
   int? _minYear;              // primer año con transacciones
   int? _minMonth;             // primer mes con transacciones
   int? _maxYearTx;            // último año con transacciones
@@ -76,7 +76,7 @@ class CategoryBreakdownListViewModel extends ChangeNotifier {
   // ===== available_range del backend =====
   Future<void> _fetchAvailableRange() async {
     try {
-      final uri = Uri.parse('${AppConstants.baseUrl}/api/transactions/available_range');
+      final uri = Uri.parse('$_baseUrl/api/transactions/available_range');
       final resp = await http.get(
         uri,
         headers: {'Authorization': 'JWT $_jwt', 'Accept': 'application/json'},

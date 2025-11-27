@@ -1,14 +1,14 @@
 // lib/data/services/premium_service.dart
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import '../../common/utils/constants.dart';
 import '../models/pago_premium_model.dart';
 import '../models/premium_status_response.dart';
 
 class PremiumService {
+  final String baseUrl = "https://www.fynso.app";
 
   Future<PagoPremium> iniciarSuscripcion({required String jwt}) async {
-    final url = Uri.parse("$AppConstants.baseUrl/api/subscription/start");
+    final url = Uri.parse("$baseUrl/api/subscription/start");
 
     final response = await http.post(
       url,
@@ -26,7 +26,7 @@ class PremiumService {
   Future<PremiumStatusResponse> verificarEstadoPremium({
     required String jwt,
   }) async {
-    final url = Uri.parse("$AppConstants.baseUrl/api/subscription/status");
+    final url = Uri.parse("$baseUrl/api/subscription/status");
 
     final response = await http.get(
       url,
