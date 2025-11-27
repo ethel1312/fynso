@@ -1,8 +1,9 @@
 import 'dart:convert';
+import 'package:fynso/common/config.dart';
 import 'package:http/http.dart' as http;
 
 class UserService {
-  final String baseUrl = 'https://www.fynso.app';
+  final String baseUrl = Config.baseUrl;
 
   Future<String?> getFirstName(String jwt) async {
     final res = await http.get(

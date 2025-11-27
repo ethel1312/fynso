@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
+import 'package:fynso/common/config.dart';
 import 'package:http/http.dart' as http;
 
 import 'package:fynso/data/repositories/analytics_repository.dart';
@@ -18,29 +19,25 @@ class CategoryBreakdownListViewModel extends ChangeNotifier {
 
   // Mes/Año visibles (inicializados para evitar LateInitializationError)
   int anio = DateTime.now().year;
-  int mes  = DateTime.now().month;
+  int mes = DateTime.now().month;
 
   // Rango disponible (según backend /available_range)
-  static const String _baseUrl = 'https://www.fynso.app';
-  int? _minYear;              // primer año con transacciones
-  int? _minMonth;             // primer mes con transacciones
-  int? _maxYearTx;            // último año con transacciones
-  int? _maxMonthTx;           // último mes con transacciones
-  int? _maxAllowedYear;       // tope técnico (próximo mes)
-  int? _maxAllowedMonth;      // tope técnico (próximo mes)
+  static const String _baseUrl = Config.baseUrl;
+  int? _minYear; // primer año con transacciones
+  int? _minMonth; // primer mes con transacciones
+  int? _maxYearTx; // último año con transacciones
+  int? _maxMonthTx; // último mes con transacciones
+  int? _maxAllowedYear; // tope técnico (próximo mes)
+  int? _maxAllowedMonth; // tope técnico (próximo mes)
 
   // Flag para permitir un mes futuro (si el usuario tiene default_monthly_limit)
   bool hasUserDefaultLimit = false;
 
   // ===== Lifecycle =====
-  Future<void> init({
-    required String jwt,
-    int? anio,
-    int? mes,
-  }) async {
+  Future<void> init({required String jwt, int? anio, int? mes}) async {
     _jwt = jwt;
     if (anio != null) this.anio = anio;
-    if (mes  != null) this.mes  = mes;
+    if (mes != null) this.mes = mes;
 
     await _fetchAvailableRange();
     await load(); // llena 'data' y 'hasUserDefaultLimit'
@@ -86,11 +83,15 @@ class CategoryBreakdownListViewModel extends ChangeNotifier {
       if ((root['code'] ?? 0) != 1) return;
       final data = (root['data'] as Map<String, dynamic>?) ?? {};
 
-      _minYear         = data['min_year'] as int?;
-      _minMonth        = data['min_month'] as int?;
-      _maxYearTx       = data['max_year'] as int? ?? data['max_allowed_year'] as int?;     // fallback
-      _maxMonthTx      = data['max_month'] as int? ?? data['max_allowed_month'] as int?;   // fallback
-      _maxAllowedYear  = data['max_allowed_year'] as int?;
+      _minYear = data['min_year'] as int?;
+      _minMonth = data['min_month'] as int?;
+      _maxYearTx =
+          data['max_year'] as int? ??
+          data['max_allowed_year'] as int?; // fallback
+      _maxMonthTx =
+          data['max_month'] as int? ??
+          data['max_allowed_month'] as int?; // fallback
+      _maxAllowedYear = data['max_allowed_year'] as int?;
       _maxAllowedMonth = data['max_allowed_month'] as int?;
     } catch (_) {}
   }
@@ -135,8 +136,10 @@ class CategoryBreakdownListViewModel extends ChangeNotifier {
         : _addMonths(DateTime(now.year, now.month, 1), 1);
 
     final cmp = _ymCompare(
-      logicalMax.year, logicalMax.month,
-      maxAllowedRaw.year, maxAllowedRaw.month,
+      logicalMax.year,
+      logicalMax.month,
+      maxAllowedRaw.year,
+      maxAllowedRaw.month,
     );
     final maxAllowed = (cmp <= 0) ? logicalMax : maxAllowedRaw;
 
