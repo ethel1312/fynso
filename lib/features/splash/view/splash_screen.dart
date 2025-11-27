@@ -141,7 +141,7 @@ class _SplashScreenState extends State<SplashScreen>
       final info = await PackageInfo.fromPlatform();
       final versionCode = int.tryParse(info.buildNumber) ?? 0;
 
-      const baseUrl = Config.baseUrl;
+      const baseUrl = 'https://www.fynso.app';
       final uri = Uri.parse('$baseUrl/api/app/check_update').replace(
         queryParameters: {
           'platform': 'android',

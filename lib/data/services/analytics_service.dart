@@ -73,7 +73,7 @@ class CategoryBreakdownResponse {
 }
 
 class AnalyticsService {
-  final String baseUrl = Config.baseUrl;
+  final String baseUrl = 'https://www.fynso.app';
 
   Future<CategoryBreakdownResponse> getCategoryBreakdown({
     required String jwt,

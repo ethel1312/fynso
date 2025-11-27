@@ -22,13 +22,13 @@ class CategoryBreakdownListViewModel extends ChangeNotifier {
   int mes = DateTime.now().month;
 
   // Rango disponible (según backend /available_range)
-  static const String _baseUrl = Config.baseUrl;
-  int? _minYear; // primer año con transacciones
-  int? _minMonth; // primer mes con transacciones
-  int? _maxYearTx; // último año con transacciones
-  int? _maxMonthTx; // último mes con transacciones
-  int? _maxAllowedYear; // tope técnico (próximo mes)
-  int? _maxAllowedMonth; // tope técnico (próximo mes)
+  static const String _baseUrl = 'https://www.fynso.app';
+  int? _minYear;              // primer año con transacciones
+  int? _minMonth;             // primer mes con transacciones
+  int? _maxYearTx;            // último año con transacciones
+  int? _maxMonthTx;           // último mes con transacciones
+  int? _maxAllowedYear;       // tope técnico (próximo mes)
+  int? _maxAllowedMonth;      // tope técnico (próximo mes)
 
   // Flag para permitir un mes futuro (si el usuario tiene default_monthly_limit)
   bool hasUserDefaultLimit = false;

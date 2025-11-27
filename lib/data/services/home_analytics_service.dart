@@ -5,7 +5,7 @@ import 'package:http/http.dart' as http;
 import '../models/top_categories_response.dart';
 
 class HomeAnalyticsService {
-  final String baseUrl = Config.baseUrl;
+  final String baseUrl = 'https://www.fynso.app';
 
   Future<TopCategoriesResponse> getTopCategories({
     required String jwt,

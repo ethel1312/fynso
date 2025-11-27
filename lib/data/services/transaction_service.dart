@@ -7,7 +7,7 @@ import '../models/create_transaction_request.dart';
 import '../models/create_transaction_response.dart';
 
 class TransactionService {
-  final String baseUrl = Config.baseUrl;
+  final String baseUrl = 'https://www.fynso.app';
 
   Future<List<TransactionResponse>> getTransactions({
     required String jwt,

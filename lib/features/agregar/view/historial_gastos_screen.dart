@@ -47,7 +47,7 @@ class _HistorialGastosScreenState extends State<HistorialGastosScreen>
   String jwt = '';
 
   // ===== Rango disponible desde backend =====
-  static const String _baseUrl = Config.baseUrl;
+  static const String _baseUrl = 'https://www.fynso.app';
   int? _minYear;
   int? _minMonth;
   int? _maxYearTx;

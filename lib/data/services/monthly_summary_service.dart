@@ -5,7 +5,7 @@ import 'package:http/http.dart' as http;
 import '../models/monthly_summary.dart';
 
 class MonthlySummaryService {
-  final String baseUrl = Config.baseUrl;
+  final String baseUrl = 'https://www.fynso.app';
 
   Future<MonthlySummary> getMonthlySummary({
     required String jwt,

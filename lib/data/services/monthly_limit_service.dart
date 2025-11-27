@@ -3,7 +3,7 @@ import 'package:fynso/common/config.dart';
 import 'package:http/http.dart' as http;
 
 class MonthlyLimitService {
-  final String baseUrl = Config.baseUrl;
+  final String baseUrl = 'https://www.fynso.app';
 
   // === Reconcile (sin now_iso) ===
   Future<void> reconcile({

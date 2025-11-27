@@ -6,7 +6,7 @@ import '../models/category_item.dart';
 import '../models/subcategory_item.dart';
 
 class CategoryService {
-  final String baseUrl = Config.baseUrl;
+  final String baseUrl = 'https://www.fynso.app';
 
   Future<List<CategoryItem>> getCategories({required String jwt}) async {
     final resp = await http

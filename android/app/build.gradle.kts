@@ -9,9 +9,8 @@ plugins {
 }
 
 android {
-    namespace = "com.example.fynso"
-    //compileSdk = flutter.compileSdkVersion
-    compileSdk = 36
+    namespace = "app.fynso.fynso"
+    compileSdk = flutter.compileSdkVersion
     ndkVersion = "29.0.14033849"
     //ndkVersion = "27.0.12077973"
 
@@ -26,8 +25,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.example.fynso"
-        //minSdk = flutter.minSdkVersion
+        applicationId = "app.fynso.fynso"
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode

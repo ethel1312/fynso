@@ -5,7 +5,7 @@ import '../models/usuario_premium_model.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class UsuarioPremiumService {
-  final String baseUrl = Config.baseUrl;
+  final String baseUrl = 'https://www.fynso.app';
 
   Future<UsuarioPremium?> obtenerEstadoPremium({required String jwt}) async {
     final uri = Uri.parse('$baseUrl/api_usuario_premium_estado');

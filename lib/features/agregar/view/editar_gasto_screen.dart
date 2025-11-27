@@ -501,10 +501,11 @@ class _EditarGastoScreenState extends State<EditarGastoScreen> {
 
   // Helper para otros textos
   Widget _buildField(
-    String label,
-    TextEditingController controller, {
-    int maxLines = 1,
-  }) {
+      String label,
+      TextEditingController controller, {
+        int maxLines = 1,
+        bool enabled = true, // ⬅️ nuevo parámetro opcional con default
+      }) {
     return Center(
       child: SizedBox(
         width: 335,
@@ -512,6 +513,7 @@ class _EditarGastoScreenState extends State<EditarGastoScreen> {
           label: label,
           controller: controller,
           maxLines: maxLines,
+          enabled: enabled, // ⬅️ ahora sí existe
         ),
       ),
     );
