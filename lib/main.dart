@@ -27,7 +27,6 @@ import 'features/pago/view/pendiente_screen.dart';
 import 'features/analytics/view/category_breakdown_screen.dart';
 import 'features/auth/view/terms_screen.dart';
 import 'common/navigation/route_observer.dart';
-import 'firebase_options.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -41,8 +40,6 @@ void main() async {
     DeviceOrientation.portraitDown,
   ]);
   await NotificationService.init(); // solo inicializa
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  await NotificationService.init();
   runApp(const MyApp());
 }
 
@@ -174,7 +171,7 @@ class MyApp extends StatelessWidget {
               '/rechazado': (context) => const RechazadoScreen(),
               '/pendiente': (context) => const PendienteScreen(),
               '/desgloseCategorias': (context) =>
-                  const CategoryBreakdownScreen(),
+              const CategoryBreakdownScreen(),
               '/terminos': (context) => const TermsScreen(),
             },
 
