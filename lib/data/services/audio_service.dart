@@ -1,28 +1,52 @@
 import 'dart:convert';
 import 'dart:io';
-import 'package:fynso/common/config.dart';
 import 'package:http/http.dart' as http;
+import 'package:background_downloader/background_downloader.dart';
 
 import '../models/transcribe_response.dart';
 
 class AudioService {
-  final String baseUrl = Config.baseUrl;
+  final String baseUrl = 'https://www.fynso.app';
 
   Future<TranscribeResponse> enviarAudio(File audioFile, String jwt) async {
-    final uri = Uri.parse('$baseUrl/api/transcribe_and_extract');
+    final url = '$baseUrl/api/transcribe_and_extract';
 
-    final request = http.MultipartRequest('POST', uri)
-      ..headers['Authorization'] = 'JWT $jwt'
-      ..files.add(await http.MultipartFile.fromPath('audio', audioFile.path));
+    // Extraemos baseDirectory, directory y filename a partir de la ruta real
+    final (baseDirectory, directory, filename) =
+    await Task.split(filePath: audioFile.path);
 
-    final streamed = await request.send();
-    final body = await http.Response.fromStream(streamed);
+    // Definimos la tarea de subida multi-part
+    final task = UploadTask(
+      url: url,
+      baseDirectory: baseDirectory,
+      directory: directory,
+      filename: filename,
+      fileField: 'audio', // 👈 tu backend espera "audio" en request.files.get("audio")
+      headers: {
+        'Authorization': 'JWT $jwt',
+      },
+      // Si quieres progreso para debug, puedes cambiar a statusAndProgress
+      updates: Updates.status,
+    );
 
-    if (body.statusCode != 200) {
-      throw Exception('Error al enviar audio: ${body.statusCode} ${body.body}');
+    // Lanzamos el upload y esperamos el resultado (aunque la app se vaya a background)
+    final result = await FileDownloader().upload(task);
+
+    if (result.status != TaskStatus.complete) {
+      // Aquí puedes loguear más info si quieres
+      throw Exception(
+        'Error al enviar audio: '
+            '${result.responseStatusCode ?? ''} '
+            '${result.exception?.toString() ?? ''}',
+      );
     }
 
-    final decoded = jsonDecode(body.body) as Map<String, dynamic>;
+    final body = result.responseBody;
+    if (body == null) {
+      throw Exception('Respuesta vacía del servidor');
+    }
+
+    final decoded = jsonDecode(body) as Map<String, dynamic>;
     if ((decoded['code'] ?? 0) != 1) {
       throw Exception(decoded['message'] ?? 'Error al procesar audio');
     }

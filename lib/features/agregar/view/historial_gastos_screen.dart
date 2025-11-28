@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'dart:io' show HttpDate;
 
 import 'package:flutter/material.dart';
-import 'package:fynso/common/config.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -47,7 +46,7 @@ class _HistorialGastosScreenState extends State<HistorialGastosScreen>
   String jwt = '';
 
   // ===== Rango disponible desde backend =====
-  static const String _baseUrl = Config.baseUrl;
+  static const String _baseUrl = 'https://www.fynso.app';
   int? _minYear;
   int? _minMonth;
   int? _maxYearTx;

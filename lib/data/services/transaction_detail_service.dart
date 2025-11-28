@@ -1,11 +1,10 @@
 // lib/data/services/transaction_detail_service.dart
 import 'dart:convert';
-import 'package:fynso/common/config.dart';
 import 'package:http/http.dart' as http;
 import '../models/transaction_detail_response.dart';
 
 class TransactionDetailService {
-  final String baseUrl = Config.baseUrl;
+  final String baseUrl = 'https://www.fynso.app';
 
   Future<TransactionDetailResponse> getTransactionDetail({
     required String jwt,

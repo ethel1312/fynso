@@ -1,20 +1,17 @@
 import 'dart:convert';
-import 'package:fynso/common/config.dart';
 import 'package:http/http.dart' as http;
 
 import '../models/category_item.dart';
 import '../models/subcategory_item.dart';
 
 class CategoryService {
-  final String baseUrl = Config.baseUrl;
+  final String baseUrl = 'https://www.fynso.app';
 
   Future<List<CategoryItem>> getCategories({required String jwt}) async {
-    final resp = await http
-        .get(
-          Uri.parse('$baseUrl/api/categories'),
-          headers: {'Authorization': 'JWT $jwt'},
-        )
-        .timeout(const Duration(seconds: 8));
+    final resp = await http.get(
+      Uri.parse('$baseUrl/api/categories'),
+      headers: {'Authorization': 'JWT $jwt'},
+    ).timeout(const Duration(seconds: 8));
 
     if (resp.statusCode != 200) {
       throw Exception('Error al obtener categorías: ${resp.statusCode}');
@@ -37,12 +34,10 @@ class CategoryService {
     required String jwt,
     required int idCategory,
   }) async {
-    final resp = await http
-        .get(
-          Uri.parse('$baseUrl/api/categories/$idCategory/subcategories'),
-          headers: {'Authorization': 'JWT $jwt'},
-        )
-        .timeout(const Duration(seconds: 8));
+    final resp = await http.get(
+      Uri.parse('$baseUrl/api/categories/$idCategory/subcategories'),
+      headers: {'Authorization': 'JWT $jwt'},
+    ).timeout(const Duration(seconds: 8));
 
     if (resp.statusCode != 200) {
       throw Exception('Error al obtener subcategorías: ${resp.statusCode}');

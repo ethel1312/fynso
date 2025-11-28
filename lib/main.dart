@@ -1,4 +1,3 @@
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
@@ -27,11 +26,11 @@ import 'features/pago/view/pendiente_screen.dart';
 import 'features/analytics/view/category_breakdown_screen.dart';
 import 'features/auth/view/terms_screen.dart';
 import 'common/navigation/route_observer.dart';
-import 'firebase_options.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:fynso/data/services/notification_service.dart';
+import 'package:background_downloader/background_downloader.dart';
 // ... tus otros imports
 
 void main() async {
@@ -41,8 +40,7 @@ void main() async {
     DeviceOrientation.portraitDown,
   ]);
   await NotificationService.init(); // solo inicializa
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  await NotificationService.init();
+  await FileDownloader().start();
   runApp(const MyApp());
 }
 

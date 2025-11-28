@@ -1,4 +1,4 @@
-package com.example.fynso;
+package app.fynso.fynso;
 
 import androidx.annotation.NonNull;
 

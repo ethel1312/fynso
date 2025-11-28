@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'package:fynso/common/config.dart';
 import 'package:http/http.dart' as http;
 import 'package:fynso/data/models/monthly_spending_trend.dart';
 import 'package:fynso/data/models/insights_response.dart';
@@ -73,7 +72,7 @@ class CategoryBreakdownResponse {
 }
 
 class AnalyticsService {
-  final String baseUrl = Config.baseUrl;
+  final String baseUrl = 'https://www.fynso.app';
 
   Future<CategoryBreakdownResponse> getCategoryBreakdown({
     required String jwt,
