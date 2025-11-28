@@ -504,6 +504,7 @@ class _EditarGastoScreenState extends State<EditarGastoScreen> {
     String label,
     TextEditingController controller, {
     int maxLines = 1,
+    bool enabled = true,
   }) {
     return Center(
       child: SizedBox(
@@ -512,6 +513,7 @@ class _EditarGastoScreenState extends State<EditarGastoScreen> {
           label: label,
           controller: controller,
           maxLines: maxLines,
+          enabled: enabled,
         ),
       ),
     );
