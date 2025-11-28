@@ -20,19 +20,19 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     {
       'title': 'Registro de gastos por voz',
       'description':
-          'Añade tus gastos simplemente hablando. Fynso los escucha, los interpreta y los guarda al instante.',
+      'Añade tus gastos simplemente hablando. Fynso los escucha, los interpreta y los guarda al instante.',
       'icon': 'mic',
     },
     {
       'title': 'Categorización inteligente',
       'description':
-          'Fynso identifica la categoría de tus gastos automáticamente para que no pierdas tiempo organizándolos.',
+      'Fynso identifica la categoría de tus gastos automáticamente para que no pierdas tiempo organizándolos.',
       'icon': 'auto_awesome',
     },
     {
       'title': 'Reportes claros y útiles',
       'description':
-          'Revisa tus gastos del mes en gráficos fáciles de entender. Identifica rápidamente en qué estás gastando más.',
+      'Revisa tus gastos del mes en gráficos fáciles de entender. Identifica rápidamente en qué estás gastando más.',
       'icon': 'monitoring',
     },
   ];
@@ -68,12 +68,20 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
+
     return Scaffold(
       body: SafeArea(
         child: Column(
           children: [
+            // 🔹 Solo el contenido va dentro del PageView
             Expanded(
               child: PageView.builder(
                 controller: _pageController,
@@ -83,7 +91,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   final page = _pages[index];
                   return Column(
                     children: [
-                      // 🔹 Fondo azul con icono blanco
+                      // Fondo azul con icono blanco
                       Container(
                         width: double.infinity,
                         height: size.height * 0.5,
@@ -97,7 +105,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         ),
                       ),
 
-                      // 🔹 Card blanca con bordes redondeados arriba
+                      // Card blanca con título y descripción
                       Expanded(
                         child: Container(
                           width: double.infinity,
@@ -110,74 +118,21 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                           child: Padding(
                             padding: const EdgeInsets.all(24.0),
                             child: Column(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                Column(
-                                  children: [
-                                    Text(
-                                      page['title'] ?? '',
-                                      style: const TextStyle(
-                                        fontSize: 22,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                      textAlign: TextAlign.center,
-                                    ),
-                                    const SizedBox(height: 16),
-                                    Text(
-                                      page['description'] ?? '',
-                                      style: const TextStyle(fontSize: 16),
-                                      textAlign: TextAlign.center,
-                                    ),
-                                  ],
+                                Text(
+                                  page['title'] ?? '',
+                                  style: const TextStyle(
+                                    fontSize: 22,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                  textAlign: TextAlign.center,
                                 ),
-
-                                // 🔹 Botones y indicadores
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    TextButton(
-                                      onPressed: _finishOnboarding,
-                                      child: const Text('Saltar'),
-                                    ),
-                                    Row(
-                                      children: List.generate(
-                                        _pages.length,
-                                        (dotIndex) => Container(
-                                          margin: const EdgeInsets.symmetric(
-                                            horizontal: 4,
-                                          ),
-                                          width: _currentPage == dotIndex
-                                              ? 12
-                                              : 8,
-                                          height: _currentPage == dotIndex
-                                              ? 12
-                                              : 8,
-                                          decoration: BoxDecoration(
-                                            shape: BoxShape.circle,
-                                            color: _currentPage == dotIndex
-                                                ? AppColor.azulFynso
-                                                : Colors.grey,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                    TextButton(
-                                      onPressed: () {
-                                        if (_currentPage < _pages.length - 1) {
-                                          _pageController.nextPage(
-                                            duration: const Duration(
-                                              milliseconds: 300,
-                                            ),
-                                            curve: Curves.easeInOut,
-                                          );
-                                        } else {
-                                          _finishOnboarding();
-                                        }
-                                      },
-                                      child: const Text('Siguiente'),
-                                    ),
-                                  ],
+                                const SizedBox(height: 16),
+                                Text(
+                                  page['description'] ?? '',
+                                  style: const TextStyle(fontSize: 16),
+                                  textAlign: TextAlign.center,
                                 ),
                               ],
                             ),
@@ -187,6 +142,54 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     ],
                   );
                 },
+              ),
+            ),
+
+            // 🔹 Botones e indicadores fijos abajo
+            Padding
+              (
+              padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  TextButton(
+                    onPressed: _finishOnboarding,
+                    child: const Text('Saltar'),
+                  ),
+                  Row(
+                    children: List.generate(
+                      _pages.length,
+                          (dotIndex) => Container(
+                        margin: const EdgeInsets.symmetric(horizontal: 4),
+                        width: _currentPage == dotIndex ? 12 : 8,
+                        height: _currentPage == dotIndex ? 12 : 8,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: _currentPage == dotIndex
+                              ? AppColor.azulFynso
+                              : Colors.grey,
+                        ),
+                      ),
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      if (_currentPage < _pages.length - 1) {
+                        _pageController.nextPage(
+                          duration: const Duration(milliseconds: 300),
+                          curve: Curves.easeInOut,
+                        );
+                      } else {
+                        _finishOnboarding();
+                      }
+                    },
+                    child: Text(
+                      _currentPage == _pages.length - 1
+                          ? 'Empezar'
+                          : 'Siguiente',
+                    ),
+                  ),
+                ],
               ),
             ),
           ],
