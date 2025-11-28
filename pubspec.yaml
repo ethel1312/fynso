@@ -57,6 +57,8 @@ dependencies:
   firebase_core: ^4.2.1
   cherry_toast: ^1.13.0
   background_downloader: ^9.2.6
+  timezone: ^0.10.0
+  flutter_timezone: ^4.1.0
 
 dev_dependencies:
   flutter_test:
