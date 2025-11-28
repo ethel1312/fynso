@@ -89,7 +89,7 @@ class _LoginScreenState extends State<LoginScreen> {
       String msg;
       if (e.code == GoogleSignInExceptionCode.canceled) {
         // OJO: canceled también se usa cuando el framework de credenciales falla
-        msg = 'Inicio de sesión cancelada o fallida.\n(${e.description ?? 'sin descripción'})';
+        msg = 'Inicio de sesión cancelada o fallida.';
       } else {
         msg = 'Error al iniciar sesión con Google: ${e.code.name} '
             '(${e.description ?? 'sin descripción'})';
