@@ -27,7 +27,9 @@ import '../../../data/models/category_item.dart';
 import '../../../data/models/subcategory_item.dart';
 
 class HistorialGastosScreen extends StatefulWidget {
-  const HistorialGastosScreen({super.key});
+  final bool showAppBar;
+
+  const HistorialGastosScreen({super.key, this.showAppBar = true});
 
   @override
   State<HistorialGastosScreen> createState() => _HistorialGastosScreenState();
@@ -1015,10 +1017,13 @@ class _HistorialGastosScreenState extends State<HistorialGastosScreen>
 
           if (_booting || vm.isLoading) {
             return Scaffold(
-              appBar: AppBar(
+              backgroundColor: Colors.white,
+              appBar: widget.showAppBar
+                  ? AppBar(
                 title: const CustomTextTitle('Historial de gastos'),
                 elevation: 1,
-              ),
+              )
+                  : null,
               body: const Center(child: CircularProgressIndicator()),
               floatingActionButton: MicButton(
                 onPressed: () => Navigator.pushNamed(context, '/grabarGasto'),
@@ -1027,11 +1032,15 @@ class _HistorialGastosScreenState extends State<HistorialGastosScreen>
             );
           }
 
+
           return Scaffold(
-            appBar: AppBar(
+            backgroundColor: Colors.white,
+            appBar: widget.showAppBar
+                ? AppBar(
               title: const CustomTextTitle('Historial de gastos'),
               elevation: 1,
-            ),
+            )
+                : null,
             body: ListView(
               padding: const EdgeInsets.all(16),
               children: [

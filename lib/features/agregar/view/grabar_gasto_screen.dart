@@ -652,7 +652,7 @@ class _GrabarGastoScreenState extends State<GrabarGastoScreen>
                 onPressed: isRecording || isUploading
                     ? null
                     : () async {
-                        await Navigator.pushNamed(context, '/historialGastos');
+                        await Navigator.pushNamed(context, '/historialMovimientos');
                       },
               ),
             ],

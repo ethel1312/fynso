@@ -89,24 +89,6 @@ class MonthlySummaryViewModel extends ChangeNotifier {
     return '${p.toStringAsFixed(1)}% usado';
   }
 
-  double get presupuestoReal => limite + (summary?.ingresosDouble ?? 0.0);
-
-  double get restanteReal =>
-      (presupuestoReal - gastado).clamp(0.0, double.infinity);
-
-  double get progressReal {
-    if (presupuestoReal <= 0) return 0.0;
-    final v = gastado / presupuestoReal;
-    if (v.isNaN || v.isInfinite) return 0.0;
-    return v.clamp(0.0, 1.0);
-  }
-
-  String get percentUsedLabelReal {
-    if (presupuestoReal <= 0) return 'Sin presupuesto';
-    final p = (progressReal * 100);
-    return '${p.toStringAsFixed(1)}% usado';
-  }
-
   int daysRemaining({DateTime? now}) {
     final _now = now ?? DateTime.now();
     final year = summary?.anio ?? _now.year;

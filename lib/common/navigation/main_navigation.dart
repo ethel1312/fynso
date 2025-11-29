@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:fynso/features/agregar/view/registrar_movimientos_screen.dart';
 import '../../features/agregar/view/agregar_gasto_screen.dart';
 import '../../features/agregar/view/grabar_gasto_screen.dart';
-import '../../features/agregar/view/historial_gastos_screen.dart';
+import '../../features/agregar/view/historial_movimientos_screen.dart';
 import '../../features/analytics/view/analytics_screen.dart';
 import '../../features/home/view/home_screen.dart';
 import '../themes/app_color.dart';
@@ -21,7 +21,7 @@ class _MainNavigationState extends State<MainNavigation> {
     const HomeScreen(),
     const RegistrarMovimientosScreen(),
     const GrabarGastoScreen(),
-    const HistorialGastosScreen(),
+    const HistorialMovimientosScreen(),
     const AnalyticsScreen(),
   ];
 

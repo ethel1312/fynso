@@ -7,6 +7,9 @@ import 'package:flutter/services.dart';
 import 'common/themes/app_color.dart';
 import 'common/themes/theme_view_model.dart';
 import 'data/services/notification_service.dart';
+import 'features/agregar/view/detalle_ingreso_screen.dart';
+import 'features/agregar/view/editar_ingreso_screen.dart';
+import 'features/agregar/view/historial_movimientos_screen.dart';
 import 'features/auth/view_model/auth_view_model.dart';
 import 'features/auth/view_model/password_view_model.dart';
 import 'features/settings/view_model/premium_view_model.dart';
@@ -163,7 +166,9 @@ class MyApp extends StatelessWidget {
             routes: {
               '/login': (context) => const LoginScreen(),
               '/home': (context) => const HomeScreen(),
-              '/historialGastos': (context) => const HistorialGastosScreen(),
+              '/detalleIngreso': (context) => const DetalleIngresoScreen(),
+              '/editarIngreso': (context) => const EditarIngresoScreen(),
+              '/historialMovimientos': (context) => const HistorialMovimientosScreen(),
               '/detalleGasto': (context) => const DetalleGastoScreen(),
               '/grabarGasto': (context) => const GrabarGastoScreen(),
               '/editarGasto': (context) => const EditarGastoScreen(),
