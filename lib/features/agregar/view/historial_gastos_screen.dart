@@ -948,7 +948,12 @@ class _HistorialGastosScreenState extends State<HistorialGastosScreen>
                               await viewModel.applyFilter(f);
                               if (mounted) Navigator.pop(context);
                             },
-                            child: const Text('Aplicar'),
+                            child: const Text(
+                              'Aplicar',
+                              style: TextStyle(
+                                color: Colors.white,
+                              ),
+                            ),
                           ),
                         ),
                       ],

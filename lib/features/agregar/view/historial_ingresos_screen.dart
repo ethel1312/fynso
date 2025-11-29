@@ -25,7 +25,7 @@ class _IncomeItem {
   final int idIncome;
   final double amount;
   final String fecha; // ISO o similar
-  final String hora;  // "HH:mm:ss" o "HH:mm"
+  final String hora; // "HH:mm:ss" o "HH:mm"
   final String? notes;
 
   _IncomeItem({
@@ -83,10 +83,11 @@ class _HistorialIngresosScreenState extends State<HistorialIngresosScreen> {
       );
 
       if (resp.statusCode != 200) {
+        final bodyStr = resp.body;
+        final preview =
+        bodyStr.length > 200 ? bodyStr.substring(0, 200) : bodyStr;
         setState(() {
-          final bodyStr = resp.body;
-          _error =
-          'Error HTTP ${resp.statusCode}: ${bodyStr.substring(0, bodyStr.length.clamp(0, 200))}';
+          _error = 'Error HTTP ${resp.statusCode}: $preview';
           _loading = false;
         });
         return;
@@ -215,6 +216,59 @@ class _HistorialIngresosScreenState extends State<HistorialIngresosScreen> {
     return s[0].toUpperCase() + s.substring(1);
   }
 
+  // 🔹 Total de ingresos del mes actual
+  double get _totalIngresosMes {
+    return _items.fold<double>(0.0, (sum, item) => sum + item.amount);
+  }
+
+  Widget _buildTotalCard() {
+    final total = _totalIngresosMes;
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.green[50],
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.green[100]!),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            Icons.savings_outlined,
+            color: Colors.green[700],
+            size: 28,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Tus ingresos de $_monthLabel',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.green[800],
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'S/ ${total.toStringAsFixed(2)}',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.green[900],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ========= Build =========
   @override
   Widget build(BuildContext context) {
     if (_loading) {
@@ -291,6 +345,11 @@ class _HistorialIngresosScreenState extends State<HistorialIngresosScreen> {
             const SizedBox(height: 48),
             const Center(child: Text('No hay ingresos registrados')),
           ] else ...[
+            // 🔹 Tarjeta de total mensual
+            _buildTotalCard(),
+            const SizedBox(height: 16),
+
+            // 🔹 Secciones (Fechas futuras, Hoy, etc.) usando IngresoCard
             for (final section in [
               'Fechas futuras',
               'Hoy',
