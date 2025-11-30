@@ -187,6 +187,7 @@ class NotificationService {
   }
 
   static Future<void> _scheduleRemindersFromNow(tz.TZDateTime now) async {
+    await _ensureTimezoneInit();
     final rnd = Random();
 
     tz.TZDateTime _randomTimeInWindow({
@@ -194,7 +195,6 @@ class NotificationService {
       required int endHour,
     }) {
       final baseDay = tz.TZDateTime(tz.local, now.year, now.month, now.day);
-
       final hour = startHour + rnd.nextInt(endHour - startHour + 1);
       final minute = rnd.nextInt(60);
 
@@ -207,17 +207,13 @@ class NotificationService {
         minute,
       );
 
-      // Si la hora ya pasó (o está muy cerca), lo movemos a mañana
       if (t.isBefore(now.add(const Duration(minutes: 5)))) {
         t = t.add(const Duration(days: 1));
       }
       return t;
     }
 
-    // Primer recordatorio: mañana / mediodía
-    final tz.TZDateTime t1 = _randomTimeInWindow(startHour: 9, endHour: 12);
-
-    // Segundo recordatorio: tarde / noche, garantizando separación suficiente
+    final t1 = _randomTimeInWindow(startHour: 9, endHour: 12);
     tz.TZDateTime t2;
     do {
       t2 = _randomTimeInWindow(startHour: 18, endHour: 21);
@@ -235,10 +231,6 @@ class NotificationService {
 
     const details = NotificationDetails(android: androidDetails);
 
-    // NOTA: zonedSchedule con estas fechas dispara UNA sola vez cada notificación.
-    // Recalculamos nuevas fechas cada día via refreshDailyRemindersFromPrefs.
-
-    // 1er recordatorio del día
     await _notifications.zonedSchedule(
       _reminderId1,
       'No olvides tus gastos de hoy',
@@ -249,7 +241,6 @@ class NotificationService {
       payload: 'daily_reminder_1',
     );
 
-    // 2º recordatorio del día
     await _notifications.zonedSchedule(
       _reminderId2,
       'Repasa tus gastos del día',
@@ -260,9 +251,6 @@ class NotificationService {
       payload: 'daily_reminder_2',
     );
 
-    debugPrint(
-      '✅ Recordatorios programados: '
-          't1=$t1, t2=$t2 (zona: ${tz.local.name})',
-    );
+    debugPrint('✅ Recordatorios programados: t1=$t1, t2=$t2 (zona: ${tz.local.name})');
   }
 }
