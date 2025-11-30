@@ -27,7 +27,9 @@ import '../../../data/models/category_item.dart';
 import '../../../data/models/subcategory_item.dart';
 
 class HistorialGastosScreen extends StatefulWidget {
-  const HistorialGastosScreen({super.key});
+  final bool showAppBar;
+
+  const HistorialGastosScreen({super.key, this.showAppBar = true});
 
   @override
   State<HistorialGastosScreen> createState() => _HistorialGastosScreenState();
@@ -429,7 +431,7 @@ class _HistorialGastosScreenState extends State<HistorialGastosScreen>
           actions: [
             OutlinedButton(
               style: OutlinedButton.styleFrom(
-                foregroundColor: Colors.black,
+                foregroundColor: Theme.of(context).colorScheme.onSurface,
                 side: BorderSide(color: AppColor.azulFynso),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10),
@@ -498,7 +500,7 @@ class _HistorialGastosScreenState extends State<HistorialGastosScreen>
         borderRadius: BorderRadius.circular(12),
         side: BorderSide(color: AppColor.azulFynso.withOpacity(0.2)),
       ),
-      color: Colors.white,
+      color: Theme.of(context).cardColor,
       items: [
         PopupMenuItem(
           value: 'ver',
@@ -946,7 +948,12 @@ class _HistorialGastosScreenState extends State<HistorialGastosScreen>
                               await viewModel.applyFilter(f);
                               if (mounted) Navigator.pop(context);
                             },
-                            child: const Text('Aplicar'),
+                            child: const Text(
+                              'Aplicar',
+                              style: TextStyle(
+                                color: Colors.white,
+                              ),
+                            ),
                           ),
                         ),
                       ],
@@ -1015,10 +1022,13 @@ class _HistorialGastosScreenState extends State<HistorialGastosScreen>
 
           if (_booting || vm.isLoading) {
             return Scaffold(
-              appBar: AppBar(
+              backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+              appBar: widget.showAppBar
+                  ? AppBar(
                 title: const CustomTextTitle('Historial de gastos'),
                 elevation: 1,
-              ),
+              )
+                  : null,
               body: const Center(child: CircularProgressIndicator()),
               floatingActionButton: MicButton(
                 onPressed: () => Navigator.pushNamed(context, '/grabarGasto'),
@@ -1027,11 +1037,15 @@ class _HistorialGastosScreenState extends State<HistorialGastosScreen>
             );
           }
 
+
           return Scaffold(
-            appBar: AppBar(
+            backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+            appBar: widget.showAppBar
+                ? AppBar(
               title: const CustomTextTitle('Historial de gastos'),
               elevation: 1,
-            ),
+            )
+                : null,
             body: ListView(
               padding: const EdgeInsets.all(16),
               children: [
@@ -1042,12 +1056,17 @@ class _HistorialGastosScreenState extends State<HistorialGastosScreen>
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      border: Border.all(color: Colors.red.shade200),
+                      border: Border.all(
+                        color:
+                            Theme.of(context).colorScheme.error.withOpacity(0.3),
+                      ),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
                       vm.error!,
-                      style: const TextStyle(color: Colors.red),
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.error,
+                      ),
                     ),
                   ),
                 ] else if (vm.transactions.isEmpty) ...[
@@ -1070,8 +1089,8 @@ class _HistorialGastosScreenState extends State<HistorialGastosScreen>
                             fontWeight: FontWeight.bold,
                             fontSize: 14,
                             color: section == 'Fechas futuras'
-                                ? Colors.blue[700]
-                                : Colors.black,
+                                ? AppColor.azulFynso
+                                : Theme.of(context).colorScheme.onSurface,
                           ),
                         ),
                       ),

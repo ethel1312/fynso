@@ -88,7 +88,7 @@ class _TransactionsCardState extends State<TransactionsCard> {
                       ),
                       TextButton(
                         onPressed: () {
-                          Navigator.pushNamed(context, '/historialGastos');
+                          Navigator.pushNamed(context, '/historialMovimientos');
                         },
                         child: const Text("Ver Todo"),
                       ),

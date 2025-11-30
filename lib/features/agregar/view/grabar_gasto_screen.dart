@@ -30,7 +30,8 @@ class _GrabarGastoScreenState extends State<GrabarGastoScreen>
   // UI state
   bool isRecording = false;
   bool isUploading = false;
-  bool isStopping = false; // evita taps múltiples al detener
+  bool isStopping = false; // evita taps múltiples al detener / cancelar / límite
+  bool _isStarting = false; // evita taps múltiples al iniciar la grabación
 
   // Animación del botón
   late AnimationController _controller;
@@ -39,6 +40,7 @@ class _GrabarGastoScreenState extends State<GrabarGastoScreen>
   // Audio
   final FlutterSoundRecorder _recorder = FlutterSoundRecorder();
   String? _audioPath;
+  bool _recorderOpened = false; // control explícito del estado del recorder
 
   // VM
   late final GrabarGastoViewModel _viewModel;
@@ -65,6 +67,9 @@ class _GrabarGastoScreenState extends State<GrabarGastoScreen>
       begin: 1.0,
       end: 1.3,
     ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
+
+    // Mostrar un pequeño tutorial solo la primera vez que se entra a esta pantalla
+    _maybeShowRecordTutorial();
   }
 
   @override
@@ -79,15 +84,40 @@ class _GrabarGastoScreenState extends State<GrabarGastoScreen>
   // ----------------- Helpers -----------------
 
   String _fmtElapsed() {
-    final mm = _recordElapsed.inMinutes
-        .remainder(60)
-        .toString()
-        .padLeft(2, '0');
-    final ss = _recordElapsed.inSeconds
-        .remainder(60)
-        .toString()
-        .padLeft(2, '0');
+    final mm = _recordElapsed.inMinutes.remainder(60).toString().padLeft(2, '0');
+    final ss = _recordElapsed.inSeconds.remainder(60).toString().padLeft(2, '0');
     return '$mm:$ss';
+  }
+
+  Future<void> _maybeShowRecordTutorial() async {
+    final prefs = await SharedPreferences.getInstance();
+    final seen = prefs.getBool('record_tutorial_seen') ?? false;
+    if (seen || !mounted) return;
+
+    await prefs.setBool('record_tutorial_seen', true);
+    if (!mounted) return;
+
+    await showFynsoCardDialog<void>(
+      context,
+      title: 'Graba y sigue con tu día',
+      message:
+      'Presiona el botón, describe tu gasto con tu voz y luego puedes usar otras apps o bloquear tu celular (sin cerrar Fynso por completo). Tu gasto se procesará en segundo plano.',
+      icon: Icons.mic_none_outlined,
+      actions: [
+        ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppColor.azulFynso,
+            foregroundColor: Colors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+            minimumSize: const Size.fromHeight(44),
+          ),
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Entendido'),
+        ),
+      ],
+    );
   }
 
   // ----------------- Permisos -----------------
@@ -139,7 +169,10 @@ class _GrabarGastoScreenState extends State<GrabarGastoScreen>
   // ----------------- Grabación -----------------
 
   Future<void> _openRecorderIfNeeded() async {
-    await _recorder.openRecorder(); // idempotente
+    if (!_recorderOpened) {
+      await _recorder.openRecorder();
+      _recorderOpened = true;
+    }
   }
 
   Future<void> _startRecording() async {
@@ -167,11 +200,14 @@ class _GrabarGastoScreenState extends State<GrabarGastoScreen>
           final dur = (event.duration as Duration?) ?? Duration.zero;
           final db = (event.decibels as double?);
 
+          if (!mounted) return;
+
           setState(() {
             _recordElapsed = dur;
             _lastDb = db;
-            if (db != null && db > -45)
+            if (db != null && db > -45) {
               _voiceDetected = true; // ~habla normal cerca del micro
+            }
           });
 
           if (_recordElapsed.inSeconds >= _maxSeconds && !isStopping) {
@@ -182,59 +218,73 @@ class _GrabarGastoScreenState extends State<GrabarGastoScreen>
 
       await _recorder.startRecorder(toFile: _audioPath, codec: Codec.aacMP4);
 
+      if (!mounted) return;
+
       setState(() {
         isRecording = true;
         _controller.repeat(reverse: true);
       });
 
-      if (!mounted) return;
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text('Grabación iniciada')));
     } catch (e) {
-      setState(() {
-        isRecording = false;
-        _controller.stop();
-      });
-      if (!mounted) return;
+      if (mounted) {
+        setState(() {
+          isRecording = false;
+          _controller.stop();
+        });
+      }
       await _showFynsoError('Error al iniciar grabación: $e');
     }
   }
 
   Future<void> _cancelRecording() async {
-    if (!isRecording || isUploading) return;
+    if (!isRecording || isUploading || isStopping) return;
+
+    isStopping = true;
     try {
       try {
         await _recorder.stopRecorder();
       } catch (_) {}
+
       _recSub?.cancel();
       _recSub = null;
+
       if (_audioPath != null) {
         final f = File(_audioPath!);
-        if (await f.exists()) await f.delete();
+        try {
+          if (await f.exists()) {
+            await f.delete();
+          }
+        } catch (_) {}
       }
+
+      _audioPath = null;
+      _recordElapsed = Duration.zero;
+      _lastDb = null;
+      _voiceDetected = false;
+
+      if (!mounted) return;
+
       setState(() {
         isRecording = false;
         _controller.stop();
-        _audioPath = null;
-        _recordElapsed = Duration.zero;
-        _lastDb = null;
-        _voiceDetected = false;
       });
-      if (!mounted) return;
+
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text('Grabación cancelada')));
     } catch (e) {
-      if (!mounted) return;
       await _showFynsoError('No se pudo cancelar: $e');
     } finally {
-      await _recorder.closeRecorder();
+      await _safeStopAndClose();
+      isStopping = false;
     }
   }
 
   Future<void> _stopRecordingAndUpload() async {
-    if (isStopping) return;
+    // ya se controla reentrancia con isStopping en el botón y en _onMaxDurationReached
     isStopping = true;
 
     try {
@@ -252,7 +302,6 @@ class _GrabarGastoScreenState extends State<GrabarGastoScreen>
 
       // 2) Revisar archivo
       if (_audioPath == null || !File(_audioPath!).existsSync()) {
-        if (!mounted) return;
         await _showFynsoError('No se generó archivo de audio');
         return;
       }
@@ -265,6 +314,7 @@ class _GrabarGastoScreenState extends State<GrabarGastoScreen>
       final likelySilent = !_voiceDetected;
 
       if (tooSmall || tooShort || likelySilent) {
+        if (!mounted) return;
         final choice = await showFynsoCardDialog<String>(
           context,
           title: 'No detectamos audio claro',
@@ -300,11 +350,15 @@ class _GrabarGastoScreenState extends State<GrabarGastoScreen>
         );
 
         if (choice != 'enviar') {
-          if (await f.exists()) await f.delete();
+          try {
+            if (await f.exists()) await f.delete();
+          } catch (_) {}
+
           _audioPath = null;
           _recordElapsed = Duration.zero;
           _lastDb = null;
           _voiceDetected = false;
+
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(content: Text('Listo para regrabar')),
@@ -333,7 +387,6 @@ class _GrabarGastoScreenState extends State<GrabarGastoScreen>
           body: 'No se encontró token de usuario. Vuelve a iniciar sesión.',
         );
 
-        if (!mounted) return;
         await _showFynsoError('No se encontró token de usuario');
         return;
       }
@@ -346,7 +399,6 @@ class _GrabarGastoScreenState extends State<GrabarGastoScreen>
           body: _viewModel.error!,
         );
 
-        if (!mounted) return;
         await _showFynsoError(_viewModel.error!);
         return;
       }
@@ -364,14 +416,17 @@ class _GrabarGastoScreenState extends State<GrabarGastoScreen>
 
           if (!mounted) return;
           final req = TransactionDetailRequest(jwt: jwt, idTransaction: txId);
-          await Navigator.pushNamed(context, '/detalleGasto', arguments: req);
+          await Navigator.pushNamed(
+            context,
+            '/detalleGasto',
+            arguments: req,
+          );
         } else {
           await NotificationService.show(
             title: 'No se pudo registrar tu gasto',
             body: 'No se obtuvo el ID de la transacción.',
           );
 
-          if (!mounted) return;
           await _showFynsoError('No se obtuvo el ID de la transacción');
         }
       } else {
@@ -380,7 +435,6 @@ class _GrabarGastoScreenState extends State<GrabarGastoScreen>
           body: 'No se pudo extraer información del audio.',
         );
 
-        if (!mounted) return;
         await _showFynsoError('No se pudo extraer información del audio');
       }
     } catch (e) {
@@ -389,13 +443,24 @@ class _GrabarGastoScreenState extends State<GrabarGastoScreen>
         body: 'Ocurrió un error inesperado. Intenta de nuevo.',
       );
 
-      if (mounted) {
-        await _showFynsoError(e.toString());
-      }
+      await _showFynsoError(e.toString());
     } finally {
       if (mounted) {
         setState(() => isUploading = false);
       }
+
+      // Limpiar estado de audio
+      try {
+        if (_audioPath != null) {
+          final f = File(_audioPath!);
+          if (await f.exists()) await f.delete();
+        }
+      } catch (_) {}
+      _audioPath = null;
+      _recordElapsed = Duration.zero;
+      _lastDb = null;
+      _voiceDetected = false;
+
       isStopping = false;
       await _safeStopAndClose();
     }
@@ -409,17 +474,27 @@ class _GrabarGastoScreenState extends State<GrabarGastoScreen>
     } catch (_) {}
     _recSub?.cancel();
     _recSub = null;
-    try {
-      await _recorder.closeRecorder();
-    } catch (_) {}
+    if (_recorderOpened) {
+      try {
+        await _recorder.closeRecorder();
+      } catch (_) {}
+      _recorderOpened = false;
+    }
   }
 
   // ----------------- UI Actions -----------------
 
   Future<void> _onMicButtonPressed() async {
-    if (isUploading) return;
+    // Bloquea mientras se está subiendo, deteniendo o iniciando
+    if (isUploading || isStopping || _isStarting) return;
+
     if (!isRecording) {
-      await _startRecording();
+      _isStarting = true;
+      try {
+        await _startRecording();
+      } finally {
+        _isStarting = false;
+      }
     } else {
       await _stopRecordingAndUpload();
     }
@@ -434,16 +509,20 @@ class _GrabarGastoScreenState extends State<GrabarGastoScreen>
         await _recorder.stopRecorder();
       } catch (_) {}
 
+      if (!mounted) return;
+
       setState(() {
         isRecording = false;
         _controller.stop();
       });
 
+      if (!mounted) return;
+
       final choice = await showFynsoCardDialog<String>(
         context,
         title: 'Límite de 30 segundos',
         message:
-            'Llegaste al máximo permitido. ¿Deseas enviar este audio o prefieres regrabarlo?',
+        'Llegaste al máximo permitido. ¿Deseas enviar este audio o prefieres regrabarlo?',
         icon: Icons.timer_outlined,
         actions: [
           OutlinedButton(
@@ -478,14 +557,20 @@ class _GrabarGastoScreenState extends State<GrabarGastoScreen>
         // limpiar archivo y estado
         if (_audioPath != null) {
           final f = File(_audioPath!);
-          if (await f.exists()) {
-            await f.delete();
-          }
+          try {
+            if (await f.exists()) {
+              await f.delete();
+            }
+          } catch (_) {}
         }
         _audioPath = null;
         _recordElapsed = Duration.zero;
         _lastDb = null;
         _voiceDetected = false;
+
+        // cerrar recorder y limpiar subs para dejar todo listo para regrabar
+        await _safeStopAndClose();
+
         if (mounted) {
           ScaffoldMessenger.of(
             context,
@@ -499,6 +584,7 @@ class _GrabarGastoScreenState extends State<GrabarGastoScreen>
 
   // =================== Fynso Dialogs (bonitos) ===================
   Future<void> _showFynsoError(String raw) async {
+    if (!mounted) return;
     final msg = raw.startsWith('Exception: ')
         ? raw.substring('Exception: '.length).trim()
         : raw.trim();
@@ -550,26 +636,23 @@ class _GrabarGastoScreenState extends State<GrabarGastoScreen>
 
               // Botón mic con animación solo cuando graba
               ScaleTransition(
-                scale: isRecording
-                    ? _animation
-                    : const AlwaysStoppedAnimation(1),
+                scale:
+                isRecording ? _animation : const AlwaysStoppedAnimation(1),
                 child: GestureDetector(
                   onTap: _onMicButtonPressed,
                   child: Container(
                     width: 100,
                     height: 100,
                     decoration: BoxDecoration(
-                      color: isRecording
-                          ? Colors.redAccent
-                          : AppColor.azulFynso,
+                      color:
+                      isRecording ? Colors.redAccent : AppColor.azulFynso,
                       shape: BoxShape.circle,
                       boxShadow: [
                         BoxShadow(
-                          color:
-                              (isRecording
-                                      ? Colors.redAccent
-                                      : AppColor.azulFynso)
-                                  .withOpacity(0.4),
+                          color: (isRecording
+                              ? Colors.redAccent
+                              : AppColor.azulFynso)
+                              .withOpacity(0.4),
                           blurRadius: 20,
                           spreadRadius: 3,
                         ),
@@ -578,20 +661,20 @@ class _GrabarGastoScreenState extends State<GrabarGastoScreen>
                     child: Center(
                       child: isUploading
                           ? const SizedBox(
-                              width: 26,
-                              height: 26,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 3,
-                                valueColor: AlwaysStoppedAnimation<Color>(
-                                  Colors.white,
-                                ),
-                              ),
-                            )
+                        width: 26,
+                        height: 26,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 3,
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            Colors.white,
+                          ),
+                        ),
+                      )
                           : Icon(
-                              isRecording ? Icons.stop : Icons.mic,
-                              color: Colors.white,
-                              size: 45,
-                            ),
+                        isRecording ? Icons.stop : Icons.mic,
+                        color: Colors.white,
+                        size: 45,
+                      ),
                     ),
                   ),
                 ),
@@ -601,7 +684,6 @@ class _GrabarGastoScreenState extends State<GrabarGastoScreen>
               if (isRecording)
                 AnimatedPadding(
                   padding: const EdgeInsets.only(top: 36),
-                  // ajusta 36→40/48 si quieres más aire
                   duration: const Duration(milliseconds: 160),
                   curve: Curves.easeOut,
                   child: Text(
@@ -635,7 +717,7 @@ class _GrabarGastoScreenState extends State<GrabarGastoScreen>
                   width: 335,
                   height: 44,
                   child: OutlinedButton.icon(
-                    onPressed: isUploading ? null : _cancelRecording,
+                    onPressed: isUploading || isStopping ? null : _cancelRecording,
                     icon: const Icon(Icons.close),
                     label: const Text('Cancelar'),
                   ),
@@ -649,11 +731,24 @@ class _GrabarGastoScreenState extends State<GrabarGastoScreen>
                 text: 'Ver historial de gastos',
                 backgroundColor: AppColor.azulFynso,
                 icon: const Icon(Icons.history, color: Colors.white),
-                onPressed: isRecording || isUploading
+                onPressed: isRecording || isUploading || isStopping
                     ? null
                     : () async {
-                        await Navigator.pushNamed(context, '/historialGastos');
-                      },
+                  await Navigator.pushNamed(
+                      context, '/historialMovimientos');
+                },
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Mientras procesamos tu audio, puedes usar otras apps o bloquear tu celular (sin cerrar Fynso).',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Theme.of(context)
+                      .colorScheme
+                      .onSurface
+                      .withOpacity(0.45),
+                ),
+                textAlign: TextAlign.center,
               ),
             ],
           ),

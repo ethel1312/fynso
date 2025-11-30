@@ -46,6 +46,9 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
     _firstNameFuture = _loadFirstName();
 
+    // Cada vez que entramos al Home, intentamos refrescar recordatorios
+    NotificationService.refreshDailyRemindersFromPrefs();
+
     // Esperamos al primer frame para mostrar el diálogo (cuando la UI ya está cargada)
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _maybeShowNotifDialog();
@@ -143,6 +146,9 @@ class _HomeScreenState extends State<HomeScreen> {
             }
 
             await prefs.setBool('push_notifications', true);
+
+            // 👉 Programamos/recalculamos recordatorios a partir de hoy
+            await NotificationService.refreshDailyRemindersFromPrefs();
 
             if (!mounted) return;
             ScaffoldMessenger.of(context).showSnackBar(

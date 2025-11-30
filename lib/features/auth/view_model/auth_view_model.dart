@@ -88,4 +88,29 @@ class AuthViewModel extends ChangeNotifier {
     _authResponse = null;
     notifyListeners();
   }
+
+
+  Future<bool> loginWithGoogle(String idToken, String email) async {
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      final result = await _repository.loginWithGoogle(idToken);
+      _authResponse = result;
+
+      if (_authResponse != null && _authResponse!.accessToken.isNotEmpty) {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('jwt_token', _authResponse!.accessToken);
+        await prefs.setString('user_email', email); // guarda email Google
+        print("✅ JWT (Google) guardado: ${_authResponse!.accessToken}");
+        return true;
+      }
+
+      return false;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
 }

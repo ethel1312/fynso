@@ -74,9 +74,9 @@ class _SummaryCardState extends State<SummaryCard> with WidgetsBindingObserver {
   }
 
   Future<void> _openEditLimitSheet(
-    BuildContext context,
-    MonthlySummaryViewModel vm,
-  ) async {
+      BuildContext context,
+      MonthlySummaryViewModel vm,
+      ) async {
     if (vm.isClosed) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -155,69 +155,69 @@ class _SummaryCardState extends State<SummaryCard> with WidgetsBindingObserver {
                                 onPressed: vm2.isSaving
                                     ? null
                                     : () async {
-                                        final raw = controller.text
-                                            .trim()
-                                            .replaceAll(',', '.');
-                                        final value = double.tryParse(raw);
-                                        if (value == null || value <= 0) {
-                                          ScaffoldMessenger.of(
-                                            context,
-                                          ).showSnackBar(
-                                            const SnackBar(
-                                              content: Text(
-                                                'Ingresa un monto válido > 0',
-                                              ),
-                                            ),
-                                          );
-                                          return;
-                                        }
-                                        final jwt2 = await _getJwt();
-                                        if (jwt2 == null ||
-                                            jwt2.isEmpty ||
-                                            vm2.summary == null)
-                                          return;
+                                  final raw = controller.text
+                                      .trim()
+                                      .replaceAll(',', '.');
+                                  final value = double.tryParse(raw);
+                                  if (value == null || value <= 0) {
+                                    ScaffoldMessenger.of(
+                                      context,
+                                    ).showSnackBar(
+                                      const SnackBar(
+                                        content: Text(
+                                          'Ingresa un monto válido > 0',
+                                        ),
+                                      ),
+                                    );
+                                    return;
+                                  }
+                                  final jwt2 = await _getJwt();
+                                  if (jwt2 == null ||
+                                      jwt2.isEmpty ||
+                                      vm2.summary == null) {
+                                    return;
+                                  }
 
-                                        // 1) Guarda límite del mes actual
-                                        final ok = await vm2.setLimit(
-                                          jwt: jwt2,
-                                          anio: vm2.summary!.anio,
-                                          mes: vm2.summary!.mes,
-                                          limite: value,
-                                        );
+                                  // 1) Guarda límite del mes actual
+                                  final ok = await vm2.setLimit(
+                                    jwt: jwt2,
+                                    anio: vm2.summary!.anio,
+                                    mes: vm2.summary!.mes,
+                                    limite: value,
+                                  );
 
-                                        // 2) Guarda predeterminado en BACKEND
-                                        await vm2.setCarryOverPrefs(
-                                          jwt: jwt2,
-                                          enabled: carryOverEnabled,
-                                          defaultLimit: value,
-                                        );
+                                  // 2) Guarda predeterminado en BACKEND
+                                  await vm2.setCarryOverPrefs(
+                                    jwt: jwt2,
+                                    enabled: carryOverEnabled,
+                                    defaultLimit: value,
+                                  );
 
-                                        if (ok && mounted) {
-                                          Navigator.pop(context);
-                                          ScaffoldMessenger.of(
-                                            context,
-                                          ).showSnackBar(
-                                            SnackBar(
-                                              content: Text(
-                                                carryOverEnabled
-                                                    ? 'Límite guardado y marcado como predeterminado'
-                                                    : 'Límite guardado',
-                                              ),
-                                            ),
-                                          );
-                                        } else if (!ok && mounted) {
-                                          ScaffoldMessenger.of(
-                                            context,
-                                          ).showSnackBar(
-                                            SnackBar(
-                                              content: Text(
-                                                vm2.error ??
-                                                    'No se pudo guardar',
-                                              ),
-                                            ),
-                                          );
-                                        }
-                                      },
+                                  if (ok && mounted) {
+                                    Navigator.pop(context);
+                                    ScaffoldMessenger.of(
+                                      context,
+                                    ).showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                          carryOverEnabled
+                                              ? 'Límite guardado y marcado como predeterminado'
+                                              : 'Límite guardado',
+                                        ),
+                                      ),
+                                    );
+                                  } else if (!ok && mounted) {
+                                    ScaffoldMessenger.of(
+                                      context,
+                                    ).showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                          vm2.error ?? 'No se pudo guardar',
+                                        ),
+                                      ),
+                                    );
+                                  }
+                                },
                               ),
                             ),
                             const SizedBox(width: 12),
@@ -225,9 +225,7 @@ class _SummaryCardState extends State<SummaryCard> with WidgetsBindingObserver {
                               child: OutlinedButton(
                                 style: OutlinedButton.styleFrom(
                                   shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(
-                                      12,
-                                    ), // Igual que tu CustomButton
+                                    borderRadius: BorderRadius.circular(12),
                                   ),
                                   side: const BorderSide(
                                     color: AppColor.azulFynso,
@@ -273,14 +271,18 @@ class _SummaryCardState extends State<SummaryCard> with WidgetsBindingObserver {
           final totalTxt = hasData
               ? 'S/. ${vm.gastado.toStringAsFixed(2)}'
               : 'S/. --';
+
+          // AHORA SOLO USAMOS LÍMITE Y GASTOS
           final limiteTxt = hasData && vm.hasBudget
-              ? 'S/. ${vm.presupuestoReal.toStringAsFixed(2)}'
+              ? 'S/. ${vm.limite.toStringAsFixed(2)}'
               : '—';
+
           final restanteTxt = hasData && vm.hasBudget
-              ? 'S/. ${vm.restanteReal.toStringAsFixed(2)}'
+              ? 'S/. ${vm.restante.toStringAsFixed(2)}'
               : '—';
+
           final footerTxt = hasData
-              ? '${vm.percentUsedLabelReal} - ${vm.daysRemaining()} días restantes'
+              ? '${vm.percentUsedLabel} - ${vm.daysRemaining()} días restantes'
               : (vm.isLoading ? 'Cargando...' : (vm.error ?? '—'));
 
           return InkWell(
@@ -296,74 +298,74 @@ class _SummaryCardState extends State<SummaryCard> with WidgetsBindingObserver {
                 padding: const EdgeInsets.all(16),
                 child: vm.isLoading && !hasData
                     ? const SizedBox(
-                        height: 96,
-                        child: Center(
-                          child: CircularProgressIndicator(color: Colors.white),
-                        ),
-                      )
+                  height: 96,
+                  child: Center(
+                    child: CircularProgressIndicator(color: Colors.white),
+                  ),
+                )
                     : Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            "Total Gastado este Mes",
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            totalTxt,
-                            style: const TextStyle(
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  "Presupuesto: $limiteTxt",
-                                  overflow: TextOverflow.ellipsis,
-                                  maxLines: 1,
-                                  style: const TextStyle(color: Colors.white),
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              Text(
-                                "Restante: $restanteTxt",
-                                overflow: TextOverflow.ellipsis,
-                                maxLines: 1,
-                                style: const TextStyle(color: Colors.white),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 8),
-                          LinearProgressIndicator(
-                            value: vm.progressReal,
-                            color: Colors.black,
-                            backgroundColor: Colors.white24,
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            footerTxt,
-                            style: const TextStyle(color: Colors.white70),
-                          ),
-                          if (hasData && !vm.hasBudget) ...[
-                            const SizedBox(height: 8),
-                            const Text(
-                              'Toca para establecer tu presupuesto mensual',
-                              style: TextStyle(
-                                color: Colors.white70,
-                                fontSize: 12,
-                              ),
-                            ),
-                          ],
-                        ],
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      "Total Gastado este Mes",
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
                       ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      totalTxt,
+                      style: const TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            "Presupuesto: $limiteTxt",
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 1,
+                            style: const TextStyle(color: Colors.white),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          "Restante: $restanteTxt",
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
+                          style: const TextStyle(color: Colors.white),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    LinearProgressIndicator(
+                      value: vm.progress,
+                      color: Colors.black,
+                      backgroundColor: Colors.white24,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      footerTxt,
+                      style: const TextStyle(color: Colors.white70),
+                    ),
+                    if (hasData && !vm.hasBudget) ...[
+                      const SizedBox(height: 8),
+                      const Text(
+                        'Toca para establecer tu presupuesto mensual',
+                        style: TextStyle(
+                          color: Colors.white70,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
               ),
             ),
           );
