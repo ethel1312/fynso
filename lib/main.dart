@@ -176,7 +176,7 @@ class MyApp extends StatelessWidget {
               '/rechazado': (context) => const RechazadoScreen(),
               '/pendiente': (context) => const PendienteScreen(),
               '/desgloseCategorias': (context) =>
-                  const CategoryBreakdownScreen(),
+              const CategoryBreakdownScreen(),
               '/terminos': (context) => const TermsScreen(),
             },
 
