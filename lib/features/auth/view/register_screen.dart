@@ -34,23 +34,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
     return emailRegex.hasMatch(email);
   }
 
-  // 🔹 Valida contraseña "segura"
-  //   - mínimo 8 caracteres
-  //   - al menos 1 mayúscula
-  //   - al menos 1 minúscula
-  //   - al menos 1 número
-  //   - al menos 1 carácter especial
-  bool _isStrongPassword(String password) {
-    if (password.length < 8) return false;
-    final hasUppercase = password.contains(RegExp(r'[A-Z]'));
-    final hasLowercase = password.contains(RegExp(r'[a-z]'));
-    final hasDigit = password.contains(RegExp(r'\d'));
-    final hasSpecialChar =
-    password.contains(RegExp(r'[!@#$%^&*(),.?":{}|<>]'));
-
-    return hasUppercase && hasLowercase && hasDigit && hasSpecialChar;
-  }
-
   Future<void> _handleRegister() async {
     final authVM = Provider.of<AuthViewModel>(context, listen: false);
 
@@ -72,13 +55,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
       return;
     }
 
-    if (!_isStrongPassword(password)) {
+    if (password.length < 8) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text(
-            'La contraseña debe tener al menos 8 caracteres, '
-                'una mayúscula, una minúscula, un número y un símbolo.',
-          ),
+          content: Text('La contraseña debe tener al menos 8 caracteres'),
         ),
       );
       return;
