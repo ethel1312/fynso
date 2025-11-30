@@ -70,16 +70,21 @@ class PremiumCard extends StatelessWidget {
                             if (result != null &&
                                 result is String &&
                                 result.startsWith("http")) {
-                              Navigator.push(
+                              // Esperamos a que el usuario vuelva de la pantalla de pago
+                              await Navigator.push(
                                 context,
                                 MaterialPageRoute(
                                   builder: (_) => PagoScreen(url: result),
                                 ),
                               );
+
+                              // Al volver, refrescamos el estado premium
+                              final usuarioPremiumVM =
+                              Provider.of<UsuarioPremiumViewModel>(context, listen: false);
+                              await usuarioPremiumVM.verificarEstadoPremium();
                             } else if (result != null) {
-                              ScaffoldMessenger.of(
-                                context,
-                              ).showSnackBar(SnackBar(content: Text(result)));
+                              ScaffoldMessenger.of(context)
+                                  .showSnackBar(SnackBar(content: Text(result)));
                             }
                           },
                     child: viewModel.isLoading

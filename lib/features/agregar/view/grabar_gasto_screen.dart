@@ -65,6 +65,9 @@ class _GrabarGastoScreenState extends State<GrabarGastoScreen>
       begin: 1.0,
       end: 1.3,
     ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
+
+    // Mostrar un pequeño tutorial solo la primera vez que se entra a esta pantalla
+    _maybeShowRecordTutorial();
   }
 
   @override
@@ -88,6 +91,37 @@ class _GrabarGastoScreenState extends State<GrabarGastoScreen>
         .toString()
         .padLeft(2, '0');
     return '$mm:$ss';
+  }
+
+  Future<void> _maybeShowRecordTutorial() async {
+    final prefs = await SharedPreferences.getInstance();
+    final seen = prefs.getBool('record_tutorial_seen') ?? false;
+    if (seen || !mounted) return;
+
+    await prefs.setBool('record_tutorial_seen', true);
+    if (!mounted) return;
+
+    await showFynsoCardDialog<void>(
+      context,
+      title: 'Graba y sigue con tu día',
+      message:
+          'Presiona el botón, describe tu gasto con tu voz y luego puedes usar otras apps o bloquear tu celular (sin cerrar Fynso por completo). Tu gasto se procesará en segundo plano.',
+      icon: Icons.mic_none_outlined,
+      actions: [
+        ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppColor.azulFynso,
+            foregroundColor: Colors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+            minimumSize: const Size.fromHeight(44),
+          ),
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Entendido'),
+        ),
+      ],
+    );
   }
 
   // ----------------- Permisos -----------------
@@ -654,6 +688,18 @@ class _GrabarGastoScreenState extends State<GrabarGastoScreen>
                     : () async {
                         await Navigator.pushNamed(context, '/historialMovimientos');
                       },
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Mientras procesamos tu audio, puedes usar otras apps o bloquear tu celular (sin cerrar Fynso).',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Theme.of(context)
+                      .colorScheme
+                      .onSurface
+                      .withOpacity(0.45),
+                ),
+                textAlign: TextAlign.center,
               ),
             ],
           ),

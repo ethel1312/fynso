@@ -14,17 +14,20 @@ Future<T?> showFynsoCardDialog<T>(
     context: context,
     barrierDismissible: barrierDismissible,
     builder: (ctx) {
+      final theme = Theme.of(ctx);
+      final colorScheme = theme.colorScheme;
+
       return Dialog(
         insetPadding: const EdgeInsets.symmetric(horizontal: 24),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         child: Container(
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: colorScheme.surface,
             borderRadius: BorderRadius.circular(16),
             border: Border.all(color: AppColor.azulFynso.withOpacity(0.15)),
             boxShadow: [
               BoxShadow(
-                color: AppColor.azulFynso.withOpacity(0.08),
+                color: Colors.black.withOpacity(0.18),
                 blurRadius: 16,
                 offset: const Offset(0, 8),
               ),
@@ -49,10 +52,10 @@ Future<T?> showFynsoCardDialog<T>(
                   Expanded(
                     child: Text(
                       title,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontWeight: FontWeight.w700,
                         fontSize: 16,
-                        color: Colors.black87,
+                        color: colorScheme.onSurface,
                       ),
                     ),
                   ),
@@ -63,9 +66,9 @@ Future<T?> showFynsoCardDialog<T>(
                 alignment: Alignment.centerLeft,
                 child: Text(
                   message,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 14,
-                    color: Colors.black87,
+                    color: colorScheme.onSurface.withOpacity(0.9),
                     height: 1.3,
                   ),
                 ),
