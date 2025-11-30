@@ -273,7 +273,7 @@ class _HistorialIngresosScreenState extends State<HistorialIngresosScreen> {
   Widget build(BuildContext context) {
     if (_loading) {
       return Scaffold(
-        backgroundColor: Colors.white,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         appBar: widget.showAppBar
             ? AppBar(
           title: const CustomTextTitle('Historial de ingresos'),
@@ -287,7 +287,7 @@ class _HistorialIngresosScreenState extends State<HistorialIngresosScreen> {
     final grouped = _groupBySection(_items);
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: widget.showAppBar
           ? AppBar(
         title: const CustomTextTitle('Historial de ingresos'),
@@ -333,12 +333,16 @@ class _HistorialIngresosScreenState extends State<HistorialIngresosScreen> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                border: Border.all(color: Colors.red.shade200),
+                border: Border.all(
+                  color: Theme.of(context).colorScheme.error.withOpacity(0.3),
+                ),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Text(
                 _error!,
-                style: const TextStyle(color: Colors.red),
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.error,
+                ),
               ),
             ),
           ] else if (_items.isEmpty) ...[
@@ -366,8 +370,8 @@ class _HistorialIngresosScreenState extends State<HistorialIngresosScreen> {
                       fontWeight: FontWeight.bold,
                       fontSize: 14,
                       color: section == 'Fechas futuras'
-                          ? Colors.blue[700]
-                          : Colors.black,
+                          ? AppColor.azulFynso
+                          : Theme.of(context).colorScheme.onSurface,
                     ),
                   ),
                 ),

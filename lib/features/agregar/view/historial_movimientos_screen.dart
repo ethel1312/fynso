@@ -13,19 +13,19 @@ class HistorialMovimientosScreen extends StatelessWidget {
     return DefaultTabController(
       length: 2,
       child: Scaffold(
-        backgroundColor: Colors.white,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         appBar: AppBar(
           title: const CustomTextTitle('Historial'),
-          backgroundColor: Colors.white,
           elevation: 0, // igual que en RegistrarMovimientosScreen
-          bottom: const TabBar(
+          bottom: TabBar(
             labelColor: AppColor.azulFynso,
-            unselectedLabelColor: Colors.grey,
+            unselectedLabelColor:
+                Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
             indicatorColor: AppColor.azulFynso,
             indicatorWeight: 4,
             indicatorSize: TabBarIndicatorSize.tab,
             dividerColor: Colors.transparent,
-            tabs: [
+            tabs: const [
               Tab(text: "Gastos"),
               Tab(text: "Ingresos"),
             ],

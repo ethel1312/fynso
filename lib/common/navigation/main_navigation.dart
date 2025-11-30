@@ -36,11 +36,12 @@ class _MainNavigationState extends State<MainNavigation> {
     return Scaffold(
       body: _pages[_selectedIndex],
       bottomNavigationBar: Container(
-        decoration: const BoxDecoration(
-          color: Colors.white,
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surface,
           border: Border(
             top: BorderSide(
-              color: Color(0xFFE0E0E0), // Línea superior sutil
+              // Mismo color que el fondo para que la línea sea casi invisible
+              color: Theme.of(context).colorScheme.surface,
               width: 1,
             ),
           ),
@@ -52,7 +53,8 @@ class _MainNavigationState extends State<MainNavigation> {
           onTap: _onItemTapped,
           type: BottomNavigationBarType.fixed,
           selectedItemColor: AppColor.azulFynso,
-          unselectedItemColor: Colors.grey,
+          unselectedItemColor:
+              Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
           showUnselectedLabels: true,
           items: const [
             BottomNavigationBarItem(

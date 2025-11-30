@@ -76,9 +76,9 @@ class _MonthlySpendingCardState extends State<MonthlySpendingCard> {
           final isUp =
               (last?.trend == 'sube' || last?.trend == 'sube_desde_cero');
           final isDown = (last?.trend == 'baja');
-          final indicatorColor = isUp
-              ? const Color(0xFF2E7D32)
-              : (isDown ? Colors.redAccent : Colors.black54);
+          final indicatorColor = isDown
+              ? const Color(0xFF2E7D32) // Verde cuando baja
+              : (isUp ? Colors.redAccent : Colors.black54); // Rojo cuando sube
 
           return Card(
             shape: RoundedRectangleBorder(
@@ -191,9 +191,9 @@ class _MonthlySpendingCardState extends State<MonthlySpendingCard> {
                         ),
                         decoration: BoxDecoration(
                           color: isUp
-                              ? const Color(0xFFE5F6E5)
+                              ? const Color(0xFFFFE5E5)
                               : (isDown
-                                    ? const Color(0xFFFFE5E5)
+                                    ? const Color(0xFFE5F6E5)
                                     : Colors.grey[200]),
                           borderRadius: BorderRadius.circular(12),
                         ),
