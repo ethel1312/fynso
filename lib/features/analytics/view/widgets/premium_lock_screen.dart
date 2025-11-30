@@ -33,12 +33,12 @@ class PremiumLockScreen extends StatelessWidget {
             const SizedBox(height: 32),
 
             // Título
-            const Text(
+            Text(
               'Contenido Premium',
               style: TextStyle(
                 fontSize: 28,
                 fontWeight: FontWeight.bold,
-                color: Colors.black87,
+                color: Theme.of(context).colorScheme.onSurface,
               ),
               textAlign: TextAlign.center,
             ),
@@ -50,7 +50,8 @@ class PremiumLockScreen extends StatelessWidget {
               'Las analíticas avanzadas están disponibles exclusivamente para usuarios Premium.',
               style: TextStyle(
                 fontSize: 16,
-                color: Colors.grey[600],
+                color:
+                    Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
                 height: 1.5,
               ),
               textAlign: TextAlign.center,
@@ -69,21 +70,25 @@ class PremiumLockScreen extends StatelessWidget {
                 child: Column(
                   children: [
                     _buildBenefit(
+                      context,
                       icon: Icons.analytics_outlined,
                       text: 'Reportes detallados de gastos',
                     ),
                     const SizedBox(height: 12),
                     _buildBenefit(
+                      context,
                       icon: Icons.insights_outlined,
                       text: 'Recomendaciones con IA',
                     ),
                     const SizedBox(height: 12),
                     _buildBenefit(
+                      context,
                       icon: Icons.trending_up_rounded,
                       text: 'Tendencias y predicciones',
                     ),
                     const SizedBox(height: 12),
                     _buildBenefit(
+                      context,
                       icon: Icons.category_outlined,
                       text: 'Análisis por categorías',
                     ),
@@ -124,7 +129,8 @@ class PremiumLockScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildBenefit({required IconData icon, required String text}) {
+  Widget _buildBenefit(BuildContext context,
+      {required IconData icon, required String text}) {
     return Row(
       children: [
         Icon(icon, color: Colors.amber[700], size: 24),
@@ -132,9 +138,9 @@ class PremiumLockScreen extends StatelessWidget {
         Expanded(
           child: Text(
             text,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 15,
-              color: Colors.black87,
+              color: Theme.of(context).colorScheme.onSurface,
             ),
           ),
         ),

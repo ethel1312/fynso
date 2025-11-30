@@ -5,6 +5,7 @@ import 'package:fynso/features/analytics/view/widgets/category_status_cards_widg
 import 'package:fynso/features/analytics/view/widgets/monthly_spending_card.dart';
 import 'package:fynso/features/analytics/view/widgets/recommendations_card.dart';
 import 'package:fynso/features/analytics/view/widgets/premium_lock_screen.dart';
+import 'package:fynso/features/settings/view/settings_screen.dart';
 import 'package:fynso/data/repositories/premium_repository.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -62,12 +63,12 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
           : !_isPremium
           ? PremiumLockScreen(
               onUpgradePressed: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text(
-                      'Ve a la pestaña de Configuración para actualizar a Premium',
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (ctx) => const SettingsScreen(
+                      scrollToPremium: true,
                     ),
-                    duration: Duration(seconds: 3),
                   ),
                 );
               },
